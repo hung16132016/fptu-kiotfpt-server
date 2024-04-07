@@ -7,16 +7,17 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import com.kiotfpt.model.Account;
+import com.kiotfpt.model.Order;
 import com.kiotfpt.model.Section;
 import com.kiotfpt.model.Shop;
-import com.kiotfpt.model.Transaction;
-
 
 @Repository
-public interface TransactionRepository extends JpaRepository<Transaction, Integer>{
+public interface OrderRepository extends JpaRepository<Order, Integer> {
 //	@Query(value = "SELECT * FROM shop WHERE MONTH(date) = :month", nativeQuery = true)
-	List<Transaction> findAllByAccount(Account acc);
+	List<Order> findAllByAccount(Account acc);
+
 //	List<Transaction> findByMonth (int month);
-	List<Transaction> findAllByShop(Shop shop);
-	Optional<Transaction> findBySection(Section order);
+	List<Order> findAllByShop(Shop shop);
+
+	Optional<Order> findBySection(Section order);
 }

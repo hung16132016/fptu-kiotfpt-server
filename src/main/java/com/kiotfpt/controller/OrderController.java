@@ -3,40 +3,67 @@ package com.kiotfpt.controller;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kiotfpt.model.ResponseObject;
-import com.kiotfpt.service.SectionService;
-
+import com.kiotfpt.service.OrderService;
 
 @CrossOrigin(origins = "http://localhost:8080")
 @RestController
-@RequestMapping(path = "/api/v1/order")
+@RequestMapping(path = "/api/v1/transaction")
 public class OrderController {
 
 	@Autowired
-	private SectionService service;
+	private OrderService service;
 
 	@GetMapping("/get-by")
-	public ResponseEntity<ResponseObject> getAllSubOrder(@RequestParam(name= "shop_id") int shop_id) {
-		return service.getByShopID(shop_id);
+	public ResponseEntity<ResponseObject> getOrder(
+			@RequestParam(name = "shop-id", required = false) Integer shopID,
+			@RequestParam(name = "account-id", required = false) Integer accountID) {
+		if (shopID != null && accountID != null) {
+			// Handle the case when both parameters are provided
+			// You can return an appropriate response or throw an exception.
+			// For example:
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+					.body(new ResponseObject(false, HttpStatus.BAD_REQUEST.toString().split(" ")[0],
+							"Only one of shop-id or account-id should be provided", ""));
+		} else if (shopID != null) {
+			return service.getOrderByShopID(shopID);
+		} else if (accountID != null) {
+			return service.getOrderByAccountID(accountID);
+		} else {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
+					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Invalid request parameters", ""));
+		}
 	}
 
-//	@PostMapping("/create")
-//	public ResponseEntity<ResponseObject> createSubOrder(@RequestBody Map<String, String> map) {
-//		return service.createOrder(map);
+//	@PutMapping("/update")
+//	public ResponseEntity<ResponseObject> updateOrder(@RequestBody Order transaction) {
+//		return service.updateOrder(transaction);
 //	}
- 
-	@PutMapping("/update-status/{id}")
-	public ResponseEntity<ResponseObject> updateSubOrder(@PathVariable("id") int order_id, @RequestBody Map<String, String> map) {
-		return service.updateStatusOrder(order_id, map);
+
+	@PostMapping("/create")
+	public ResponseEntity<ResponseObject> createOrder(@RequestBody Map<String, String> map) {
+		return service.createOrder(map);
 	}
+
+	@GetMapping("/get-current")
+	public ResponseEntity<ResponseObject> getCurrentOrders(
+			@RequestParam(name = "account_id", required = true) Integer id) {
+		return service.getCurrentOrders(id);
+	}
+
+//	@PostMapping("/payment/check")
+//	public ResponseEntity<ResponseObject> checkOtpPayment(@RequestBody Map<String, String> map,
+//			HttpServletRequest request) {
+//		return service.checkOtpPayment(map, request);
+//	}
 }

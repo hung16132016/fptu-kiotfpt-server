@@ -18,20 +18,20 @@ import com.kiotfpt.model.Product;
 import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.model.Shop;
 import com.kiotfpt.model.Status;
-import com.kiotfpt.model.Transaction;
+import com.kiotfpt.model.Order;
 import com.kiotfpt.repository.AccountRepository;
 import com.kiotfpt.repository.SectionRepository;
 import com.kiotfpt.repository.ProductRepository;
 import com.kiotfpt.repository.ShopRepository;
 import com.kiotfpt.repository.StatusRepository;
-import com.kiotfpt.repository.TransactionRepository;
+import com.kiotfpt.repository.OrderRepository;
 import com.kiotfpt.utils.JsonReader;
 
 @Service
-public class TransactionService {
+public class OrderService {
 
 	@Autowired
-	private TransactionRepository repository;
+	private OrderRepository repository;
 
 	@Autowired
 	private ShopRepository shopRepository;
@@ -54,25 +54,25 @@ public class TransactionService {
 
 	HashMap<String, String> responseMessage = new JsonReader().readJsonFile();
 
-	public ResponseEntity<ResponseObject> getTransactionByAccountID(int account_id) {
+	public ResponseEntity<ResponseObject> getOrderByAccountID(int account_id) {
 		Optional<Account> acc = accountRepository.findById(account_id);
 		if (!acc.isEmpty()) {
-			List<Transaction> transactions = repository.findAllByAccount(acc.get());
+			List<Order> transactions = repository.findAllByAccount(acc.get());
 			if (!transactions.isEmpty()) {
-				List<Transaction> returnListTransactions = new ArrayList<>(); // List to store products with status not 2, 3, or
+				List<Order> returnListOrders = new ArrayList<>(); // List to store products with status not 2, 3, or
 																		// 4
 				// Iterate through foundProduct list to check status
-				for (Transaction transaction : transactions) {
+				for (Order transaction : transactions) {
 					int status = transaction.getSection().getStatus().getStatus_id();
 					// Check if status is not 2, 3, or 4
 					if (status != 1 && status != 2 && status != 3 && status != 4) {
-						returnListTransactions.add(transaction);
+						returnListOrders.add(transaction);
 					}
 				}
-				if (!returnListTransactions.isEmpty()) {
+				if (!returnListOrders.isEmpty()) {
 					return ResponseEntity.status(HttpStatus.OK)
 							.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
-									responseMessage.get("getProductByShopIdSuccess"), returnListTransactions));
+									responseMessage.get("getProductByShopIdSuccess"), returnListOrders));
 				} else {
 					return ResponseEntity.status(HttpStatus.NOT_FOUND)
 							.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
@@ -88,9 +88,9 @@ public class TransactionService {
 						responseMessage.get("accountNotFound"), ""));
 	}
 
-	public ResponseEntity<ResponseObject> getTransactionByShopID(int shop_id) {
+	public ResponseEntity<ResponseObject> getOrderByShopID(int shop_id) {
 		Optional<Shop> shop = shopRepository.findById(shop_id);
-		List<Transaction> transactions = repository.findAllByShop(shop.get());
+		List<Order> transactions = repository.findAllByShop(shop.get());
 		return !transactions.isEmpty()
 				? ResponseEntity.status(HttpStatus.OK)
 						.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
@@ -99,25 +99,25 @@ public class TransactionService {
 						HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("transactionNotFound"), ""));
 	}
 	
-	public ResponseEntity<ResponseObject> getCurrentTransactions(int account_id) {
+	public ResponseEntity<ResponseObject> getCurrentOrders(int account_id) {
 		Optional<Account> acc = accountRepository.findById(account_id);
 		if (!acc.isEmpty()) {
-			List<Transaction> transactions = repository.findAllByAccount(acc.get());
+			List<Order> transactions = repository.findAllByAccount(acc.get());
 			if (!transactions.isEmpty()) {
-				List<Transaction> returnListTransactions = new ArrayList<>(); // List to store products with status not 2, 3, or
+				List<Order> returnListOrders = new ArrayList<>(); // List to store products with status not 2, 3, or
 																		// 4
 				// Iterate through foundProduct list to check status
-				for (Transaction transaction : transactions) {
+				for (Order transaction : transactions) {
 					int status = transaction.getSection().getStatus().getStatus_id();
 					// Check if status is not 2, 3, or 4
 					if (status == 1 || status == 2 || status == 3 || status == 4) {
-						returnListTransactions.add(transaction);
+						returnListOrders.add(transaction);
 					}
 				}
-				if (!returnListTransactions.isEmpty()) {
+				if (!returnListOrders.isEmpty()) {
 					return ResponseEntity.status(HttpStatus.OK)
 							.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
-									responseMessage.get("getProductByShopIdSuccess"), returnListTransactions));
+									responseMessage.get("getProductByShopIdSuccess"), returnListOrders));
 				} else {
 					return ResponseEntity.status(HttpStatus.NOT_FOUND)
 							.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
@@ -133,27 +133,27 @@ public class TransactionService {
 						responseMessage.get("accountNotFound"), ""));
 	}
 
-//	public ResponseEntity<ResponseObject> updateTransaction(Transaction newTransaction) {
-//		Transaction updateTransaction = repository.findById(newTransaction.getID()).map(transaction -> {
-//			transaction.setTotal(newTransaction.getTotal());
-//			transaction.setDesciption(newTransaction.getDesciption());
-//			transaction.setStatus(newTransaction.getStatus());
-//			transaction.setTime(newTransaction.getTime());
+//	public ResponseEntity<ResponseObject> updateOrder(Order newOrder) {
+//		Order updateOrder = repository.findById(newOrder.getID()).map(transaction -> {
+//			transaction.setTotal(newOrder.getTotal());
+//			transaction.setDesciption(newOrder.getDesciption());
+//			transaction.setStatus(newOrder.getStatus());
+//			transaction.setTime(newOrder.getTime());
 //			return repository.save(transaction);
 //		}).orElseGet(() -> {
 //			return null;
 //		});
-//		if (updateTransaction == null) {
+//		if (updateOrder == null) {
 //			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
 //					HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("transactionNotFound"), ""));
 //		} else {
 //			return ResponseEntity.status(HttpStatus.OK)
 //					.body(new ResponseObject(false, HttpStatus.OK.toString().split(" ")[0],
-//							responseMessage.get("updateTransactionSuccess"), updateTransaction));
+//							responseMessage.get("updateOrderSuccess"), updateOrder));
 //		}
 //	}
 //
-	public ResponseEntity<ResponseObject> createTransaction(Map<String, String> map) {
+	public ResponseEntity<ResponseObject> createOrder(Map<String, String> map) {
 
 		Map<String, String> errors = new HashMap<>();
 		Optional<Account> account = accountRepository.findById(Integer.parseInt(map.get("account_id")));
@@ -174,14 +174,14 @@ public class TransactionService {
 			section.setStatus(status);
 			orderRepository.save(section);
 
-			Transaction transaction = new Transaction();
+			Order transaction = new Order();
 			Date date = new Date();
-			transaction.setTransaction_time_init(date);
-			transaction.setTransaction_time_complete(null);
+			transaction.setOrder_time_init(date);
+			transaction.setOrder_time_complete(null);
 			transaction.setAccount(account.get());
-			transaction.setTransaction_desc(product.get().getProduct_description());
+			transaction.setOrder_desc(product.get().getProduct_description());
 			transaction.setShop(product.get().getShop());
-			transaction.setTransaction_total(product.get().getProduct_price());
+			transaction.setOrder_total(product.get().getProduct_price());
 			transaction.setSection(section);
 
 			repository.save(transaction);
@@ -203,7 +203,7 @@ public class TransactionService {
 	}
 //
 //	public ResponseEntity<ResponseObject> checkOtpPayment(Map<String, String> obj, HttpServletRequest request) {
-//		Optional<Transaction> transaction = repository.findById(Integer.parseInt(obj.get("transaction_id")));
+//		Optional<Order> transaction = repository.findById(Integer.parseInt(obj.get("transaction_id")));
 //		if (transaction.isPresent()) {
 //			Optional<Account> acc = accountRepository.findById((transaction.get().getAccount().getID()));
 //			if (acc.isPresent()) {
@@ -261,6 +261,6 @@ public class TransactionService {
 //		} else
 //			return ResponseEntity.status(HttpStatus.NOT_FOUND)
 //					.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
-//							responseMessage.get("notFoundTransaction") + obj.get("transaction_id"), ""));
+//							responseMessage.get("notFoundOrder") + obj.get("transaction_id"), ""));
 //	}
 }

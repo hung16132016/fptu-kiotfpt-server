@@ -49,29 +49,35 @@ public class Shop {
 
 	@OneToMany(mappedBy = "shop", cascade = CascadeType.ALL)
 	@JsonIgnore
-	private Collection<Transaction> transactions;
-
-	@OneToMany(mappedBy = "shop", cascade = CascadeType.ALL)
-	@JsonIgnore
 	private Collection<Section> orders;
 
 	@OneToMany(mappedBy = "shop", cascade = CascadeType.ALL)
 	@JsonIgnore
+	private Collection<Section> sections;
+
+	@OneToMany(mappedBy = "shop", cascade = CascadeType.ALL)
+	@JsonIgnore
 	private Collection<Product> products;
+	
+	@OneToMany(mappedBy = "shop", cascade = CascadeType.ALL)
+	@JsonIgnore
+	private Collection<Transaction> transactions;
 
 	public Shop() {
 		super();
 	}
 
-	public Shop(String shop_name, String shop_address, String shop_email, String shop_phone, String shop_thumbnail,
-			Account account) {
+	public Shop(int shop_id, String shop_name, String shop_address, String shop_email, String shop_phone,
+			String shop_thumbnail, Account account, Address address) {
 		super();
+		this.shop_id = shop_id;
 		this.shop_name = shop_name;
 		this.shop_address = shop_address;
 		this.shop_email = shop_email;
 		this.shop_phone = shop_phone;
 		this.shop_thumbnail = shop_thumbnail;
 		this.account = account;
+		this.address = address;
 	}
 
 	public int getShop_id() {
@@ -130,12 +136,12 @@ public class Shop {
 		this.account = account;
 	}
 
-	public Collection<Transaction> getTransactions() {
-		return transactions;
+	public Address getAddress() {
+		return address;
 	}
 
-	public void setTransactions(Collection<Transaction> transactions) {
-		this.transactions = transactions;
+	public void setAddress(Address address) {
+		this.address = address;
 	}
 
 	public Collection<Section> getOrders() {
@@ -146,6 +152,14 @@ public class Shop {
 		this.orders = orders;
 	}
 
+	public Collection<Section> getSections() {
+		return sections;
+	}
+
+	public void setSections(Collection<Section> sections) {
+		this.sections = sections;
+	}
+
 	public Collection<Product> getProducts() {
 		return products;
 	}
@@ -154,12 +168,12 @@ public class Shop {
 		this.products = products;
 	}
 
-	public Address getAddress() {
-		return address;
+	public Collection<Transaction> getTransactions() {
+		return transactions;
 	}
 
-	public void setAddress(Address address) {
-		this.address = address;
+	public void setTransactions(Collection<Transaction> transactions) {
+		this.transactions = transactions;
 	}
-
+	
 }

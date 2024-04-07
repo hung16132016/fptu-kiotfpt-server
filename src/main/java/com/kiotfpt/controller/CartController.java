@@ -27,7 +27,7 @@ public class CartController {
 	@GetMapping("")
 	public ResponseEntity<ResponseObject> getOrderByAccount(@RequestParam(value = "accountID", required = false) int id,
 			HttpServletRequest request) {
-		return service.getCartByAccount(id, request);
+		return service.getCartByAccount(id);
 	}
 //
 //	@PostMapping("/create")

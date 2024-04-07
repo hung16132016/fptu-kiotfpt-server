@@ -39,11 +39,15 @@ public class Account {
 
 	@OneToMany(mappedBy = "account", cascade = CascadeType.ALL)
 	@JsonIgnore
-	private Collection<Transaction> transactions;
+	private Collection<Order> orders;
 
 	@OneToMany(mappedBy = "account", cascade = CascadeType.ALL)
 	@JsonIgnore
 	private Collection<Section> sections;
+	
+	@OneToMany(mappedBy = "account", cascade = CascadeType.ALL)
+	@JsonIgnore
+	private Collection<Transaction> transactions;
 
 	public Account() {
 		super();
@@ -97,12 +101,12 @@ public class Account {
 		this.status = status;
 	}
 
-	public Collection<Transaction> getTransactions() {
-		return transactions;
+	public Collection<Order> getOrders() {
+		return orders;
 	}
 
-	public void setTransactions(Collection<Transaction> transactions) {
-		this.transactions = transactions;
+	public void setOrders(Collection<Order> orders) {
+		this.orders = orders;
 	}
 
 	public Collection<Section> getSections() {
@@ -113,4 +117,11 @@ public class Account {
 		this.sections = sections;
 	}
 
+	public Collection<Transaction> getTransactions() {
+		return transactions;
+	}
+
+	public void setTransactions(Collection<Transaction> transactions) {
+		this.transactions = transactions;
+	}
 }

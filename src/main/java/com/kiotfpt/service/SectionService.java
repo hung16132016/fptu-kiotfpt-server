@@ -11,15 +11,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import com.kiotfpt.model.Section;
+import com.kiotfpt.model.Order;
 import com.kiotfpt.model.ResponseObject;
+import com.kiotfpt.model.Section;
 import com.kiotfpt.model.Shop;
 import com.kiotfpt.model.Status;
-import com.kiotfpt.model.Transaction;
+import com.kiotfpt.repository.OrderRepository;
 import com.kiotfpt.repository.SectionRepository;
 import com.kiotfpt.repository.ShopRepository;
 import com.kiotfpt.repository.StatusRepository;
-import com.kiotfpt.repository.TransactionRepository;
 import com.kiotfpt.utils.JsonReader;
 
 @Service
@@ -34,7 +34,7 @@ public class SectionService {
 	private StatusRepository statusRepository;
 	
 	@Autowired
-	private TransactionRepository transactionRepository;
+	private OrderRepository transactionRepository;
 
 	HashMap<String, String> responseMessage = new JsonReader().readJsonFile();
 
@@ -59,8 +59,8 @@ public class SectionService {
 //	}
 
 	public ResponseEntity<ResponseObject> updateStatusOrder(int order_id, Map<String, String> map) {
-		Optional<Section> order = repository.findById(order_id);
-		if (!order.isPresent()) {
+		Optional<Section> section = repository.findById(order_id);
+		if (!section.isPresent()) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
 					HttpStatus.NOT_FOUND.toString().split(" ")[0], "Order not found", new int[0]));
 		}
@@ -69,18 +69,18 @@ public class SectionService {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
 					HttpStatus.NOT_FOUND.toString().split(" ")[0], "Status not found", new int[0]));
 		}
-		if (status.get().getStatus_value().equals("Delivered") || status.get().getStatus_value().equals("Cancelled")) {
-			Optional<Transaction> transaction = transactionRepository.findBySection(order.get());
+		if (status.get().getValue().equals("Delivered") || status.get().getValue().equals("Cancelled")) {
+			Optional<Order> order = transactionRepository.findBySection(section.get());
 			Date date = new Date();
-			transaction.get().setTransaction_time_complete(date);
-			transactionRepository.save(transaction.get());
+			order.get().setOrder_time_complete(date);
+			transactionRepository.save(order.get());
 		}
 		
-		order.get().setStatus(status.get());
+		section.get().setStatus(status.get());
 
 		return ResponseEntity.status(HttpStatus.OK)
 				.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Order status is updated successfully",
-						repository.save(order.get())));
+						repository.save(section.get())));
 	}
 
 	public ResponseEntity<ResponseObject> getByShopID(int shop_id) {
