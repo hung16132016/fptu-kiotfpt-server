@@ -62,11 +62,10 @@ public class Product {
 		super();
 	}
 
-	public Product(int product_id, String product_name, String product_description, float product_price,
+	public Product(String product_name, String product_description, float product_price,
 			boolean product_best_seller, boolean product_popular, String product_variants, Status status,
 			Category category, List<Product_Thumbnail> thumbnail) {
 		super();
-		this.product_id = product_id;
 		this.product_name = product_name;
 		this.product_description = product_description;
 		this.product_price = product_price;
@@ -80,10 +79,6 @@ public class Product {
 
 	public int getProduct_id() {
 		return product_id;
-	}
-
-	public void setProduct_id(int product_id) {
-		this.product_id = product_id;
 	}
 
 	public String getProduct_name() {

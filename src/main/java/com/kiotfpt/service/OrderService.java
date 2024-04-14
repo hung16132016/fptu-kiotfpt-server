@@ -13,18 +13,20 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.kiotfpt.model.Account;
-import com.kiotfpt.model.Section;
+import com.kiotfpt.model.Order;
 import com.kiotfpt.model.Product;
 import com.kiotfpt.model.ResponseObject;
+import com.kiotfpt.model.Section;
 import com.kiotfpt.model.Shop;
 import com.kiotfpt.model.Status;
-import com.kiotfpt.model.Order;
+import com.kiotfpt.model.Transaction;
 import com.kiotfpt.repository.AccountRepository;
-import com.kiotfpt.repository.SectionRepository;
+import com.kiotfpt.repository.OrderRepository;
 import com.kiotfpt.repository.ProductRepository;
+import com.kiotfpt.repository.SectionRepository;
 import com.kiotfpt.repository.ShopRepository;
 import com.kiotfpt.repository.StatusRepository;
-import com.kiotfpt.repository.OrderRepository;
+import com.kiotfpt.repository.TransactionRepository;
 import com.kiotfpt.utils.JsonReader;
 
 @Service
@@ -37,7 +39,7 @@ public class OrderService {
 	private ShopRepository shopRepository;
 
 	@Autowired
-	private SectionRepository orderRepository;
+	private SectionRepository sectionRepository;
 
 	@Autowired
 	private AccountRepository accountRepository;
@@ -47,6 +49,9 @@ public class OrderService {
 
 	@Autowired
 	private ProductRepository productRepository;
+	
+	@Autowired
+	private TransactionRepository transactionRepository;
 //	@Autowired
 //	private JavaMailSender mailSender;
 
@@ -172,19 +177,19 @@ public class OrderService {
 			section.setSection_total(product.get().getProduct_price());
 			section.setShop(product.get().getShop());
 			section.setStatus(status);
-			orderRepository.save(section);
+			sectionRepository.save(section);
 
-			Order transaction = new Order();
+			Order order = new Order();
 			Date date = new Date();
-			transaction.setOrder_time_init(date);
-			transaction.setOrder_time_complete(null);
-			transaction.setAccount(account.get());
-			transaction.setOrder_desc(product.get().getProduct_description());
-			transaction.setShop(product.get().getShop());
-			transaction.setOrder_total(product.get().getProduct_price());
-			transaction.setSection(section);
+			order.setOrder_time_init(date);
+			order.setOrder_time_complete(null);
+			order.setAccount(account.get());
+			order.setOrder_desc(product.get().getProduct_description());
+			order.setShop(product.get().getShop());
+			order.setOrder_total(product.get().getProduct_price());
+			order.setSection(section);
 
-			repository.save(transaction);
+			repository.save(order);
 //					MimeMessage message = mailSender.createMimeMessage();
 //					message.setFrom(new InternetAddress("mappe.help@gmail.com"));
 //					message.setRecipients(MimeMessage.RecipientType.TO, account.get().getAccountProfile().getEmail());
@@ -201,6 +206,26 @@ public class OrderService {
 					.body(new ResponseObject(false, HttpStatus.BAD_REQUEST.toString().split(" ")[0],
 							responseMessage.get("paymentFailed"), errors.values()));
 	}
+	
+    public void updateOrderStatus(Order order, Status newStatus) {
+        order.setStatus(newStatus);
+        repository.save(order);
+
+        if (newStatus.getValue().equals("Completed") && order.getStatus().getValue().equals("Processing")) {
+            createTransaction(order);
+        }
+    }
+
+    private void createTransaction(Order order) {
+        Transaction transaction = new Transaction();
+        transaction.setTransaction_time_init(order.getOrder_time_init());
+        transaction.setTransaction_time_complete(new Date());
+        transaction.setTransaction_desc(order.getOrder_desc());
+        transaction.setTransaction_total(order.getOrder_total());
+        transaction.setShop(order.getShop());
+        transaction.setAccount(order.getAccount());
+        transactionRepository.save(transaction);
+    }
 //
 //	public ResponseEntity<ResponseObject> checkOtpPayment(Map<String, String> obj, HttpServletRequest request) {
 //		Optional<Order> transaction = repository.findById(Integer.parseInt(obj.get("transaction_id")));

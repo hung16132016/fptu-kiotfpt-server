@@ -43,10 +43,9 @@ public class Transaction {
 		super();
 	}
 
-	public Transaction(int transaction_id, Date transaction_time_init, Date transaction_time_complete,
+	public Transaction(Date transaction_time_init, Date transaction_time_complete,
 			String transaction_desc, float transaction_total, Shop shop, Account account) {
 		super();
-		this.transaction_id = transaction_id;
 		this.transaction_time_init = transaction_time_init;
 		this.transaction_time_complete = transaction_time_complete;
 		this.transaction_desc = transaction_desc;

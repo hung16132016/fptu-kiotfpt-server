@@ -34,7 +34,7 @@ public class SectionService {
 	private StatusRepository statusRepository;
 	
 	@Autowired
-	private OrderRepository transactionRepository;
+	private OrderRepository orderRepository;
 
 	HashMap<String, String> responseMessage = new JsonReader().readJsonFile();
 
@@ -70,10 +70,10 @@ public class SectionService {
 					HttpStatus.NOT_FOUND.toString().split(" ")[0], "Status not found", new int[0]));
 		}
 		if (status.get().getValue().equals("Delivered") || status.get().getValue().equals("Cancelled")) {
-			Optional<Order> order = transactionRepository.findBySection(section.get());
+			Optional<Order> order = orderRepository.findBySection(section.get());
 			Date date = new Date();
 			order.get().setOrder_time_complete(date);
-			transactionRepository.save(order.get());
+			orderRepository.save(order.get());
 		}
 		
 		section.get().setStatus(status.get());

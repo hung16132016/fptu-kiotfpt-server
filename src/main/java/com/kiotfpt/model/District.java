@@ -41,10 +41,6 @@ public class District {
 		return district_id;
 	}
 
-	public void setDistrict_id(int district_id) {
-		this.district_id = district_id;
-	}
-
 	public String getDistrict_value() {
 		return district_value;
 	}

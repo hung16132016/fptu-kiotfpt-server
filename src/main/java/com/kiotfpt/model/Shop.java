@@ -67,10 +67,9 @@ public class Shop {
 		super();
 	}
 
-	public Shop(int shop_id, String shop_name, String shop_address, String shop_email, String shop_phone,
+	public Shop(String shop_name, String shop_address, String shop_email, String shop_phone,
 			String shop_thumbnail, Account account, Address address) {
 		super();
-		this.shop_id = shop_id;
 		this.shop_name = shop_name;
 		this.shop_address = shop_address;
 		this.shop_email = shop_email;

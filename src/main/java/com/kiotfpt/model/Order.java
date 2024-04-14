@@ -53,11 +53,10 @@ public class Order {
 		super();
 	}
 
-	public Order(int order_id, Date order_time_init, Date order_time_complete,
+	public Order(Date order_time_init, Date order_time_complete,
 			String order_desc, float order_total, Section section, Shop shop, Account account,
 			Status status) {
 		super();
-		this.order_id = order_id;
 		this.order_time_init = order_time_init;
 		this.order_time_complete = order_time_complete;
 		this.order_desc = order_desc;
@@ -70,10 +69,6 @@ public class Order {
 
 	public int getOrder_id() {
 		return order_id;
-	}
-
-	public void setOrder_id(int order_id) {
-		this.order_id = order_id;
 	}
 
 	public Date getOrder_time_init() {
