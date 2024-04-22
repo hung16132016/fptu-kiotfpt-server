@@ -1,5 +1,6 @@
 package com.kiotfpt.model;
 
+import java.util.Collection;
 import java.util.Date;
 
 import javax.persistence.CascadeType;
@@ -9,6 +10,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
@@ -37,31 +39,27 @@ public class AccountProfile {
 	@Column(name = "account_profile_birthday", nullable = false)
 	private Date account_profile_birthday;
 
-	@Column(name = "account_profile_address", nullable = false)
-	private String account_profile_address;
-
 	@OneToOne(cascade = CascadeType.ALL)
 	@JoinColumn(name = "account_id", referencedColumnName = "account_id")
 	@JsonIgnore
 	private Account account;
 	
-	@OneToOne(cascade = CascadeType.ALL)
-	@JoinColumn(name = "address_id", referencedColumnName = "address_id")
-	private Address address;
+	@OneToMany(mappedBy = "address", cascade = CascadeType.ALL)
+	@JsonIgnore
+	private Collection<Address> addresses;
 
 	public AccountProfile() {
 		super();
 	}
 
 	public AccountProfile(String account_profile_thumbnail, String account_profile_name, Date account_profile_birthday,
-			String account_profile_phone, String account_profile_email, String account_profile_address) {
+			String account_profile_phone, String account_profile_email) {
 		super();
 		this.account_profile_thumbnail = account_profile_thumbnail;
 		this.account_profile_name = account_profile_name;
 		this.account_profile_birthday = account_profile_birthday;
 		this.account_profile_phone = account_profile_phone;
 		this.account_profile_email = account_profile_email;
-		this.account_profile_address = account_profile_address;
 	}
 
 	public int getAccount_profile_id() {
@@ -112,14 +110,6 @@ public class AccountProfile {
 		this.account_profile_email = account_profile_email;
 	}
 
-	public String getAccount_profile_address() {
-		return account_profile_address;
-	}
-
-	public void setAccount_profile_address(String account_profile_address) {
-		this.account_profile_address = account_profile_address;
-	}
-
 	public Account getAccount() {
 		return account;
 	}
@@ -128,12 +118,12 @@ public class AccountProfile {
 		this.account = account;
 	}
 
-	public Address getAddress() {
-		return address;
+	public Collection<Address> getAddresses() {
+		return addresses;
 	}
 
-	public void setAddress(Address address) {
-		this.address = address;
+	public void setAddresses(Collection<Address> addresses) {
+		this.addresses = addresses;
 	}
 
 }

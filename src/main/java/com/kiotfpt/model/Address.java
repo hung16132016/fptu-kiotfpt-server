@@ -27,16 +27,22 @@ public class Address {
 	@ManyToOne()
 	@JoinColumn(name = "province_id", nullable = false)
 	private Province province;
+	
+	@ManyToOne()
+	@JoinColumn(name = "account_profile_id", nullable = false)
+	private AccountProfile profile;
 
 	public Address() {
 		super();
 	}
 
-	public Address(String address_value, District district, Province province) {
+	public Address(int address_id, String address_value, District district, Province province, AccountProfile profile) {
 		super();
+		this.address_id = address_id;
 		this.address_value = address_value;
 		this.district = district;
 		this.province = province;
+		this.profile = profile;
 	}
 
 	public int getAddress_id() {
@@ -70,4 +76,13 @@ public class Address {
 	public void setProvince(Province province) {
 		this.province = province;
 	}
+
+	public AccountProfile getProfile() {
+		return profile;
+	}
+
+	public void setProfile(AccountProfile profile) {
+		this.profile = profile;
+	}
+	
 }

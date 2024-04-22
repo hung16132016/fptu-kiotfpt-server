@@ -40,14 +40,18 @@ public class Account {
 	@OneToMany(mappedBy = "account", cascade = CascadeType.ALL)
 	@JsonIgnore
 	private Collection<Order> orders;
-
-	@OneToMany(mappedBy = "account", cascade = CascadeType.ALL)
-	@JsonIgnore
-	private Collection<Section> sections;
 	
 	@OneToMany(mappedBy = "account", cascade = CascadeType.ALL)
 	@JsonIgnore
 	private Collection<Transaction> transactions;
+	
+	@OneToMany(mappedBy = "account", cascade = CascadeType.ALL)
+	@JsonIgnore
+	private Collection<Notify> notifies;
+	
+	@OneToMany(mappedBy = "account", cascade = CascadeType.ALL)
+	@JsonIgnore
+	private Collection<Comment> comments;
 
 	public Account() {
 		super();
@@ -109,19 +113,27 @@ public class Account {
 		this.orders = orders;
 	}
 
-	public Collection<Section> getSections() {
-		return sections;
-	}
-
-	public void setSections(Collection<Section> sections) {
-		this.sections = sections;
-	}
-
 	public Collection<Transaction> getTransactions() {
 		return transactions;
 	}
 
 	public void setTransactions(Collection<Transaction> transactions) {
 		this.transactions = transactions;
+	}
+
+	public Collection<Notify> getNotifies() {
+		return notifies;
+	}
+
+	public void setNotifies(Collection<Notify> notifies) {
+		this.notifies = notifies;
+	}
+
+	public Collection<Comment> getComments() {
+		return comments;
+	}
+
+	public void setComments(Collection<Comment> comments) {
+		this.comments = comments;
 	}
 }

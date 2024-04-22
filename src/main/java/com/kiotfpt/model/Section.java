@@ -31,11 +31,6 @@ public class Section {
 	@JoinColumn(name = "shop_id", nullable = false)
 	@JsonIgnore
 	private Shop shop;
-	
-	@ManyToOne()
-	@JoinColumn(name = "account_id", insertable=false, updatable=false)
-	@JsonIgnore
-	private Account account;
 
 //	@ManyToOne
 //	@JoinColumns({
@@ -111,12 +106,4 @@ public class Section {
 //		this.cart = cart;
 //	}
 
-	public Account getAccount() {
-		return account;
-	}
-
-	public void setAccount(Account account) {
-		this.account = account;
-	}
-	
 }
