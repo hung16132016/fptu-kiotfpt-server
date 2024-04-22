@@ -9,7 +9,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.JoinColumns;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
@@ -31,17 +30,14 @@ public class Section {
 	@JoinColumn(name = "shop_id", nullable = false)
 	@JsonIgnore
 	private Shop shop;
-
-//	@ManyToOne
-//	@JoinColumns({
-//	    @JoinColumn(name = "account_id", referencedColumnName = "account_id", insertable = false, updatable = false),
-//	    @JoinColumn(name = "section_id", referencedColumnName = "section_id", insertable = false, updatable = false)
-//	})
-//	private Cart cart;
 	
 	@ManyToOne()
 	@JoinColumn(name = "status_id", nullable = false)
 	private Status status;
+	
+	@ManyToOne()
+	@JoinColumn(name = "cart_id", nullable = false)
+	private Cart cart;
 
 	@OneToMany(mappedBy = "section", cascade = CascadeType.ALL)
 	@JsonIgnore
@@ -98,12 +94,12 @@ public class Section {
 		this.items = items;
 	}
 
-//	public Cart getCart() {
-//		return cart;
-//	}
-//
-//	public void setCart(Cart cart) {
-//		this.cart = cart;
-//	}
+	public Cart getCart() {
+		return cart;
+	}
+
+	public void setCart(Cart cart) {
+		this.cart = cart;
+	}
 
 }

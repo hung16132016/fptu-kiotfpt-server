@@ -1,13 +1,13 @@
 package com.kiotfpt.model;
 
-import java.io.Serializable;
+import java.util.Collection;
 
-import javax.persistence.Column;
-import javax.persistence.Embeddable;
-import javax.persistence.EmbeddedId;
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
-import javax.persistence.MapsId;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -16,54 +16,32 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 @Table(name = "kiotfpt_cart")
 public class Cart {
 
-    @EmbeddedId
-    private CartId cartId;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private int cart_id;
 
-	@ManyToOne
-	@MapsId("account_id")
+	@OneToMany(mappedBy = "section", cascade = CascadeType.ALL)
 	@JsonIgnore
-	private Account account;
+	private Collection<Section> sections;
 
-	@ManyToOne
-	@MapsId("section_id")
-	@JsonIgnore
-	private Section section;
-
-}
-
-@Embeddable
-class CartId implements Serializable {
-
-    @Column(name = "account_id")
-    private Long accountId;
-
-    @Column(name = "section_id")
-    private Long sectionId;
-
-	public CartId() {
+	public Cart(int cart_id) {
 		super();
+		this.cart_id = cart_id;
 	}
 
-	public CartId(Long accountId, Long sectionId) {
-		super();
-		this.accountId = accountId;
-		this.sectionId = sectionId;
+	public int getCart_id() {
+		return cart_id;
 	}
 
-	public Long getAccountId() {
-		return accountId;
+	public void setCart_id(int cart_id) {
+		this.cart_id = cart_id;
 	}
 
-	public void setAccountId(Long accountId) {
-		this.accountId = accountId;
+	public Collection<Section> getSections() {
+		return sections;
 	}
 
-	public Long getSectionId() {
-		return sectionId;
+	public void setSections(Collection<Section> sections) {
+		this.sections = sections;
 	}
-
-	public void setSectionId(Long sectionId) {
-		this.sectionId = sectionId;
-	}
-
 }
