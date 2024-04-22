@@ -26,9 +26,6 @@ public class Shop {
 	@Column(name = "shop_name", nullable = false)
 	private String shop_name;
 
-	@Column(name = "shop_address", nullable = false)
-	private String shop_address;
-
 	@Column(name = "shop_email", nullable = false)
 	private String shop_email;
 
@@ -67,11 +64,10 @@ public class Shop {
 		super();
 	}
 
-	public Shop(String shop_name, String shop_address, String shop_email, String shop_phone,
+	public Shop(String shop_name, String shop_email, String shop_phone,
 			String shop_thumbnail, Account account, Address address) {
 		super();
 		this.shop_name = shop_name;
-		this.shop_address = shop_address;
 		this.shop_email = shop_email;
 		this.shop_phone = shop_phone;
 		this.shop_thumbnail = shop_thumbnail;
@@ -93,14 +89,6 @@ public class Shop {
 
 	public void setShop_name(String shop_name) {
 		this.shop_name = shop_name;
-	}
-
-	public String getShop_address() {
-		return shop_address;
-	}
-
-	public void setShop_address(String shop_address) {
-		this.shop_address = shop_address;
 	}
 
 	public String getShop_email() {

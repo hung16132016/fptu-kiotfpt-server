@@ -27,6 +27,9 @@ public class Product {
 
 	@Column(name = "product_description", nullable = false)
 	private String product_description;
+	
+	@Column(name = "product_sold", nullable = false)
+	private int product_sold;
 
 	@Column(name = "product_price", nullable = false)
 	private float product_price;
@@ -39,6 +42,17 @@ public class Product {
 
 	@Column(name = "product_variants", nullable = false)
 	private String product_variants;
+	
+	@Column(name = "product_repository", nullable = false)
+	private int product_repository;
+	
+	@ManyToOne()
+	@JoinColumn(name = "pc_id", nullable = false)
+	private Product_Condition product_condition;
+	
+	@ManyToOne()
+	@JoinColumn(name = "brand_id", nullable = false)
+	private Brand brand;
 
 	@ManyToOne
 	@JoinColumn(name = "status_id")
@@ -57,25 +71,37 @@ public class Product {
 	
 	@OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
 	private List<Product_Thumbnail> thumbnail;
+	
+	@OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+	private Collection<Comment> comments;
 
 	public Product() {
 		super();
 	}
 
-	public Product(String product_name, String product_description, float product_price,
-			boolean product_best_seller, boolean product_popular, String product_variants, Status status,
-			Category category, List<Product_Thumbnail> thumbnail) {
+	public Product(int product_id, String product_name, String product_description, int product_sold,
+			float product_price, boolean product_best_seller, boolean product_popular, String product_variants,
+			int product_repository, Status status, Category category, Shop shop, Collection<Accessibility_item> items,
+			List<Product_Thumbnail> thumbnail, Collection<Comment> comments) {
 		super();
+		this.product_id = product_id;
 		this.product_name = product_name;
 		this.product_description = product_description;
+		this.product_sold = product_sold;
 		this.product_price = product_price;
 		this.product_best_seller = product_best_seller;
 		this.product_popular = product_popular;
 		this.product_variants = product_variants;
+		this.product_repository = product_repository;
 		this.status = status;
 		this.category = category;
+		this.shop = shop;
+		this.items = items;
 		this.thumbnail = thumbnail;
+		this.comments = comments;
 	}
+
+
 
 	public int getProduct_id() {
 		return product_id;
@@ -167,6 +193,50 @@ public class Product {
 
 	public void setThumbnail(List<Product_Thumbnail> thumbnail) {
 		this.thumbnail = thumbnail;
+	}
+
+	public Collection<Comment> getComments() {
+		return comments;
+	}
+
+	public void setComments(Collection<Comment> comments) {
+		this.comments = comments;
+	}
+
+	public void setProduct_id(int product_id) {
+		this.product_id = product_id;
+	}
+
+	public int getProduct_sold() {
+		return product_sold;
+	}
+
+	public void setProduct_sold(int product_sold) {
+		this.product_sold = product_sold;
+	}
+
+	public int getProduct_repository() {
+		return product_repository;
+	}
+
+	public void setProduct_repository(int product_repository) {
+		this.product_repository = product_repository;
+	}
+
+	public Product_Condition getProduct_condition() {
+		return product_condition;
+	}
+
+	public void setProduct_condition(Product_Condition product_condition) {
+		this.product_condition = product_condition;
+	}
+
+	public Brand getBrand() {
+		return brand;
+	}
+
+	public void setBrand(Brand brand) {
+		this.brand = brand;
 	}
 
 }
