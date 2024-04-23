@@ -3,7 +3,7 @@ package com.kiotfpt.Enum;
 public enum Role {
     CUSTOMER("Customer"),
     SELLER("Seller"),
-    ADMIN("Admin");
+    ADMIN("Adminnnnn");
 
     private String role;
 
