@@ -112,11 +112,11 @@ public class ProductService {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
 					HttpStatus.NOT_FOUND.toString().split(" ")[0], "product not exist", new int[0]));
 		}
-		Optional<Status> statusDeleted = statusRepository.findById(2);
+		Optional<Status> statusDeleted = statusRepository.findByValue("Deleted");
 		Product product = pro.get();
 		product.setStatus(statusDeleted.get());
 		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
-				HttpStatus.OK.toString().split(" ")[0], "product is deleted successfull", repository.save(product)));
+				HttpStatus.OK.toString().split(" ")[0], "Product is deleted successfully", repository.save(product)));
 	}
 
 	public ResponseEntity<ResponseObject> createProduct(Map<String, String> obj) throws IOException {

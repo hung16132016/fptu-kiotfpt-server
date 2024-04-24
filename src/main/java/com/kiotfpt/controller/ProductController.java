@@ -24,7 +24,7 @@ import com.kiotfpt.service.ProductService;
 
 @CrossOrigin(origins = "http://localhost:8080")
 @RestController
-@RequestMapping("/api/v1")
+@RequestMapping("/v1")
 public class ProductController {
 
 	@Autowired

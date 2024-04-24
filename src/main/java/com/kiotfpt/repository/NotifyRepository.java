@@ -6,9 +6,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import com.kiotfpt.model.Account;
-import com.kiotfpt.model.Transaction;
+import com.kiotfpt.model.Notify;
 
 @Repository
-public interface TransactionRepository extends JpaRepository<Transaction, Integer> {
-	List<Transaction> findAllByAccount(Account acc);
+public interface NotifyRepository extends JpaRepository<Notify, Integer> {
+	List<Notify> findAllByAccount(Account acc);
 }

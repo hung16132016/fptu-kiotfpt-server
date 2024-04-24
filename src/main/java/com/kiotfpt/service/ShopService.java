@@ -23,9 +23,9 @@ public class ShopService {
 //	private AccountRepository accountRepository;
 	HashMap<String, String> responseMessage = new JsonReader().readJsonFile();
 
-	public ResponseEntity<ResponseObject> getShopByID(HttpServletRequest request, int id) {
+	public ResponseEntity<ResponseObject> getShopByID(int id) {
 		Optional<Shop> shop = repository.findById(id);
-		if (shop.isPresent()) {
+		if (!shop.isEmpty()) {
 			return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
 					HttpStatus.OK.toString().split(" ")[0], responseMessage.get("shopFound"), shop.get()));
 		}

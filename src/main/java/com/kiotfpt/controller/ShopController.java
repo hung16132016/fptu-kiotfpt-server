@@ -1,10 +1,7 @@
 package com.kiotfpt.controller;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,15 +13,14 @@ import com.kiotfpt.service.ShopService;
 
 @CrossOrigin(origins = "http://localhost:8080")
 @RestController
-@RequestMapping("/api/v1")
-@Service
+@RequestMapping("/v1")
 public class ShopController {
 	@Autowired
 	private ShopService service;
 
-	@GetMapping("/shop/{id}")
-	public ResponseEntity<ResponseObject> getShopByID(HttpServletRequest request, @PathVariable int id) {
-		return service.getShopByID(request, id);
+	@GetMapping("/shop/profile/{id}")
+	public ResponseEntity<ResponseObject> getShopByID(@PathVariable int id) {
+		return service.getShopByID(id);
 	}
 	
 //	@GetMapping("/shop")
