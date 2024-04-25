@@ -20,7 +20,7 @@ public class Cart {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int cart_id;
 
-	@OneToMany(mappedBy = "section", cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "cart", cascade = CascadeType.ALL)
 	@JsonIgnore
 	private Collection<Section> sections;
 

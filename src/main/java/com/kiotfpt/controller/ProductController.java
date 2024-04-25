@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -24,7 +23,7 @@ import com.kiotfpt.service.ProductService;
 
 @CrossOrigin(origins = "http://localhost:8080")
 @RestController
-@RequestMapping("/api/v1")
+@RequestMapping("/v1")
 public class ProductController {
 
 	@Autowired
@@ -39,30 +38,36 @@ public class ProductController {
 	public ResponseEntity<ResponseObject> getProductById(@PathVariable int id) {
 		return service.getProductById(id);
 	}
-	
-	@GetMapping("/product/get-by")
-	public ResponseEntity<ResponseObject> getProduct(
-			@RequestParam(name = "shop_id", required = false) Integer shopID,
-			@RequestParam(name = "category_id", required = false) Integer categoryID) {
-		if (shopID != null && categoryID != null) {
-			// Handle the case when both parameters are provided
-			// You can return an appropriate response or throw an exception.
-			// For example:
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body(new ResponseObject(false, HttpStatus.BAD_REQUEST.toString().split(" ")[0],
-							"Only one of shop-id or account-id should be provided", ""));
-		} else if (shopID != null) {
-			return service.findByShopId(shopID);
-		} else if (categoryID != null) {
-			return service.findByCategoryId(categoryID);
-		} else {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
-					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Invalid request parameters", ""));
-		}
+
+//	@GetMapping("/product/get-by")
+//	public ResponseEntity<ResponseObject> getProduct(
+//			@RequestParam(name = "shop_id", required = false) Integer shopID,
+//			@RequestParam(name = "category_id", required = false) Integer categoryID) {
+//		if (shopID != null && categoryID != null) {
+//			// Handle the case when both parameters are provided
+//			// You can return an appropriate response or throw an exception.
+//			// For example:
+//			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+//					.body(new ResponseObject(false, HttpStatus.BAD_REQUEST.toString().split(" ")[0],
+//							"Only one of shop-id or account-id should be provided", ""));
+//		} else if (shopID != null) {
+//			return service.findByShopId(shopID);
+//		} else if (categoryID != null) {
+//			return service.findByCategoryId(categoryID);
+//		} else {
+//			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
+//					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Invalid request parameters", ""));
+//		}
+//	}
+
+	@GetMapping("/product/get-by-shop")
+	public ResponseEntity<ResponseObject> getProductByShop(@RequestParam(name = "shop_id") Integer shopID,
+			@RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "10") int amount) {
+		return service.findByShopId(shopID, page, amount);
 	}
 
 	@PostMapping("/product/create")
-	public ResponseEntity<ResponseObject> createProduct(@RequestBody Map<String, String> obj) throws IOException{
+	public ResponseEntity<ResponseObject> createProduct(@RequestBody Map<String, String> obj) throws IOException {
 		return service.createProduct(obj);
 	}
 
@@ -72,12 +77,11 @@ public class ProductController {
 	}
 
 	@PutMapping("/product/update/{id}")
-	public ResponseEntity<ResponseObject> createProduct(@PathVariable int id,
-			@RequestBody Map<String, String> obj) {
+	public ResponseEntity<ResponseObject> createProduct(@PathVariable int id, @RequestBody Map<String, String> obj) {
 		return service.updateProduct(id, obj.get("name"), obj.get("description"), obj.get("price"),
 				Integer.parseInt(obj.get("category_id")));
 	}
-	
+
 	@GetMapping("/product/search")
 	public List<Product> searchByName(@RequestParam(name = "query", required = true) String name) {
 		return service.searchByName(name);

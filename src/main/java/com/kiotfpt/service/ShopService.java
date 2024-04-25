@@ -1,11 +1,15 @@
 package com.kiotfpt.service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -13,6 +17,10 @@ import org.springframework.stereotype.Service;
 import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.model.Shop;
 import com.kiotfpt.repository.ShopRepository;
+import com.kiotfpt.response.AddressResponse;
+import com.kiotfpt.response.DistrictResponse;
+import com.kiotfpt.response.ProvinceResponse;
+import com.kiotfpt.response.ShopResponse;
 import com.kiotfpt.utils.JsonReader;
 
 @Service
@@ -23,41 +31,49 @@ public class ShopService {
 //	private AccountRepository accountRepository;
 	HashMap<String, String> responseMessage = new JsonReader().readJsonFile();
 
-	public ResponseEntity<ResponseObject> getShopByID(HttpServletRequest request, int id) {
+	public ResponseEntity<ResponseObject> getShopByID(int id) {
 		Optional<Shop> shop = repository.findById(id);
-		if (shop.isPresent()) {
+		if (!shop.isEmpty()) {
 			return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
 					HttpStatus.OK.toString().split(" ")[0], responseMessage.get("shopFound"), shop.get()));
 		}
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
 				HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("shopNotFound"), ""));
 	}
-//	public ResponseEntity<ResponseObject> getAllShop(HttpServletRequest request) {
-//		String token = "";
-//		try {
-//			token = request.getHeader("Authorization").split(" ")[1];
-//		} catch (NullPointerException e) {
-//			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ResponseObject(false,
-//					HttpStatus.UNAUTHORIZED.toString().split(" ")[0], responseMessage.get("unauthorized"), ""));
-//		}
-//		Account acc = accountRepository.findByToken(token);
-//		if (acc != null) {
-//			if (acc.getRole().getID() == 3) {
-//			List<Shop> accounts = repository.findAll();
-//			return !accounts.isEmpty()
-//					? ResponseEntity.status(HttpStatus.OK)
-//							.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
-//									responseMessage.get("shopFound"), accounts))
-//					: ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-//							HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("shopNotFound"), ""));
-//			} else {
-//				return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ResponseObject(false,
-//						HttpStatus.UNAUTHORIZED.toString().split(" ")[0], responseMessage.get("unauthorized"), ""));
-//			}
-//		}
-//		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-//				HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("tokenNotFound"), ""));
-//	}
+
+	public ResponseEntity<ResponseObject> getAllShop(int page, int amount) {
+		Pageable pageable = PageRequest.of(page - 1, amount);
+		Page<Shop> shopPage = repository.findAll(pageable);
+		List<Shop> shops = shopPage.getContent();
+		if (!shops.isEmpty()) {
+			List<ShopResponse> list = new ArrayList<ShopResponse>();
+
+			for (Shop shop : shops) {
+
+				if (shop.getAddress() == null) {
+					return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+							.body(new ResponseObject(false, HttpStatus.BAD_REQUEST.toString().split(" ")[0],
+									"Address cannot be empty for shop with ID: " + shop.getShop_id(), ""));
+				}
+
+				DistrictResponse district = new DistrictResponse(shop.getAddress().getDistrict().getDistrict_id(),
+						shop.getAddress().getDistrict().getDistrict_value());
+				ProvinceResponse province = new ProvinceResponse(shop.getAddress().getProvince().getProvince_id(),
+						shop.getAddress().getProvince().getProvince_value());
+				AddressResponse address = new AddressResponse(shop.getAddress().getAddress_id(),
+						shop.getAddress().getAddress_value(), district, province);
+				ShopResponse response = new ShopResponse(shop.getShop_id(), shop.getShop_name(), shop.getShop_email(),
+						shop.getShop_phone(), shop.getShop_thumbnail(), address);
+
+				list.add(response);
+			}
+			return ResponseEntity.status(HttpStatus.OK)
+					.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Shops found", list));
+		}
+
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+				HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("shopNotFound"), ""));
+	}
 
 //	public ResponseEntity<ResponseObject> createShop(Map<String, String> shop) {
 //		Optional<Account> account = accountRepository.findById(Integer.parseInt(shop.get("id")));
@@ -78,13 +94,14 @@ public class ShopService {
 //				new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0], "Shop has not found", ""));
 //	}
 //
-	public ResponseEntity<ResponseObject> updateShop(HttpServletRequest request, int id, Shop shop) {
+	public ResponseEntity<ResponseObject> updateShop(int id, Shop shop) {
 		Optional<Shop> foundshop = repository.findById(id);
 		if (foundshop.isPresent()) {
 			foundshop.get().setAddress(shop.getAddress());
 			foundshop.get().setShop_email(shop.getShop_email());
 			foundshop.get().setShop_name(shop.getShop_name());
 			foundshop.get().setShop_phone(shop.getShop_phone());
+			foundshop.get().setShop_thumbnail(shop.getShop_thumbnail());
 			return ResponseEntity.status(HttpStatus.OK)
 					.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
 							responseMessage.get("updateShopSuccess"), repository.save(foundshop.get())));
