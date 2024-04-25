@@ -9,6 +9,9 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -188,40 +191,46 @@ public class ProductService {
 				HttpStatus.OK.toString().split(" ")[0], "Product is created successfull", product));
 	}
 
-	public ResponseEntity<ResponseObject> findByShopId(int id) {
-		Optional<Shop> shop = shopRepository.findById(id);
-		if (shop.isPresent()) {
-			List<Product> foundProduct = repository.findAllByShopid(id);
-			if (foundProduct.isEmpty()) {
-				return ResponseEntity.status(HttpStatus.NOT_FOUND)
-						.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
-								responseMessage.get("getProductByShopIdFail"), ""));
-			} else {
-				List<Product> returnListProduct = new ArrayList<>(); // List to store products with status not 2, 3, or
-																		// 4
-				// Iterate through foundProduct list to check status
-				for (Product product : foundProduct) {
-					int status = product.getStatus().getStatus_id();
-					// Check if status is not 2, 3, or 4
-					if (status != 2 && status != 3 && status != 4) {
-						returnListProduct.add(product);
-					}
-				}
-				if (!returnListProduct.isEmpty()) {
-					return ResponseEntity.status(HttpStatus.OK)
-							.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
-									responseMessage.get("getProductByShopIdSuccess"), returnListProduct));
-				} else {
-					return ResponseEntity.status(HttpStatus.NOT_FOUND)
-							.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
-									responseMessage.get("getProductByShopIdFail"), ""));
-				}
-			}
-		} else {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-					HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("notFindShop"), ""));
-		}
+
+
+	public ResponseEntity<ResponseObject> findByShopId(int id, int page, int amount) {
+	    Optional<Shop> shopOptional = shopRepository.findById(id);
+	    if (shopOptional.isPresent()) {
+	        Pageable pageable = PageRequest.of(page - 1, amount);
+	        Page<Product> productPage = repository.findAllByShopId(id, pageable);
+	        
+	        if (!productPage.isEmpty()) {
+	            List<Product> products = productPage.getContent();
+	            List<Product> returnListProduct = new ArrayList<>();
+	            
+	            for (Product product : products) {
+	                int status = product.getStatus().getStatus_id();
+	                if (status != 2 && status != 3 && status != 4) {
+	                    returnListProduct.add(product);
+	                }
+	            }
+	            
+	            if (!returnListProduct.isEmpty()) {
+	                return ResponseEntity.status(HttpStatus.OK)
+	                        .body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
+	                                responseMessage.get("getProductByShopIdSuccess"), returnListProduct));
+	            } else {
+	                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+	                        .body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
+	                                responseMessage.get("getProductByShopIdFail"), ""));
+	            }
+	        } else {
+	            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+	                    .body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
+	                            responseMessage.get("getProductByShopIdFail"), ""));
+	        }
+	    } else {
+	        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+	                .body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
+	                        responseMessage.get("notFindShop"), ""));
+	    }
 	}
+
 
 	public ResponseEntity<ResponseObject> findByCategoryId(@PathVariable int id) {
 		Optional<Category> category = categoryRepository.findById(id);

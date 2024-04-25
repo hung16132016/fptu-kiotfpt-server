@@ -44,7 +44,7 @@ public class AccountProfile {
 	@JsonIgnore
 	private Account account;
 	
-	@OneToMany(mappedBy = "address", cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "profile", cascade = CascadeType.ALL)
 	@JsonIgnore
 	private Collection<Address> addresses;
 

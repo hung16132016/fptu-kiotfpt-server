@@ -10,5 +10,5 @@ import com.kiotfpt.model.Address;
 
 @Repository
 public interface AddressRepository extends JpaRepository<Address, Integer> {
-	List<Address> findAllByAccountProfile(AccountProfile acc);
+	List<Address> findAllByProfile(AccountProfile acc);
 }
