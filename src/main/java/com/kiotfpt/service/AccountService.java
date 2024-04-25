@@ -40,18 +40,23 @@ public class AccountService {
 	}
 
 	public ResponseEntity<ResponseObject> getProfileByAccountID(int id) {
-			Optional<Account> account = repository.findById(id);
-			if (account.isPresent()) {
-				Optional<AccountProfile> profile = profilerepository.findByAccount(account.get());
-				if (profile.isPresent()) {
-					return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
-							HttpStatus.OK.toString().split(" ")[0], responseMessage.get("profileFound"), profile.get()));
-				}
-				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-						HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("profileNotFound"), ""));
+		Optional<Account> account = repository.findById(id);
+		
+		if (account.isPresent()) {
+			if (account.get().getStatus().getValue().equals("inactive")) 
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
+					HttpStatus.BAD_REQUEST.toString().split(" ")[0], responseMessage.get("accountNotActivate"), new int[0]));
+			
+			Optional<AccountProfile> profile = profilerepository.findByAccount(account.get());
+			if (profile.isPresent()) {
+				return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
+					HttpStatus.OK.toString().split(" ")[0], responseMessage.get("profileFound"), profile.get()));
 			}
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-					HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("profileNotFound"), ""));
+				HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("profileNotFound"), ""));
+		}
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+			HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("profileNotFound"), ""));
 	}
 
 //	public ResponseEntity<ResponseObject> updateProfile(int id, AccountProfile pro, HttpServletRequest request) {

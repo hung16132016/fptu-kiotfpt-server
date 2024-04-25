@@ -1,7 +1,5 @@
 package com.kiotfpt.controller;
 
-import java.util.Map;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -11,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kiotfpt.model.ResponseObject;
+import com.kiotfpt.request.AccountRequest;
 import com.kiotfpt.service.AuthService;
 
 @CrossOrigin(origins = "http://localhost:8080")
@@ -21,8 +20,8 @@ public class AuthController {
 	private AuthService service;
 
 	@PostMapping("/sign-in")
-	public ResponseEntity<ResponseObject> signIn(@RequestBody Map<String, String> obj) {
-		return service.signIn(obj.get("username"), obj.get("password"));
+	public ResponseEntity<ResponseObject> signIn(@RequestBody AccountRequest request) {
+		return service.signIn(request.getUsername(), request.getPassword());
 	}
 
 //	@PostMapping("/sign-up")
