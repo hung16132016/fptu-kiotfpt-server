@@ -13,6 +13,17 @@ import com.kiotfpt.model.Product;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Integer>{
+	@Query("SELECT p FROM Product p WHERE p.status.status_id = 11") //haibang
+	Page<Product> findByStatusId11(Pageable pageable);
+	
+	@Query("SELECT p FROM Product p WHERE p.status.status_id = 11 ORDER BY p.id DESC") //haibang
+	Page<Product> findLast8ProductsByStatus11(Pageable pageable);
+	
+	@Query("SELECT p FROM Product p WHERE p.status.status_id = 11 AND p.category.category_id = :categoryId") //haibang
+	Page<Product> findByStatus11AndCategoryId(Pageable pageable, @Param("categoryId") Integer categoryId);
+	
+	@Query("SELECT p FROM Product p WHERE p.status.status_id = 11 AND LOWER(p.product_name) LIKE LOWER(CONCAT('%', :keyword, '%'))") //haibang
+	Page<Product> findByStatus11AndKeyword(Pageable pageable, @Param("keyword") String keyword);
 
 	@Query("SELECT p FROM Product p WHERE LOWER(p.product_name) LIKE LOWER(CONCAT('%', :name, '%'))")
     List<Product> findByNameContainingIgnoreCase(@Param("name") String name);

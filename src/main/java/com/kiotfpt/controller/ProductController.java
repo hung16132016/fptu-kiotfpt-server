@@ -23,20 +23,40 @@ import com.kiotfpt.service.ProductService;
 
 @CrossOrigin(origins = "http://localhost:8080")
 @RestController
-@RequestMapping("/v1")
+@RequestMapping("/api/v1")
 public class ProductController {
 
 	@Autowired
 	private ProductService service;
 
+//	api line 13
 	@GetMapping("/product/get-all")
-	public ResponseEntity<ResponseObject> getAllProduct() {
-		return service.getAllProduct();
+	public ResponseEntity<ResponseObject> getAllProduct(@RequestParam(name = "page") Integer page, @RequestParam(name = "amount") Integer amount) {
+		return service.getAllProduct(page, amount);
 	}
 
+//	api line 18
 	@GetMapping("/product/{id}")
 	public ResponseEntity<ResponseObject> getProductById(@PathVariable int id) {
 		return service.getProductById(id);
+	}
+	
+//	api line 11
+	@GetMapping("/product/new")
+	public ResponseEntity<ResponseObject> getNew8Added() {
+		return service.getNew8Added();
+	}
+	
+//	api line 14
+	@GetMapping("/product/get-by-category")
+	public ResponseEntity<ResponseObject> getByCategoryID(@RequestParam(name = "categoryID") Integer category_id, @RequestParam(name = "page") Integer page, @RequestParam(name = "amount") Integer amount) {
+		return service.getByCategoryID(category_id, page, amount);
+	}
+	
+//	api line 7
+	@GetMapping("/product/search")
+	public ResponseEntity<ResponseObject> getByKeyword(@RequestParam(name = "key") String keyword, @RequestParam(name = "page") Integer page, @RequestParam(name = "amount") Integer amount) {
+		return service.getByKeyword(keyword, page, amount);
 	}
 
 //	@GetMapping("/product/get-by")
@@ -82,10 +102,10 @@ public class ProductController {
 				Integer.parseInt(obj.get("category_id")));
 	}
 
-	@GetMapping("/product/search")
-	public List<Product> searchByName(@RequestParam(name = "query", required = true) String name) {
-		return service.searchByName(name);
-	}
+//	@GetMapping("/product/search")
+//	public List<Product> searchByName(@RequestParam(name = "query", required = true) String name) {
+//		return service.searchByName(name);
+//	}
 
 //	@GetMapping("/product/get-list-popular")
 //	public ResponseEntity<ResponseObject> getProductPopular() {
