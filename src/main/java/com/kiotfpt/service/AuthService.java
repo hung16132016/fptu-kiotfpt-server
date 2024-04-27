@@ -42,28 +42,27 @@ public class AuthService {
 	HashMap<String, String> responseMessage = new JsonReader().readJsonFile();
 
 	public ResponseEntity<ResponseObject> signIn(String username, String password) {
-		if (username.trim() == "" || password.trim() == "") {
+		if (username.trim() == "" || password.trim() == "") 
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
 					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Input can not be empty", new int[0]));
-		}
 
 		Optional<Account> account = repository.findByAccountUsername(username);
 		if (!account.isPresent()) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
 					HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("accountNotFound"), new int[0]));
-		} else if (!account.get().getAccount_password().equals(MD5.generateMD5Hash(password))) {
+		} else if (!account.get().getAccount_password().equals(MD5.generateMD5Hash(password))) 
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
 					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Wrong password", new int[0]));
-		}
-		if (account.get().getStatus().getStatus_id() != 1)
+		
+		if (account.get().getStatus().getValue().equals("inactive"))
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 					.body(new ResponseObject(false, HttpStatus.BAD_REQUEST.toString().split(" ")[0],
-							responseMessage.get("accountNotFound"), new int[0]));
+							responseMessage.get("accountNotActivate"), new int[0]));
 
 		Map<String, String> map = new HashMap<>();
 		map.put("account_id", String.valueOf(account.get().getAccount_id()));
 		map.put("role", account.get().getRole().getRole_value());
-		if (map.get("role").equals("Shop Owner")) {
+		if (map.get("role").equals("Seller")) {
 			Optional<Shop> shop = shoprepository.findByAccount(account.get());
 			map.put("shop_id", String.valueOf(shop.get().getShop_id()));
 		}

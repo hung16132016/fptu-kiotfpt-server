@@ -2,6 +2,7 @@ package com.kiotfpt.service;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,13 +22,17 @@ public class CategoryService {
 
 	public ResponseEntity<ResponseObject> getAllCategory() {
 		List<Category> categories = repository.findAll();
-		return !categories.isEmpty()
+		
+		List<Category> filteredCategories = categories.stream()
+				.filter(category -> category.getStatus().getValue().equals("active")).collect(Collectors.toList());
+		
+		return !filteredCategories.isEmpty()
 				? ResponseEntity.status(HttpStatus.OK)
 						.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
-								responseMessage.get("categoryFound"), categories))
+								responseMessage.get("categoryFound"), filteredCategories))
 				: ResponseEntity.status(HttpStatus.NOT_FOUND)
 						.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
-								responseMessage.get("categoryNotFound"), categories));
+								responseMessage.get("categoryNotFound"), filteredCategories));
 	}
 
 //	public ResponseEntity<ResponseObject> createCategory(Category newCategory) {
