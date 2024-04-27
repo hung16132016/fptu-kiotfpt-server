@@ -14,6 +14,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(name = "kiotfpt_product")
 public class Product {
@@ -64,15 +66,19 @@ public class Product {
 
 	@ManyToOne
 	@JoinColumn(name = "shop_id")
+	@JsonIgnore
 	private Shop shop;
 
 	@OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+	@JsonIgnore
 	private Collection<Accessibility_item> items;
 	
 	@OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+	@JsonIgnore
 	private List<Product_Thumbnail> thumbnail;
 	
 	@OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+	@JsonIgnore
 	private Collection<Comment> comments;
 
 	public Product() {

@@ -14,7 +14,7 @@ import com.kiotfpt.service.AuthService;
 
 @CrossOrigin(origins = "http://localhost:8080")
 @RestController
-@RequestMapping(path = "/api/v1/auth")
+@RequestMapping(path = "/v1/auth")
 public class AuthController {
 	@Autowired
 	private AuthService service;

@@ -18,7 +18,7 @@ import com.kiotfpt.service.CategoryService;
 
 @CrossOrigin(origins = "http://localhost:8080")
 @RestController
-@RequestMapping("/api/v1/category")
+@RequestMapping("/v1/category")
 @Service
 public class CategoryController {
 	@Autowired

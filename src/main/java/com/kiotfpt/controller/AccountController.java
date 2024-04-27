@@ -13,7 +13,7 @@ import com.kiotfpt.service.AccountService;
 //
 @CrossOrigin(origins = "http://localhost:8080")
 @RestController
-@RequestMapping("/api/v1")
+@RequestMapping("/v1")
 public class AccountController {
 	@Autowired
 	private AccountService service;

@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -59,23 +58,23 @@ public class ProductService {
 
 	HashMap<String, String> responseMessage = new JsonReader().readJsonFile();
 
-	public ResponseEntity<ResponseObject> getAllProduct() {
-		List<Product> products = repository.findAll();
+	public ResponseEntity<ResponseObject> getAllProduct(int page, int amount) {
+		Pageable pageable = PageRequest.of(page - 1, amount);
+        Page<Product> productPage = repository.findByStatusId11(pageable);
+        
+        List<Product> products = productPage.getContent();
 
-		List<Product> filteredProducts = products.stream().filter(product -> product.getStatus().getStatus_id() != 4)
-				.collect(Collectors.toList());
-
-		return !filteredProducts.isEmpty()
+		return !products.isEmpty()
 				? ResponseEntity.status(HttpStatus.OK)
 						.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
-								"Data has found successfully", filteredProducts))
+								"Data has found successfully", products))
 				: ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
 						HttpStatus.NOT_FOUND.toString().split(" ")[0], "Data has not found", new int[0]));
 	}
 
 	public ResponseEntity<ResponseObject> getProductById(int id) {
 		Optional<Product> product = repository.findById(id);
-		if (product.isPresent()) {
+		if (product.isPresent() && product.get().getStatus().getValue().equals("active")) {
 			return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
 					HttpStatus.OK.toString().split(" ")[0], responseMessage.get("getProducyByIdSuccess"), product));
 		}
@@ -83,6 +82,49 @@ public class ProductService {
 				HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("getProducyByIdFail"), ""));
 
 	}
+	
+	public ResponseEntity<ResponseObject> getNew8Added() {
+		Pageable pageable = PageRequest.of(0, 8);
+        Page<Product> productPage = repository.findLast8ProductsByStatus11(pageable);
+        
+        List<Product> products = productPage.getContent();
+
+		return !products.isEmpty()
+				? ResponseEntity.status(HttpStatus.OK)
+						.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
+								"Data has found successfully", products))
+				: ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+						HttpStatus.NOT_FOUND.toString().split(" ")[0], "Data has not found", new int[0]));
+	}
+	
+	public ResponseEntity<ResponseObject> getByCategoryID(int category_id, int page, int amount) {
+		Pageable pageable = PageRequest.of(page - 1, amount);
+        Page<Product> productPage = repository.findByStatus11AndCategoryId(pageable, category_id);
+        
+        List<Product> products = productPage.getContent();
+
+		return !products.isEmpty()
+				? ResponseEntity.status(HttpStatus.OK)
+						.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
+								"Data has found successfully", products))
+				: ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+						HttpStatus.NOT_FOUND.toString().split(" ")[0], "Data has not found", new int[0]));
+	}
+	
+	public ResponseEntity<ResponseObject> getByKeyword(String keyword, int page, int amount) {
+		Pageable pageable = PageRequest.of(page - 1, amount);
+        Page<Product> productPage = repository.findByStatus11AndKeyword(pageable, keyword);
+        
+        List<Product> products = productPage.getContent();
+
+		return !products.isEmpty()
+				? ResponseEntity.status(HttpStatus.OK)
+						.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
+								"Data has found successfully", products))
+				: ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+						HttpStatus.NOT_FOUND.toString().split(" ")[0], "Data has not found", new int[0]));
+	}
+	
 
 	public ResponseEntity<ResponseObject> updateProduct(int product_id, String name, String description, String price,
 			int category_id) {

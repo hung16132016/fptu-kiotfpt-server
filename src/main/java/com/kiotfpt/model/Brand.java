@@ -11,6 +11,8 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(name = "kiotfpt_brand")
 public class Brand {
@@ -26,6 +28,7 @@ public class Brand {
 	private String brand_thumbnail;
 	
 	@OneToMany(mappedBy = "brand", cascade = CascadeType.ALL)
+	@JsonIgnore
 	private Collection<Product> products;
 
 	public Brand() {
