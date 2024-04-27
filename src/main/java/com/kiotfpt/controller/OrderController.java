@@ -62,6 +62,11 @@ public class OrderController {
 		return service.updateOrderStatus(id, status_value);
 	}
 
+	@PutMapping("/delete/{id}")
+	public ResponseEntity<ResponseObject> deleteOrder(@PathVariable int id) {
+		return service.updateOrderStatus(id, "Inactive");
+	}
+	
 	@PostMapping("/create")
 	public ResponseEntity<ResponseObject> createOrder(@RequestBody Map<String, String> map) {
 		return service.createOrder(map);
