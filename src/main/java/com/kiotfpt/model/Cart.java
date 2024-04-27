@@ -10,8 +10,6 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 @Entity
 @Table(name = "kiotfpt_cart")
 public class Cart {
@@ -21,8 +19,11 @@ public class Cart {
 	private int cart_id;
 
 	@OneToMany(mappedBy = "cart", cascade = CascadeType.ALL)
-	@JsonIgnore
 	private Collection<Section> sections;
+
+	public Cart() {
+		super();
+	}
 
 	public Cart(int cart_id) {
 		super();

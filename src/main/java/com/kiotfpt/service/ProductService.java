@@ -19,8 +19,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kiotfpt.model.Brand;
 import com.kiotfpt.model.Category;
 import com.kiotfpt.model.Product;
+import com.kiotfpt.model.Product_Condition;
 import com.kiotfpt.model.Product_Thumbnail;
 import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.model.Shop;
@@ -29,6 +31,12 @@ import com.kiotfpt.repository.CategoryRepository;
 import com.kiotfpt.repository.ProductRepository;
 import com.kiotfpt.repository.ShopRepository;
 import com.kiotfpt.repository.StatusRepository;
+import com.kiotfpt.response.BrandResponse;
+import com.kiotfpt.response.CategoryResponse;
+import com.kiotfpt.response.ProductResponse;
+import com.kiotfpt.response.Product_ConditionResponse;
+import com.kiotfpt.response.ShopResponse;
+import com.kiotfpt.response.StatusResponse;
 import com.kiotfpt.utils.JsonReader;
 
 @Service
@@ -191,46 +199,92 @@ public class ProductService {
 				HttpStatus.OK.toString().split(" ")[0], "Product is created successfull", product));
 	}
 
-
-
 	public ResponseEntity<ResponseObject> findByShopId(int id, int page, int amount) {
-	    Optional<Shop> shopOptional = shopRepository.findById(id);
-	    if (shopOptional.isPresent()) {
-	        Pageable pageable = PageRequest.of(page - 1, amount);
-	        Page<Product> productPage = repository.findAllByShopId(id, pageable);
-	        
-	        if (!productPage.isEmpty()) {
-	            List<Product> products = productPage.getContent();
-	            List<Product> returnListProduct = new ArrayList<>();
-	            
-	            for (Product product : products) {
-	                int status = product.getStatus().getStatus_id();
-	                if (status != 2 && status != 3 && status != 4) {
-	                    returnListProduct.add(product);
-	                }
-	            }
-	            
-	            if (!returnListProduct.isEmpty()) {
-	                return ResponseEntity.status(HttpStatus.OK)
-	                        .body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
-	                                responseMessage.get("getProductByShopIdSuccess"), returnListProduct));
-	            } else {
-	                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-	                        .body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
-	                                responseMessage.get("getProductByShopIdFail"), ""));
-	            }
-	        } else {
-	            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-	                    .body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
-	                            responseMessage.get("getProductByShopIdFail"), ""));
-	        }
-	    } else {
-	        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-	                .body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
-	                        responseMessage.get("notFindShop"), ""));
-	    }
-	}
+		Optional<Shop> shopOptional = shopRepository.findById(id);
+		if (shopOptional.isPresent()) {
+			Pageable pageable = PageRequest.of(page - 1, amount);
+			Page<Product> productPage = repository.findAllByShopId(id, pageable);
 
+			if (!productPage.isEmpty()) {
+				List<Product> products = productPage.getContent();
+				List<ProductResponse> returnListProduct = new ArrayList<>();
+
+				for (Product product : products) {
+					int status_id = product.getStatus().getStatus_id();
+					if (status_id != 2 && status_id != 3 && status_id != 4) {
+						Product_Condition condition = product.getProduct_condition();
+
+						if (condition == null) {
+							return ResponseEntity.status(HttpStatus.NOT_FOUND)
+									.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
+											"Condition of product id: " + product.getProduct_id() + " not found", ""));
+						}
+						Brand brand = product.getBrand();
+
+						if (brand == null) {
+							return ResponseEntity.status(HttpStatus.NOT_FOUND)
+									.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
+											"Brand of product id: " + product.getProduct_id() + "not found", ""));
+						}
+						Status status = product.getStatus();
+
+						if (status == null) {
+							return ResponseEntity.status(HttpStatus.NOT_FOUND)
+									.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
+											"Status of product id: " + product.getProduct_id() + "not found", ""));
+						}
+						Category category = product.getCategory();
+
+						if (category == null) {
+							return ResponseEntity.status(HttpStatus.NOT_FOUND)
+									.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
+											"Category of product id: " + product.getProduct_id() + "not found", ""));
+						}
+						Shop shop = product.getShop();
+
+						if (shop == null) {
+							return ResponseEntity.status(HttpStatus.NOT_FOUND)
+									.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
+											"Shop of product id: " + product.getProduct_id() + "not found", ""));
+						}
+
+						List<Product_Thumbnail> thumbnails = product.getThumbnail();
+
+						ProductResponse res = new ProductResponse(product.getProduct_id(), product.getProduct_name(),
+								product.getProduct_description(), product.getProduct_sold(), product.getProduct_price(),
+								product.isProduct_best_seller(), product.isProduct_popular(),
+								product.getProduct_variants(), product.getProduct_repository(),
+								new Product_ConditionResponse(condition.getPc_id(), condition.getPc_value()),
+								new BrandResponse(brand.getBrand_id(), brand.getBrand_name(),
+										brand.getBrand_thumbnail()),
+								new StatusResponse(status.getStatus_id(), status.getValue()),
+								new CategoryResponse(category.getCategory_id(), category.getCategory_name(),
+										category.getCategory_thumbnail()),
+								new ShopResponse(shop.getShop_id(), shop.getShop_name(), shop.getShop_email(),
+										shop.getShop_phone(), shop.getShop_thumbnail(), null),
+								thumbnails, null);
+						returnListProduct.add(res);
+
+					}
+				}
+
+				if (!returnListProduct.isEmpty()) {
+					return ResponseEntity.status(HttpStatus.OK)
+							.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
+									responseMessage.get("getProductByShopIdSuccess"), returnListProduct));
+				} else {
+					return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+							HttpStatus.NOT_FOUND.toString().split(" ")[0], "No products", ""));
+				}
+			} else {
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+						new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0], "No products", ""));
+			}
+		} else {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+					HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("notFindShop"), ""));
+		}
+	}
 
 	public ResponseEntity<ResponseObject> findByCategoryId(@PathVariable int id) {
 		Optional<Category> category = categoryRepository.findById(id);
@@ -267,7 +321,7 @@ public class ProductService {
 		}
 
 	}
-	
+
 	public List<Product> searchByName(@PathVariable(name = "name") String name) {
 		List<Product> found = repository.findByname(name);
 		return !found.isEmpty() ? repository.findByname(name) : null;

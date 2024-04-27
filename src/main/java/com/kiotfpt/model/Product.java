@@ -47,11 +47,11 @@ public class Product {
 	private int product_repository;
 	
 	@ManyToOne()
-	@JoinColumn(name = "pc_id", nullable = false)
+	@JoinColumn(name = "pc_id")
 	private Product_Condition product_condition;
 	
 	@ManyToOne()
-	@JoinColumn(name = "brand_id", nullable = false)
+	@JoinColumn(name = "brand_id")
 	private Brand brand;
 
 	@ManyToOne

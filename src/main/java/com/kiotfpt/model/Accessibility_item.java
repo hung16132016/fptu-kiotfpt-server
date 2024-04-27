@@ -26,7 +26,7 @@ public class Accessibility_item {
 	private double item_total;
 
 	@Column(name = "item_note", nullable = false)
-	private int item_note;
+	private String item_note;
 
 	@ManyToOne
 	@JoinColumn(name = "section_id")
@@ -46,7 +46,7 @@ public class Accessibility_item {
 		super();
 	}
 
-	public Accessibility_item(int item_quantity, double item_total, int item_note, Status status) {
+	public Accessibility_item(int item_quantity, double item_total, String item_note, Status status) {
 		super();
 		this.item_quantity = item_quantity;
 		this.item_total = item_total;
@@ -78,11 +78,11 @@ public class Accessibility_item {
 		this.item_total = item_total;
 	}
 
-	public int getItem_note() {
+	public String getItem_note() {
 		return item_note;
 	}
 
-	public void setItem_note(int item_note) {
+	public void setItem_note(String item_note) {
 		this.item_note = item_note;
 	}
 

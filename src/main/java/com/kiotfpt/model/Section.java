@@ -13,8 +13,6 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 @Entity
 @Table(name = "kiotfpt_section")
 public class Section {
@@ -28,7 +26,6 @@ public class Section {
 
 	@ManyToOne()
 	@JoinColumn(name = "shop_id", nullable = false)
-	@JsonIgnore
 	private Shop shop;
 	
 	@ManyToOne()
@@ -40,7 +37,6 @@ public class Section {
 	private Cart cart;
 
 	@OneToMany(mappedBy = "section", cascade = CascadeType.ALL)
-	@JsonIgnore
 	private Collection<Accessibility_item> items;
 
 	public Section() {
@@ -62,7 +58,7 @@ public class Section {
 		this.section_id = section_id;
 	}
 
-	public double getSection_total() {
+	public float getSection_total() {
 		return section_total;
 	}
 

@@ -9,7 +9,7 @@
 		<version>2.3.0.RELEASE</version>
 		<relativePath />
 	</parent>
-	
+
 	<groupId>kiotfpt</groupId>
 	<artifactId>kiotfpt</artifactId>
 	<version>0.0.1</version>

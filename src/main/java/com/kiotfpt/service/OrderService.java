@@ -8,6 +8,9 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -47,7 +50,7 @@ public class OrderService {
 
 	@Autowired
 	private ProductRepository productRepository;
-	
+
 //	@Autowired
 //	private JavaMailSender mailSender;
 
@@ -61,36 +64,44 @@ public class OrderService {
 			List<Order> orders = repository.findAllByAccount(acc.get());
 			if (!orders.isEmpty()) {
 				return ResponseEntity.status(HttpStatus.OK)
-						.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
-								"Orders found", orders));
-			} 
-			return ResponseEntity.status(HttpStatus.NOT_FOUND)
-					.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
-							"Orders do not exist", new int[0]));
+						.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Orders found", orders));
+			}
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+					HttpStatus.NOT_FOUND.toString().split(" ")[0], "Orders do not exist", new int[0]));
 		}
-		return ResponseEntity.status(HttpStatus.NOT_FOUND)
-				.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
-						responseMessage.get("accountNotFound"), ""));
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+				HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("accountNotFound"), ""));
 	}
 
-	public ResponseEntity<ResponseObject> getOrderByShopID(int shop_id) {
-		Optional<Shop> shop = shopRepository.findById(shop_id);
-		List<Order> transactions = repository.findAllByShop(shop.get());
-		return !transactions.isEmpty()
-				? ResponseEntity.status(HttpStatus.OK)
-						.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
-								responseMessage.get("transactionFound"), transactions))
-				: ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-						HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("transactionNotFound"), ""));
+	public ResponseEntity<ResponseObject> getOrderByShopID(int shop_id, int page, int amount) {
+	    Optional<Shop> shopOptional = shopRepository.findById(shop_id);
+	    if (shopOptional.isPresent()) {
+	        Pageable pageable = PageRequest.of(page - 1, amount);
+	        Page<Order> orderPage = repository.findAllByShop(shopOptional.get(), pageable);
+	        
+	        if (orderPage.hasContent()) {
+	            List<Order> orders = orderPage.getContent();
+	            return ResponseEntity.status(HttpStatus.OK)
+	                    .body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Orders found", orders));
+	        } else {
+	            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+	                    .body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
+	                            "No orders found for the given shop ID", ""));
+	        }
+	    } else {
+	        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+	                .body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
+	                        "Shop not found", ""));
+	    }
 	}
-	
+
 	public ResponseEntity<ResponseObject> getCurrentOrders(int account_id) {
 		Optional<Account> acc = accountRepository.findById(account_id);
 		if (!acc.isEmpty()) {
 			List<Order> transactions = repository.findAllByAccount(acc.get());
 			if (!transactions.isEmpty()) {
 				List<Order> returnListOrders = new ArrayList<>(); // List to store products with status not 2, 3, or
-																		// 4
+																	// 4
 				// Iterate through foundProduct list to check status
 				for (Order transaction : transactions) {
 					int status = transaction.getSection().getStatus().getStatus_id();
@@ -108,14 +119,13 @@ public class OrderService {
 							.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
 									responseMessage.get("getProductByShopIdFail"), ""));
 				}
-			} 
+			}
 			return ResponseEntity.status(HttpStatus.NOT_FOUND)
 					.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
 							responseMessage.get("transactionNotFound"), transactions));
 		}
-		return ResponseEntity.status(HttpStatus.NOT_FOUND)
-				.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
-						responseMessage.get("accountNotFound"), ""));
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+				HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("accountNotFound"), ""));
 	}
 
 	public ResponseEntity<ResponseObject> createOrder(Map<String, String> map) {
@@ -166,25 +176,23 @@ public class OrderService {
 					.body(new ResponseObject(false, HttpStatus.BAD_REQUEST.toString().split(" ")[0],
 							responseMessage.get("paymentFailed"), errors.values()));
 	}
-	
-    public ResponseEntity<ResponseObject> updateOrderStatus(int id, String status_value) {
-    	Optional<Order> order = repository.findById(id);
-    	if (!order.isEmpty()) {
-    		Optional<Status> newStat = statusRepository.findByValue(status_value);
-    		if (!newStat.isEmpty()) {
-    			order.get().setStatus(newStat.get());
-    			return ResponseEntity.status(HttpStatus.OK)
-    					.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
-    							"Update order sucessfully", repository.save(order.get())));
-    		}
-    		return ResponseEntity.status(HttpStatus.NOT_FOUND)
-    				.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
-    						"Status does not exist", ""));
-    	}
-		return ResponseEntity.status(HttpStatus.NOT_FOUND)
-				.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
-						"Order does not exist", ""));
-    }
+
+	public ResponseEntity<ResponseObject> updateOrderStatus(int id, String status_value) {
+		Optional<Order> order = repository.findById(id);
+		if (!order.isEmpty()) {
+			Optional<Status> newStat = statusRepository.findByValue(status_value);
+			if (!newStat.isEmpty()) {
+				order.get().setStatus(newStat.get());
+				return ResponseEntity.status(HttpStatus.OK)
+						.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
+								"Update order sucessfully", repository.save(order.get())));
+			}
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+					HttpStatus.NOT_FOUND.toString().split(" ")[0], "Status does not exist", ""));
+		}
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+				new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0], "Order does not exist", ""));
+	}
 
 //    private void createTransaction(Order order) {
 //        Transaction transaction = new Transaction();
@@ -196,8 +204,7 @@ public class OrderService {
 //        transaction.setAccount(order.getAccount());
 //        transactionRepository.save(transaction);
 //    }
-    
-    
+
 //	public ResponseEntity<ResponseObject> updateOrder(Order newOrder) {
 //		Order updateOrder = repository.findById(newOrder.getID()).map(transaction -> {
 //			transaction.setTotal(newOrder.getTotal());
