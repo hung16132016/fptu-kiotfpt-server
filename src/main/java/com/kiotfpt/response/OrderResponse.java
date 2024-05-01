@@ -2,7 +2,7 @@ package com.kiotfpt.response;
 
 import java.util.Date;
 
-import com.kiotfpt.model.Status;
+import com.kiotfpt.model.Order;
 
 public class OrderResponse {
 	
@@ -11,14 +11,14 @@ public class OrderResponse {
     private Date order_time_complete;
     private String order_desc;
     private float order_total;
-    private Status status;
+    private StatusResponse status;
     
 	public OrderResponse() {
 		super();
 	}
 
 	public OrderResponse(int order_id, Date order_time_init, Date order_time_complete, String order_desc,
-			float order_total, Status status) {
+			float order_total, StatusResponse status) {
 		super();
 		this.order_id = order_id;
 		this.order_time_init = order_time_init;
@@ -26,6 +26,16 @@ public class OrderResponse {
 		this.order_desc = order_desc;
 		this.order_total = order_total;
 		this.status = status;
+	}
+	
+	public OrderResponse(Order order) {
+		super();
+		this.order_id = order.getOrder_id();
+		this.order_time_init = order.getOrder_time_init();
+		this.order_time_complete = order.getOrder_time_complete();
+		this.order_desc = order.getOrder_desc();
+		this.order_total = order.getOrder_total();
+		this.status = new StatusResponse(order.getStatus());
 	}
 
 	public int getOrder_id() {
@@ -68,12 +78,11 @@ public class OrderResponse {
 		this.order_total = order_total;
 	}
 
-	public Status getStatus() {
+	public StatusResponse getStatus() {
 		return status;
 	}
 
-	public void setStatus(Status status) {
+	public void setStatus(StatusResponse status) {
 		this.status = status;
 	}
-    
 }

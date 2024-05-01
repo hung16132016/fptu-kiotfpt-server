@@ -1,31 +1,25 @@
-package com.kiotfpt.response;
+package com.kiotfpt.request;
 
 import com.kiotfpt.model.District;
-import com.kiotfpt.request.DistrictRequest;
 
-public class DistrictResponse {
+public class DistrictRequest {
 
 	private int district_id;
 	private String district_value;
 
-	public DistrictResponse() {
+	public DistrictRequest() {
 	}
 
-	public DistrictResponse(int district_id, String district_value) {
+	public DistrictRequest(int district_id, String district_value) {
 		this.district_id = district_id;
 		this.district_value = district_value;
 	}
-	
-	public DistrictResponse(DistrictRequest district) {
-		this.district_id = district.getDistrict_id();
-		this.district_value = district.getDistrict_value();
-	}
-	
-	public DistrictResponse(District district) {
-		this.district_id = district.getDistrict_id();
-		this.district_value = district.getDistrict_value();
-	}
 
+	public DistrictRequest(District district) {
+		this.district_id = district.getDistrict_id();
+		this.district_value = district.getDistrict_value();
+	}
+	
 	public int getDistrict_id() {
 		return district_id;
 	}

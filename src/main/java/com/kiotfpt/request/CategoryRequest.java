@@ -1,8 +1,8 @@
-package com.kiotfpt.response;
+package com.kiotfpt.request;
 
 import com.kiotfpt.model.Category;
 
-public class CategoryResponse {
+public class CategoryRequest {
 
 	private int category_id;
 
@@ -10,18 +10,18 @@ public class CategoryResponse {
 
 	private String category_thumbnail;
 
-	public CategoryResponse() {
+	public CategoryRequest() {
 		super();
 	}
 
-	public CategoryResponse(int category_id, String name, String category_thumbnail) {
+	public CategoryRequest(int category_id, String name, String category_thumbnail) {
 		super();
 		this.category_id = category_id;
 		this.name = name;
 		this.category_thumbnail = category_thumbnail;
 	}
 	
-	public CategoryResponse(Category category) {
+	public CategoryRequest(Category category) {
 		super();
 		this.category_id = category.getCategory_id();
 		this.name = category.getCategory_name();

@@ -1,7 +1,5 @@
 package com.kiotfpt.controller;
 
-import java.util.Map;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -15,11 +13,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kiotfpt.model.ResponseObject;
+import com.kiotfpt.request.CreateOrderRequest;
+import com.kiotfpt.request.StatusRequest;
 import com.kiotfpt.service.OrderService;
 
 @CrossOrigin(origins = "http://localhost:8080")
 @RestController
-@RequestMapping(path = "/v1/order")
+@RequestMapping(path = "/v1")
 public class OrderController {
 
 	@Autowired
@@ -46,33 +46,33 @@ public class OrderController {
 //		}
 //	}
 
-	@GetMapping("/get-all")
+	@GetMapping("/order/get-all")
 	public ResponseEntity<ResponseObject> getAllOrderByAccountID(@RequestParam(name = "accountID") int id) {
 		return service.getOrderByAccountID(id);
 	}
-	
-	@GetMapping("/get-by-shop")
+
+	@GetMapping("/order/get-by-shop")
 	public ResponseEntity<ResponseObject> getProductByShop(@RequestParam(name = "shop_id") Integer shopID,
 			@RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "10") int amount) {
 		return service.getOrderByShopID(shopID, page, amount);
 	}
 
-	@PutMapping("/update/{id}")
-	public ResponseEntity<ResponseObject> updateOrder(@PathVariable int id, @RequestBody String status_value) {
-		return service.updateOrderStatus(id, status_value);
+	@PutMapping("/order/update/{id}")
+	public ResponseEntity<ResponseObject> updateOrder(@PathVariable int id, @RequestBody StatusRequest status) {
+		return service.updateOrderStatus(id, status);
 	}
 
-	@PutMapping("/delete/{id}")
+	@PutMapping("/order/delete/{id}")
 	public ResponseEntity<ResponseObject> deleteOrder(@PathVariable int id) {
-		return service.updateOrderStatus(id, "Inactive");
+		return service.updateOrderStatus(id, new StatusRequest(1, "Inactive"));
 	}
-	
-	@PostMapping("/create")
-	public ResponseEntity<ResponseObject> createOrder(@RequestBody Map<String, String> map) {
+
+	@PostMapping("/checkout")
+	public ResponseEntity<ResponseObject> createOrder(@RequestBody CreateOrderRequest map) {
 		return service.createOrder(map);
 	}
 
-	@GetMapping("/get-current")
+	@GetMapping("/order/get-current")
 	public ResponseEntity<ResponseObject> getCurrentOrders(
 			@RequestParam(name = "account_id", required = true) Integer id) {
 		return service.getCurrentOrders(id);

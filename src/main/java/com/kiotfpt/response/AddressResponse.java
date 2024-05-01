@@ -1,5 +1,8 @@
 package com.kiotfpt.response;
 
+import com.kiotfpt.model.Address;
+import com.kiotfpt.request.AddressRequest;
+
 public class AddressResponse {
 
 	private int address_id;
@@ -11,11 +14,29 @@ public class AddressResponse {
 	}
 
 	public AddressResponse(int address_id, String address_value, DistrictResponse district, ProvinceResponse province) {
+		super();
 		this.address_id = address_id;
 		this.address_value = address_value;
 		this.district = district;
 		this.province = province;
 	}
+	
+	public AddressResponse(AddressRequest address) {
+		super();
+		this.address_id = address.getAddress_id();
+		this.address_value = address.getAddress_value();
+		this.district = new DistrictResponse(address.getDistrict());
+		this.province = new ProvinceResponse(address.getProvince());
+	}
+	
+	public AddressResponse(Address address) {
+		super();
+		this.address_id = address.getAddress_id();
+		this.address_value = address.getAddress_value();
+		this.district = new DistrictResponse(address.getDistrict());
+		this.province = new ProvinceResponse(address.getProvince());
+	}
+	
 
 	public int getAddress_id() {
 		return address_id;
