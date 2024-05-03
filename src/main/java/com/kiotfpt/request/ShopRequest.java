@@ -1,9 +1,8 @@
-package com.kiotfpt.response;
+package com.kiotfpt.request;
 
 import com.kiotfpt.model.Shop;
-import com.kiotfpt.request.ShopRequest;
 
-public class ShopResponse {
+public class ShopRequest {
 
 	private int shop_id;
 	private String shop_name;
@@ -11,14 +10,13 @@ public class ShopResponse {
 	private String shop_phone;
 	private String shop_thumbnail;
 
-	private AddressResponse address;
+	private AddressRequest address;
 
-	public ShopResponse() {
+	public ShopRequest() {
 	}
 
-	public ShopResponse(int shop_id, String shop_name, String shop_email, String shop_phone, String shop_thumbnail,
-			AddressResponse address) {
-		super();
+	public ShopRequest(int shop_id, String shop_name, String shop_email, String shop_phone, String shop_thumbnail,
+			AddressRequest address) {
 		this.shop_id = shop_id;
 		this.shop_name = shop_name;
 		this.shop_email = shop_email;
@@ -27,24 +25,14 @@ public class ShopResponse {
 		this.address = address;
 	}
 	
-    public ShopResponse(ShopRequest shopRequest) {
-    	super();
-        this.shop_id = shopRequest.getShop_id();
-        this.shop_name = shopRequest.getShop_name();
-        this.shop_email = shopRequest.getShop_email();
-        this.shop_phone = shopRequest.getShop_phone();
-        this.shop_thumbnail = shopRequest.getShop_thumbnail();
-        this.address = new AddressResponse(shopRequest.getAddress());
-    }
-    
-    public ShopResponse(Shop shop) {
+    public ShopRequest(Shop shop) {
     	super();
         this.shop_id = shop.getShop_id();
         this.shop_name = shop.getShop_name();
         this.shop_email = shop.getShop_email();
         this.shop_phone = shop.getShop_phone();
         this.shop_thumbnail = shop.getShop_thumbnail();
-        this.address = new AddressResponse(shop.getAddress());
+        this.address = new AddressRequest(shop.getAddress());
     }
 
 	public int getShop_id() {
@@ -87,11 +75,11 @@ public class ShopResponse {
 		this.shop_thumbnail = shop_thumbnail;
 	}
 
-	public AddressResponse getAddress() {
+	public AddressRequest getAddress() {
 		return address;
 	}
 
-	public void setAddress(AddressResponse address) {
+	public void setAddress(AddressRequest address) {
 		this.address = address;
 	}
 }

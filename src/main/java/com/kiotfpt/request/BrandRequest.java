@@ -1,8 +1,8 @@
-package com.kiotfpt.response;
+package com.kiotfpt.request;
 
 import com.kiotfpt.model.Brand;
 
-public class BrandResponse {
+public class BrandRequest {
 
 	private int brand_id;
 	
@@ -10,7 +10,7 @@ public class BrandResponse {
 	
 	private String brand_thumbnail;
 
-	public BrandResponse() {
+	public BrandRequest() {
 		super();
 	}
 
@@ -18,14 +18,14 @@ public class BrandResponse {
 		return brand_id;
 	}
 
-	public BrandResponse(int brand_id, String brand_name, String brand_thumbnail) {
+	public BrandRequest(int brand_id, String brand_name, String brand_thumbnail) {
 		super();
 		this.brand_id = brand_id;
 		this.brand_name = brand_name;
 		this.brand_thumbnail = brand_thumbnail;
 	}
 	
-	public BrandResponse(Brand brand) {
+	public BrandRequest(Brand brand) {
 		super();
 		this.brand_id = brand.getBrand_id();
 		this.brand_name = brand.getBrand_name();

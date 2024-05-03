@@ -1,4 +1,4 @@
-package com.kiotfpt.response;
+package com.kiotfpt.request;
 
 import java.util.Collection;
 import java.util.List;
@@ -7,7 +7,7 @@ import com.kiotfpt.model.Comment;
 import com.kiotfpt.model.Product;
 import com.kiotfpt.model.Product_Thumbnail;
 
-public class ProductResponse {
+public class ProductRequest {
 
 	private int product_id;
 
@@ -27,28 +27,28 @@ public class ProductResponse {
 	
 	private int product_repository;
 	
-	private Product_ConditionResponse product_condition;
+	private Product_ConditionRequest product_condition;
 
-	private BrandResponse brand;
+	private BrandRequest brand;
 
-	private StatusResponse status;
+	private StatusRequest status;
 
-	private CategoryResponse category;
+	private CategoryRequest category;
 
-	private ShopResponse shop;
+	private ShopRequest shop;
 	
 	private List<Product_Thumbnail> thumbnail;
 	
 	private Collection<Comment> comments;
 
-	public ProductResponse() {
+	public ProductRequest() {
 		super();
 	}
 
-	public ProductResponse(int product_id, String product_name, String product_description, int product_sold,
+	public ProductRequest(int product_id, String product_name, String product_description, int product_sold,
 			float product_price, boolean product_best_seller, boolean product_popular, String product_variants,
-			int product_repository, Product_ConditionResponse product_condition, BrandResponse brand,
-			StatusResponse status, CategoryResponse category, ShopResponse shop, List<Product_Thumbnail> thumbnail,
+			int product_repository, Product_ConditionRequest product_condition, BrandRequest brand,
+			StatusRequest status, CategoryRequest category, ShopRequest shop, List<Product_Thumbnail> thumbnail,
 			Collection<Comment> comments) {
 		super();
 		this.product_id = product_id;
@@ -69,7 +69,7 @@ public class ProductResponse {
 		this.comments = comments;
 	}
 	
-	public ProductResponse(Product product) {
+	public ProductRequest(Product product) {
 		super();
 		this.product_id = product.getProduct_id();
 		this.product_name = product.getProduct_name();
@@ -80,11 +80,11 @@ public class ProductResponse {
 		this.product_popular = product.isProduct_popular();
 		this.product_variants = product.getProduct_variants();
 		this.product_repository = product.getProduct_repository();
-		this.product_condition = new Product_ConditionResponse(product.getProduct_condition());
-		this.brand = new BrandResponse(product.getBrand());
-		this.status = new StatusResponse(product.getStatus());
-		this.category = new CategoryResponse(product.getCategory());
-		this.shop = new ShopResponse(product.getShop());
+		this.product_condition = new Product_ConditionRequest(product.getProduct_condition());
+		this.brand = new BrandRequest(product.getBrand());
+		this.status = new StatusRequest(product.getStatus());
+		this.category = new CategoryRequest(product.getCategory());
+		this.shop = new ShopRequest(product.getShop());
 		this.thumbnail = product.getThumbnail();
 		this.comments = product.getComments();
 	}
@@ -161,43 +161,43 @@ public class ProductResponse {
 		this.product_repository = product_repository;
 	}
 
-	public Product_ConditionResponse getProduct_condition() {
+	public Product_ConditionRequest getProduct_condition() {
 		return product_condition;
 	}
 
-	public void setProduct_condition(Product_ConditionResponse product_condition) {
+	public void setProduct_condition(Product_ConditionRequest product_condition) {
 		this.product_condition = product_condition;
 	}
 
-	public BrandResponse getBrand() {
+	public BrandRequest getBrand() {
 		return brand;
 	}
 
-	public void setBrand(BrandResponse brand) {
+	public void setBrand(BrandRequest brand) {
 		this.brand = brand;
 	}
 
-	public StatusResponse getStatus() {
+	public StatusRequest getStatus() {
 		return status;
 	}
 
-	public void setStatus(StatusResponse status) {
+	public void setStatus(StatusRequest status) {
 		this.status = status;
 	}
 
-	public CategoryResponse getCategory() {
+	public CategoryRequest getCategory() {
 		return category;
 	}
 
-	public void setCategory(CategoryResponse category) {
+	public void setCategory(CategoryRequest category) {
 		this.category = category;
 	}
 
-	public ShopResponse getShop() {
+	public ShopRequest getShop() {
 		return shop;
 	}
 
-	public void setShop(ShopResponse shop) {
+	public void setShop(ShopRequest shop) {
 		this.shop = shop;
 	}
 

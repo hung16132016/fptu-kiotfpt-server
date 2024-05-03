@@ -1,27 +1,21 @@
-package com.kiotfpt.response;
+package com.kiotfpt.request;
 
 import com.kiotfpt.model.Province;
-import com.kiotfpt.request.ProvinceRequest;
 
-public class ProvinceResponse {
+public class ProvinceRequest {
 
 	private int province_id;
 	private String province_value;
 
-	public ProvinceResponse() {
+	public ProvinceRequest() {
 	}
 
-	public ProvinceResponse(int province_id, String province_value) {
+	public ProvinceRequest(int province_id, String province_value) {
 		this.province_id = province_id;
 		this.province_value = province_value;
 	}
 	
-	public ProvinceResponse(ProvinceRequest province) {
-		this.province_id = province.getProvince_id();
-		this.province_value = province.getProvince_value();
-	}
-	
-	public ProvinceResponse(Province province) {
+	public ProvinceRequest(Province province) {
 		this.province_id = province.getProvince_id();
 		this.province_value = province.getProvince_value();
 	}

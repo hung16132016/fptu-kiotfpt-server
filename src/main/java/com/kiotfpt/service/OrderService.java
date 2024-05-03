@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,19 +14,25 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import com.kiotfpt.model.Accessibility_item;
 import com.kiotfpt.model.Account;
 import com.kiotfpt.model.Order;
-import com.kiotfpt.model.Product;
 import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.model.Section;
 import com.kiotfpt.model.Shop;
 import com.kiotfpt.model.Status;
+import com.kiotfpt.repository.AccessibilityItemRepository;
 import com.kiotfpt.repository.AccountRepository;
 import com.kiotfpt.repository.OrderRepository;
 import com.kiotfpt.repository.ProductRepository;
 import com.kiotfpt.repository.SectionRepository;
 import com.kiotfpt.repository.ShopRepository;
 import com.kiotfpt.repository.StatusRepository;
+import com.kiotfpt.request.CreateOrderRequest;
+import com.kiotfpt.request.ItemRequest;
+import com.kiotfpt.request.SectionRequest;
+import com.kiotfpt.request.StatusRequest;
+import com.kiotfpt.response.OrderResponse;
 import com.kiotfpt.utils.JsonReader;
 
 @Service
@@ -48,8 +53,11 @@ public class OrderService {
 	@Autowired
 	private StatusRepository statusRepository;
 
+//	@Autowired
+//	private ProductRepository productRepository;
+	
 	@Autowired
-	private ProductRepository productRepository;
+	private AccessibilityItemRepository itemRepository;
 
 //	@Autowired
 //	private JavaMailSender mailSender;
@@ -74,25 +82,27 @@ public class OrderService {
 	}
 
 	public ResponseEntity<ResponseObject> getOrderByShopID(int shop_id, int page, int amount) {
-	    Optional<Shop> shopOptional = shopRepository.findById(shop_id);
-	    if (shopOptional.isPresent()) {
-	        Pageable pageable = PageRequest.of(page - 1, amount);
-	        Page<Order> orderPage = repository.findAllByShop(shopOptional.get(), pageable);
-	        
-	        if (orderPage.hasContent()) {
-	            List<Order> orders = orderPage.getContent();
-	            return ResponseEntity.status(HttpStatus.OK)
-	                    .body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Orders found", orders));
-	        } else {
-	            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-	                    .body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
-	                            "No orders found for the given shop ID", ""));
-	        }
-	    } else {
-	        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-	                .body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
-	                        "Shop not found", ""));
-	    }
+		Optional<Shop> shopOptional = shopRepository.findById(shop_id);
+		if (!shopOptional.isEmpty()) {
+			Pageable pageable = PageRequest.of(page - 1, amount);
+			Page<Order> orderPage = repository.findAllByShop(shopOptional.get(), pageable);
+
+			if (orderPage.hasContent()) {
+				List<OrderResponse> list = new ArrayList<>();
+				for (Order order : orderPage.getContent()) {
+					OrderResponse response = new OrderResponse(order);
+					list.add(response);
+				}
+				return ResponseEntity.status(HttpStatus.OK)
+						.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Orders found", list));
+			} else {
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+						HttpStatus.NOT_FOUND.toString().split(" ")[0], "No orders found for the given shop ID", ""));
+			}
+		} else {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+					new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0], "Shop not found", ""));
+		}
 	}
 
 	public ResponseEntity<ResponseObject> getCurrentOrders(int account_id) {
@@ -128,59 +138,56 @@ public class OrderService {
 				HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("accountNotFound"), ""));
 	}
 
-	public ResponseEntity<ResponseObject> createOrder(Map<String, String> map) {
+	public ResponseEntity<ResponseObject> createOrder(CreateOrderRequest input) {
+		// Assuming each section is one order
+		for (SectionRequest sectionRequest : input.getSections()) {
+			Section section = sectionRepository.findById(sectionRequest.getSection_id()).orElse(null);
+			if (section != null) {
+				Shop shop = section.getShop();
+				Account account = accountRepository.findById(input.getAccountId()).orElse(null);
+				Status status = statusRepository.findByValue("Pending").orElse(null);
 
-		Map<String, String> errors = new HashMap<>();
-		Optional<Account> account = accountRepository.findById(Integer.parseInt(map.get("account_id")));
-		if (!account.isPresent()) {
-			errors.put("accoundNotExist", "Account does not exist!");
+				Order order = new Order();
+				order.setOrder_time_init(new Date());
+				order.setOrder_desc("Order description");
+				order.setOrder_total(calculateOrderTotal(sectionRequest.getItems())); // Implement this method
+
+				order.setSection(section);
+				order.setShop(shop);
+				order.setAccount(account);
+				order.setStatus(status);
+
+				repository.save(order);
+
+				return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
+						HttpStatus.OK.toString().split(" ")[0], "Order created successfully", order));
+			}
 		}
-		Optional<Product> product = productRepository.findById(Integer.parseInt(map.get("product_id")));
-		if (!product.isPresent()) {
-			errors.put("productNotExist", "Product does not exist!");
-		}
-
-		if (errors.isEmpty()) {
-
-			Status status = statusRepository.findById(8).orElse(null);
-			Section section = new Section();
-			section.setSection_total(product.get().getProduct_price());
-			section.setShop(product.get().getShop());
-			section.setStatus(status);
-			sectionRepository.save(section);
-
-			Order order = new Order();
-			Date date = new Date();
-			order.setOrder_time_init(date);
-			order.setOrder_time_complete(null);
-			order.setAccount(account.get());
-			order.setOrder_desc(product.get().getProduct_description());
-			order.setShop(product.get().getShop());
-			order.setOrder_total(product.get().getProduct_price());
-			order.setSection(section);
-
-			repository.save(order);
-//					MimeMessage message = mailSender.createMimeMessage();
-//					message.setFrom(new InternetAddress("mappe.help@gmail.com"));
-//					message.setRecipients(MimeMessage.RecipientType.TO, account.get().getAccountProfile().getEmail());
-//					String htmlContent = "<h1>OTP code for payment</h1>"
-//							+ "<p>Please type this code to confirm your payment: </p>" + randomNumber;
-//					message.setSubject("Email for your payment");
-//					message.setContent(htmlContent, "text/html; charset=utf-8");
-//					mailSender.send(message);
-			return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
-					HttpStatus.OK.toString().split(" ")[0], responseMessage.get("checkMail"), ""));
-
-		} else
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body(new ResponseObject(false, HttpStatus.BAD_REQUEST.toString().split(" ")[0],
-							responseMessage.get("paymentFailed"), errors.values()));
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+				new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0], "Section not found", null));
 	}
 
-	public ResponseEntity<ResponseObject> updateOrderStatus(int id, String status_value) {
+    private float calculateOrderTotal(List<ItemRequest> items) {
+        float total = 0.0f;
+        for (ItemRequest itemRequest : items) {
+            Accessibility_item item = itemRepository.findById(itemRequest.getItemId()).orElse(null);
+            if (item != null) {
+                double productPrice = item.getProduct().getProduct_price();
+                total += itemRequest.getItemQuantity() * productPrice;
+            } else {
+                // Handle the case where the item is not found
+                // You may throw an exception, log an error, or handle it based on your requirements
+                // For now, let's just log an error
+                System.err.println("Item not found for ID: " + itemRequest.getItemId());
+            }
+        }
+        return total;
+    }
+
+	public ResponseEntity<ResponseObject> updateOrderStatus(int id, StatusRequest status) {
 		Optional<Order> order = repository.findById(id);
 		if (!order.isEmpty()) {
-			Optional<Status> newStat = statusRepository.findByValue(status_value);
+			Optional<Status> newStat = statusRepository.findByValue(status.getValue());
 			if (!newStat.isEmpty()) {
 				order.get().setStatus(newStat.get());
 				return ResponseEntity.status(HttpStatus.OK)

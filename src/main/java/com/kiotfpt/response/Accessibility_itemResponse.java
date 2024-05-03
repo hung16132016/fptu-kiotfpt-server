@@ -1,5 +1,7 @@
 package com.kiotfpt.response;
 
+import com.kiotfpt.model.Accessibility_item;
+
 public class Accessibility_itemResponse {
 
 
@@ -28,6 +30,16 @@ public class Accessibility_itemResponse {
 		this.item_note = item_note;
 		this.product = product;
 		this.status = status;
+	}
+	
+	public Accessibility_itemResponse(Accessibility_item item) {
+		super();
+		this.item_id = item.getItem_id();
+		this.item_quantity = item.getItem_quantity();
+		this.item_total = item.getItem_total();
+		this.item_note = item.getItem_note();
+		this.product = new ProductResponse(item.getProduct());
+		this.status = new StatusResponse(item.getStatus());
 	}
 
 	public int getItem_id() {

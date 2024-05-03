@@ -1,10 +1,8 @@
 package com.kiotfpt.service;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,8 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kiotfpt.model.Brand;
 import com.kiotfpt.model.Category;
 import com.kiotfpt.model.Product;
@@ -26,10 +22,12 @@ import com.kiotfpt.model.Product_Thumbnail;
 import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.model.Shop;
 import com.kiotfpt.model.Status;
+import com.kiotfpt.repository.BrandRepository;
 import com.kiotfpt.repository.CategoryRepository;
 import com.kiotfpt.repository.ProductRepository;
 import com.kiotfpt.repository.ShopRepository;
 import com.kiotfpt.repository.StatusRepository;
+import com.kiotfpt.request.ProductRequest;
 import com.kiotfpt.response.BrandResponse;
 import com.kiotfpt.response.CategoryResponse;
 import com.kiotfpt.response.ProductResponse;
@@ -52,6 +50,9 @@ public class ProductService {
 
 	@Autowired
 	private ShopRepository shopRepository;
+
+	@Autowired
+	private BrandRepository brandRepository;
 
 //	@Value("${path_image}")
 //	private String imageLink;
@@ -126,36 +127,76 @@ public class ProductService {
 	}
 	
 
-	public ResponseEntity<ResponseObject> updateProduct(int product_id, String name, String description, String price,
-			int category_id) {
-		Optional<Product> pro = repository.findById(product_id);
+	public ResponseEntity<ResponseObject> updateProduct(int id, ProductRequest productRequest) {
+		Optional<Product> product = repository.findById(id);
 
-		if (!pro.isPresent()) {
+		if (product.isEmpty()) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-					HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("productNotFound"), new int[0]));
+					HttpStatus.NOT_FOUND.toString().split(" ")[0], "product not exist", new int[0]));
 		}
-//		check empty
-		if (name == "" || description == "" || price == "") {
+		String name = productRequest.getProduct_name(), description = productRequest.getProduct_description(),
+				variants = productRequest.getProduct_variants();
+		float price = productRequest.getProduct_price();
+		int categoryId = productRequest.getCategory().getCategory_id(),
+				brandId = productRequest.getBrand().getBrand_id(), shopId = productRequest.getShop().getShop_id(),
+				p_repository = productRequest.getProduct_repository();
+
+		// Validate input
+		if (name == null || description == null || variants == null) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
-					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "input can not be empty!", new int[0]));
+					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Input cannot be empty!", new int[0]));
 		}
-		if (name.length() >= 255 || description.length() >= 511 || price.length() >= 12)
+		if (name.isEmpty() || description.isEmpty() || variants.isEmpty()) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
-					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "input too long", new int[0]));
-//		chheck category
-		Optional<Category> category = categoryRepository.findById(category_id);
-		if (category.isEmpty()) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
-					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "category not exist!", new int[0]));
+					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Input cannot be empty!", new int[0]));
 		}
 
-		Product product = pro.get();
-		product.setProduct_name(name);
-		product.setProduct_description(description);
-		product.setProduct_price(Float.parseFloat(price));
-		product.setCategory(category.get());
+		if (p_repository <= 0) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
+					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Repository must be greater than 0!", new int[0]));
+		}
+
+		// Check category existence
+		Optional<Category> categoryOptional = categoryRepository.findById(categoryId);
+		if (categoryOptional.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
+					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Category does not exist!", new int[0]));
+		}
+
+		// Check shop existence
+		Optional<Shop> shopOptional = shopRepository.findById(shopId);
+		if (shopOptional.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
+					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Shop does not exist!", new int[0]));
+		}
+
+		// Check brand existence
+		Optional<Brand> brandOptional = brandRepository.findById(brandId);
+		if (brandOptional.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
+					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Brand does not exist!", new int[0]));
+		}
+
+		product.get().setProduct_name(name);
+		product.get().setProduct_description(description);
+		product.get().setProduct_price(price);
+		product.get().setProduct_variants(variants);
+		product.get().setCategory(categoryOptional.get());
+		product.get().setShop(shopOptional.get());
+		product.get().setProduct_best_seller(false);
+		product.get().setProduct_popular(false);
+		product.get().setProduct_sold(0);
+		product.get().setProduct_repository(p_repository);
+
+		product.get().setThumbnail(productRequest.getThumbnail());
+
+		// Save the product
+		repository.save(product.get());
+		
+		ProductResponse res = new ProductResponse(product.get());
+
 		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
-				HttpStatus.OK.toString().split(" ")[0], "product is updated successfully", repository.save(product)));
+				HttpStatus.OK.toString().split(" ")[0], "Product updated successfully", res));
 	}
 
 	public ResponseEntity<ResponseObject> deleteProduct(int id) {
@@ -165,80 +206,79 @@ public class ProductService {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
 					HttpStatus.NOT_FOUND.toString().split(" ")[0], "product not exist", new int[0]));
 		}
-		Optional<Status> statusDeleted = statusRepository.findByValue("Deleted");
+		Optional<Status> statusDeleted = statusRepository.findByValue("Inactive");
 		Product product = pro.get();
 		product.setStatus(statusDeleted.get());
 		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
 				HttpStatus.OK.toString().split(" ")[0], "Product is deleted successfully", repository.save(product)));
 	}
 
-	public ResponseEntity<ResponseObject> createProduct(Map<String, String> obj) throws IOException {
+	public ResponseEntity<ResponseObject> createProduct(ProductRequest productRequest) {
+		// Retrieve values from the ProductRequest object
+		String name = productRequest.getProduct_name(), description = productRequest.getProduct_description(),
+				variants = productRequest.getProduct_variants();
+		float price = productRequest.getProduct_price();
+		int categoryId = productRequest.getCategory().getCategory_id(),
+				brandId = productRequest.getBrand().getBrand_id(), shopId = productRequest.getShop().getShop_id(),
+				p_repository = productRequest.getProduct_repository();
 
-		String name = obj.get("name"), description = obj.get("description"), price = obj.get("price"),
-				category_id = obj.get("category_id"), variants = obj.get("variants"), shop_id = obj.get("shop_id");
-//		check empty
-		if (name == "" || description == "" || price == "" || category_id == "" || variants == "") {
+		// Validate input
+		if (name == null || description == null || variants == null) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
-					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "input can not be empty!", new int[0]));
+					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Input cannot be empty!", new int[0]));
 		}
-		if (name.length() >= 255 || description.length() >= 511 || price.length() >= 12)
+		if (name.isEmpty() || description.isEmpty() || variants.isEmpty()) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
-					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "input too long", new int[0]));
-//		chheck category
-		Optional<Category> category = categoryRepository.findById(Integer.parseInt(category_id));
-		if (!category.isPresent()) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
-					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "category not exist!", new int[0]));
+					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Input cannot be empty!", new int[0]));
 		}
-//		chheck shop
-		Optional<Shop> shop = shopRepository.findById(Integer.parseInt(shop_id));
-		if (!shop.isPresent()) {
+
+		if (p_repository <= 0) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
-					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "category not exist!", new int[0]));
+					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Repository must be greater than 0!", new int[0]));
 		}
+
+		// Check category existence
+		Optional<Category> categoryOptional = categoryRepository.findById(categoryId);
+		if (categoryOptional.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
+					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Category does not exist!", new int[0]));
+		}
+
+		// Check shop existence
+		Optional<Shop> shopOptional = shopRepository.findById(shopId);
+		if (shopOptional.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
+					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Shop does not exist!", new int[0]));
+		}
+
+		// Check brand existence
+		Optional<Brand> brandOptional = brandRepository.findById(brandId);
+		if (brandOptional.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
+					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Brand does not exist!", new int[0]));
+		}
+
+		// Create the product entity
 		Product product = new Product();
-
-		// Get the thumbnail JSON string
-		String thumbnailJsonString = obj.get("thumbnail");
-
-		// Create ObjectMapper
-		ObjectMapper objectMapper = new ObjectMapper();
-
-		// Parse the thumbnail JSON string into a JsonNode
-		JsonNode thumbnailJson = objectMapper.readTree(thumbnailJsonString);
-
-		// Create a list to store thumbnail objects
-		List<Product_Thumbnail> thumbnails = new ArrayList<>();
-
-		// Iterate over the elements in the thumbnail JSON object
-		for (JsonNode entry : thumbnailJson) {
-			String link = entry.get("link").asText();
-
-			// Assuming Product_thumbnail has a constructor that takes a link
-			Product_Thumbnail thumbnail = new Product_Thumbnail(link);
-
-			// Set the product for each thumbnail
-			thumbnail.setProduct(product);
-
-			thumbnails.add(thumbnail);
-		}
-
 		product.setProduct_name(name);
 		product.setProduct_description(description);
-		product.setProduct_price(Float.parseFloat(price));
-		product.setProduct_popular(false);
-		product.setProduct_best_seller(false);
-		product.setStatus(statusRepository.findById(1).get()); // active
-		product.setCategory(category.get());
+		product.setProduct_price(price);
 		product.setProduct_variants(variants);
-		product.setThumbnail(thumbnails);
-		product.setShop(shop.get());
-		repository.save(product);
+		product.setCategory(categoryOptional.get());
+		product.setShop(shopOptional.get());
+		product.setProduct_best_seller(false);
+		product.setProduct_popular(false);
+		product.setProduct_sold(0);
+		product.setProduct_repository(p_repository);
 
-		product = repository.findAll().get(repository.findAll().size() - 1);
+		product.setThumbnail(productRequest.getThumbnail());
+
+		// Save the product
+		repository.save(product);
+		ProductResponse res = new ProductResponse(product);
 
 		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
-				HttpStatus.OK.toString().split(" ")[0], "Product is created successfull", product));
+				HttpStatus.OK.toString().split(" ")[0], "Product created successfully", res));
 	}
 
 	public ResponseEntity<ResponseObject> findByShopId(int id, int page, int amount) {

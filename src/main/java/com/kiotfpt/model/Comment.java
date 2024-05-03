@@ -9,6 +9,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(name = "kiotfpt_comment")
 public class Comment {
@@ -21,10 +23,12 @@ public class Comment {
 	private String comment_content;
 	
 	@ManyToOne()
+	@JsonIgnore
 	@JoinColumn(name = "account_id", nullable = false)
 	private Account account;
 	
 	@ManyToOne
+	@JsonIgnore
 	@JoinColumn(name = "product_id")
 	private Product product;
 	

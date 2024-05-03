@@ -33,8 +33,9 @@ public class Province {
 		super();
 	}
 
-	public Province(String province_value) {
+	public Province(int province_id, String province_value) {
 		super();
+		this.province_id = province_id;
 		this.province_value = province_value;
 	}
 

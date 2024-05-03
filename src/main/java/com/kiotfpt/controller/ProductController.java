@@ -2,7 +2,6 @@ package com.kiotfpt.controller;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.kiotfpt.model.Product;
 import com.kiotfpt.model.ResponseObject;
+import com.kiotfpt.request.ProductRequest;
 import com.kiotfpt.service.ProductService;
 
 @CrossOrigin(origins = "http://localhost:8080")
@@ -87,8 +87,8 @@ public class ProductController {
 	}
 
 	@PostMapping("/product/create")
-	public ResponseEntity<ResponseObject> createProduct(@RequestBody Map<String, String> obj) throws IOException {
-		return service.createProduct(obj);
+	public ResponseEntity<ResponseObject> createProduct(@RequestBody ProductRequest product) throws IOException {
+		return service.createProduct(product);
 	}
 
 	@DeleteMapping("product/delete/{id}")
@@ -97,9 +97,8 @@ public class ProductController {
 	}
 
 	@PutMapping("/product/update/{id}")
-	public ResponseEntity<ResponseObject> createProduct(@PathVariable int id, @RequestBody Map<String, String> obj) {
-		return service.updateProduct(id, obj.get("name"), obj.get("description"), obj.get("price"),
-				Integer.parseInt(obj.get("category_id")));
+	public ResponseEntity<ResponseObject> createProduct(@PathVariable int id, @RequestBody ProductRequest obj) {
+		return service.updateProduct(id, obj);
 	}
 
 //	@GetMapping("/product/search")

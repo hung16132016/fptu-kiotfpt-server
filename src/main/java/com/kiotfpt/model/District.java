@@ -32,10 +32,12 @@ public class District {
 		super();
 	}
 
-	public District(String district_value) {
+	public District(int district_id, String district_value) {
 		super();
+		this.district_id = district_id;
 		this.district_value = district_value;
 	}
+
 
 	public int getDistrict_id() {
 		return district_id;

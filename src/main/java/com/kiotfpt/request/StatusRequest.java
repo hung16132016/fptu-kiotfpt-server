@@ -1,24 +1,23 @@
-package com.kiotfpt.response;
+package com.kiotfpt.request;
 
 import com.kiotfpt.model.Status;
 
-public class StatusResponse {
-
+public class StatusRequest {
 	private int status_id;
 
 	private String value;
 
-	public StatusResponse() {
+	public StatusRequest() {
 		super();
 	}
 
-	public StatusResponse(int status_id, String value) {
+	public StatusRequest(int status_id, String value) {
 		super();
 		this.status_id = status_id;
 		this.value = value;
 	}
 	
-	public StatusResponse(Status status) {
+	public StatusRequest(Status status) {
 		super();
 		this.status_id = status.getStatus_id();
 		this.value = status.getValue();
@@ -39,5 +38,4 @@ public class StatusResponse {
 	public void setValue(String value) {
 		this.value = value;
 	}
-
 }

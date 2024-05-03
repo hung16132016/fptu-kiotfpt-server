@@ -16,7 +16,6 @@ import com.kiotfpt.model.Cart;
 import com.kiotfpt.model.Category;
 import com.kiotfpt.model.Product;
 import com.kiotfpt.model.Product_Condition;
-import com.kiotfpt.model.Product_Thumbnail;
 import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.model.Section;
 import com.kiotfpt.model.Shop;
@@ -25,10 +24,6 @@ import com.kiotfpt.repository.AccessibilityItemRepository;
 import com.kiotfpt.repository.CartRepository;
 import com.kiotfpt.repository.SectionRepository;
 import com.kiotfpt.response.Accessibility_itemResponse;
-import com.kiotfpt.response.BrandResponse;
-import com.kiotfpt.response.CategoryResponse;
-import com.kiotfpt.response.ProductResponse;
-import com.kiotfpt.response.Product_ConditionResponse;
 import com.kiotfpt.response.SectionResponse;
 import com.kiotfpt.response.ShopResponse;
 import com.kiotfpt.response.StatusResponse;
@@ -111,26 +106,7 @@ public class CartService {
 												""));
 							}
 
-							List<Product_Thumbnail> thumbnails = product.getThumbnail();
-
-							Status item_status = item.getStatus();
-
-							Accessibility_itemResponse item_res = new Accessibility_itemResponse(item.getItem_id(),
-									item.getItem_quantity(), item.getItem_total(), item.getItem_note(),
-									new ProductResponse(product.getProduct_id(), product.getProduct_name(),
-											product.getProduct_description(), product.getProduct_sold(),
-											product.getProduct_price(), product.isProduct_best_seller(),
-											product.isProduct_popular(), product.getProduct_variants(),
-											product.getProduct_repository(),
-											new Product_ConditionResponse(condition.getPc_id(),
-													condition.getPc_value()),
-											new BrandResponse(brand.getBrand_id(), brand.getBrand_name(),
-													brand.getBrand_thumbnail()),
-											new StatusResponse(status.getStatus_id(), status.getValue()),
-											new CategoryResponse(category.getCategory_id(), category.getCategory_name(),
-													category.getCategory_thumbnail()),
-											null, thumbnails, null),
-									new StatusResponse(item_status.getStatus_id(), item_status.getValue()));
+							Accessibility_itemResponse item_res = new Accessibility_itemResponse(item);
 							items.add(item_res);
 						}
 
