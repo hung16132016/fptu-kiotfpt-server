@@ -46,7 +46,7 @@ public class Shop {
 
 	@OneToMany(mappedBy = "shop", cascade = CascadeType.ALL)
 	@JsonIgnore
-	private Collection<Section> orders;
+	private Collection<Order> orders;
 
 	@OneToMany(mappedBy = "shop", cascade = CascadeType.ALL)
 	@JsonIgnore
@@ -131,11 +131,11 @@ public class Shop {
 		this.address = address;
 	}
 
-	public Collection<Section> getOrders() {
+	public Collection<Order> getOrders() {
 		return orders;
 	}
 
-	public void setOrders(Collection<Section> orders) {
+	public void setOrders(Collection<Order> orders) {
 		this.orders = orders;
 	}
 
