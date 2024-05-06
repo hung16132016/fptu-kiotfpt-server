@@ -111,12 +111,11 @@ public class CartService {
 						}
 
 						Shop get_shop = section.getShop();
-						Status get_status = section.getStatus();
-
+						
 						ShopResponse shop = new ShopResponse(get_shop.getShop_id(), get_shop.getShop_name(), null, null,
 								get_shop.getShop_thumbnail(), null);
 
-						StatusResponse status = new StatusResponse(get_status.getStatus_id(), get_status.getValue());
+						StatusResponse status = new StatusResponse(section.getStatus());
 
 						SectionResponse response = new SectionResponse(section.getSection_id(),
 								section.getSection_total(), shop, status, items);

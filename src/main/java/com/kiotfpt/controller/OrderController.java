@@ -52,7 +52,7 @@ public class OrderController {
 	}
 
 	@GetMapping("/order/get-by-shop")
-	public ResponseEntity<ResponseObject> getProductByShop(@RequestParam(name = "shop_id") Integer shopID,
+	public ResponseEntity<ResponseObject> getOrderByShop(@RequestParam(name = "shop_id") Integer shopID,
 			@RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "10") int amount) {
 		return service.getOrderByShopID(shopID, page, amount);
 	}

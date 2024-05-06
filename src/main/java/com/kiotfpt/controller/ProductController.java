@@ -1,7 +1,6 @@
 package com.kiotfpt.controller;
 
 import java.io.IOException;
-import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kiotfpt.model.Product;
 import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.request.ProductRequest;
 import com.kiotfpt.service.ProductService;
@@ -97,7 +95,7 @@ public class ProductController {
 	}
 
 	@PutMapping("/product/update/{id}")
-	public ResponseEntity<ResponseObject> createProduct(@PathVariable int id, @RequestBody ProductRequest obj) {
+	public ResponseEntity<ResponseObject> updateProduct(@PathVariable int id, @RequestBody ProductRequest obj) {
 		return service.updateProduct(id, obj);
 	}
 
