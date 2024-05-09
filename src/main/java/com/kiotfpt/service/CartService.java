@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.kiotfpt.model.Accessibility_item;
+import com.kiotfpt.model.Account;
 import com.kiotfpt.model.Brand;
 import com.kiotfpt.model.Cart;
 import com.kiotfpt.model.Category;
@@ -21,6 +22,7 @@ import com.kiotfpt.model.Section;
 import com.kiotfpt.model.Shop;
 import com.kiotfpt.model.Status;
 import com.kiotfpt.repository.AccessibilityItemRepository;
+import com.kiotfpt.repository.AccountRepository;
 import com.kiotfpt.repository.CartRepository;
 import com.kiotfpt.repository.SectionRepository;
 import com.kiotfpt.response.Accessibility_itemResponse;
@@ -37,6 +39,9 @@ public class CartService {
 
 	@Autowired
 	private SectionRepository sectionRepository;
+	
+	@Autowired
+	private AccountRepository accountRepository;
 
 	@Autowired
 	private AccessibilityItemRepository itemRepository;
@@ -54,6 +59,34 @@ public class CartService {
 //					: ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
 //							HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("cartNotFound"), ""));
 //	}
+	
+	public ResponseEntity<ResponseObject> getAmountCartByAccountID(int accountID) {
+		Optional<Account> account = accountRepository.findById(accountID);
+		int count = 0;
+		if(account.isEmpty()) 
+			ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+					HttpStatus.NOT_FOUND.toString().split(" ")[0], "Data has not found", new int[0]));
+		
+		
+		Optional<Cart> cart = repository.findCartByAccountID(accountID);
+		if(cart.isEmpty())
+			ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+					HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("cartNotFound"), ""));
+		
+		for(Section section: cart.get().getSections()) {
+			if (section.getStatus().getStatus_id() != 31)
+				continue;
+			for(Accessibility_item item: section.getItems()) {
+				if(item.getStatus().getStatus_id() != 31) 
+					continue;
+				count = count + item.getItem_quantity();
+			}
+		}
+		
+		return ResponseEntity.status(HttpStatus.OK)
+						.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
+								responseMessage.get("cartFound"), count));
+	}
 
 	public ResponseEntity<ResponseObject> getCartByID(int cart_id) {
 		Optional<Cart> cart = repository.findById(cart_id);

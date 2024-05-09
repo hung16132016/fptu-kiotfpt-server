@@ -24,19 +24,19 @@ public class AccountProfile {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int account_profile_id;
 
-	@Column(name = "account_profile_name", nullable = false)
+	@Column(name = "account_profile_name")
 	private String account_profile_name;
 
-	@Column(name = "account_profile_thumbnail", nullable = false)
+	@Column(name = "account_profile_thumbnail")
 	private String account_profile_thumbnail;
 
-	@Column(name = "account_profile_phone", nullable = false)
+	@Column(name = "account_profile_phone")
 	private String account_profile_phone;
-
-	@Column(name = "account_profile_email", nullable = false)
+ 
+	@Column(name = "account_profile_email")
 	private String account_profile_email;
 
-	@Column(name = "account_profile_birthday", nullable = false)
+	@Column(name = "account_profile_birthday")
 	private Date account_profile_birthday;
 
 	@OneToOne(cascade = CascadeType.ALL)
