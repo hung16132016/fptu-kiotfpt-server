@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.request.AccountRequest;
+import com.kiotfpt.request.AccountSignUpRequest;
 import com.kiotfpt.service.AuthService;
 
 @CrossOrigin(origins = "http://localhost:8080")
@@ -24,10 +25,10 @@ public class AuthController {
 		return service.signIn(request.getUsername(), request.getPassword());
 	}
 
-//	@PostMapping("/sign-up")
-//	public ResponseEntity<ResponseObject> signUp(@RequestBody Map<String, String> obj) {
-//		return service.signUp(obj);
-//	}
+	@PostMapping("/sign-up")
+	public ResponseEntity<ResponseObject> signUp(@RequestBody AccountSignUpRequest request) {
+		return service.signUp(request);
+	}
 
 //	// check username
 //	@PostMapping("/check-username")

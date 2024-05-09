@@ -4,37 +4,50 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import javax.mail.MessagingException;
-import javax.mail.internet.AddressException;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.kiotfpt.model.Account;
+import com.kiotfpt.model.AccountProfile;
 import com.kiotfpt.model.ResponseObject;
+import com.kiotfpt.model.Role;
 import com.kiotfpt.model.Shop;
+import com.kiotfpt.model.Cart;
 import com.kiotfpt.model.Status;
+import com.kiotfpt.repository.AccountProfileRepository;
 import com.kiotfpt.repository.AccountRepository;
+import com.kiotfpt.repository.CartRepository;
+import com.kiotfpt.repository.RoleRepository;
 import com.kiotfpt.repository.ShopRepository;
 import com.kiotfpt.repository.StatusRepository;
+import com.kiotfpt.request.AccountSignUpRequest;
 import com.kiotfpt.utils.JsonReader;
 import com.kiotfpt.utils.MD5;
+import com.kiotfpt.utils.ValidationHelper;
 
 @Service
 public class AuthService {
 	@Autowired
 	private AccountRepository repository;
-
-//	@Autowired
-//	private RoleRepository rolerepository;
 	
 	@Autowired
 	private ShopRepository shoprepository;
 
 	@Autowired
 	private StatusRepository statusRepository;
+	
+	@Autowired
+	private RoleRepository roleRepository;
+	
+	@Autowired
+	private CartRepository cartRepository;
+	
+	@Autowired
+	private AccountProfileRepository profileRepository;
+	
+	private ValidationHelper validationHelper;
 //
 //	@Autowired
 //	private AccountProfileRepository profileRepository;
@@ -69,34 +82,55 @@ public class AuthService {
 		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
 				HttpStatus.OK.toString().split(" ")[0], responseMessage.get("signInSuccess"), map));
 	}
-
-	public ResponseEntity<ResponseObject> signUp(Account account) throws AddressException, MessagingException {
+	
+	public ResponseEntity<ResponseObject> signUp(AccountSignUpRequest request) {
 		Map<String, String> errors = new HashMap<>();
-		Optional<Account> foundAccount = repository.findByAccountUsername(account.getAccount_username().trim());
+		Optional<Account> foundAccount = repository.findByAccountUsername(request.getUsername());
 
 		if (foundAccount != null) {
 			return ResponseEntity.status(HttpStatus.CONFLICT).body(new ResponseObject(false,
 					HttpStatus.CONFLICT.toString().split(" ")[0], responseMessage.get("userNameExisted"), ""));
 		} else {
-			Optional<Status> st = statusRepository.findById(1);
-			account.setStatus(st.get());;
-
-			if (account.getAccount_username().equals("")) {
+			if (request.getUsername().strip().equals("")) {
 				errors.put("emptyUserName", "Username can't be empty!");
-			} else if (account.getAccount_username().length() < 6 || account.getAccount_username().length() > 100) {
+			} else if (request.getUsername().strip().length() < 6 || request.getUsername().strip().length() > 100) {
 				errors.put("usernameLength", "Username's length must be from 6 to 100!");
+			} else if (!validationHelper.isValidEmail(request.getUsername().strip())) {
+				errors.put("usernameNotEmail", "Username must follow format email!");
 			}
-			if (account.getAccount_password().equals("")) {
+			
+			if (request.getPassword().strip().equals("")) {
 				errors.put("emptyPassword", "Password can't be empty!");
-			} else if (account.getAccount_password().length() < 6 || account.getAccount_password().length() > 32) {
+			} else if (request.getPassword().strip().length() < 6 || request.getPassword().strip().length() > 32) {
 				errors.put("passwordLength", "Password's length must be from 6 to 32!");
+			}
+			
+			if (!request.getRetypePassword().strip().equals(request.getPassword().strip())) {
+				errors.put("retypePasswordNotCorrect", "Password and retype password not correct!");
 			}
 
 			if (errors.isEmpty()) {
-				repository.save(account);
-				account.setAccount_password(MD5.generateMD5Hash(account.getAccount_password()));
+				Optional<Role> role = roleRepository.findById(2);
+				Optional<Status> status = statusRepository.findById(12);
+				
+				Account accountSignUp = new Account();
+				accountSignUp.setRole(role.get());
+				accountSignUp.setAccount_username(request.getUsername().strip());
+				accountSignUp.setAccount_password(MD5.generateMD5Hash(request.getPassword().strip()));  
+				accountSignUp.setStatus(status.get());
+				
+				accountSignUp = repository.save(accountSignUp);
+				
+				Cart newCart = new Cart();
+				newCart.setAccount(accountSignUp);
+				cartRepository.save(newCart);
+				
+				AccountProfile newProfile = new AccountProfile();
+				newProfile.setAccount(accountSignUp);
+				profileRepository.save(newProfile);
+				
 				return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
-						HttpStatus.OK.toString().split(" ")[0], responseMessage.get("signUpSuccess"), account));
+						HttpStatus.OK.toString().split(" ")[0], responseMessage.get("signUpSuccess"), accountSignUp));
 			}
 
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -104,6 +138,7 @@ public class AuthService {
 							responseMessage.get("signUpFailed"), errors.values()));
 		}
 	}
+
 	
 //	public ResponseEntity<ResponseObject> signUp(Map<String, String> map) {
 //		String username = map.get("username").strip();
