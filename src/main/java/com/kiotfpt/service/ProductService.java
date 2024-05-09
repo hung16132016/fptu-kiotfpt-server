@@ -257,7 +257,8 @@ public class ProductService {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
 					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Brand does not exist!", new int[0]));
 		}
-
+		Optional<Status> stat = statusRepository.findByValue("Active");
+		
 		// Create the product entity
 		Product product = new Product();
 		product.setProduct_name(name);
@@ -270,7 +271,7 @@ public class ProductService {
 		product.setProduct_popular(false);
 		product.setProduct_sold(0);
 		product.setProduct_repository(p_repository);
-
+		product.setStatus(stat.get());
 		product.setThumbnail(productRequest.getThumbnail());
 
 		// Save the product
