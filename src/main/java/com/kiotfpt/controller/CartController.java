@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kiotfpt.model.ResponseObject;
@@ -25,6 +26,11 @@ public class CartController {
 	@GetMapping("/{id}")
 	public ResponseEntity<ResponseObject> getCartByID(@PathVariable int id) {
 		return service.getCartByID(id);
+	}
+	
+	@GetMapping("/amount")
+	public ResponseEntity<ResponseObject> getAmountCartByAccountID(@RequestParam(name = "accountID") int accountID) {
+		return service.getAmountCartByAccountID(accountID);
 	}
 //
 //	@PostMapping("/create")

@@ -13,6 +13,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(name = "kiotfpt_section")
 public class Section {
@@ -33,6 +35,7 @@ public class Section {
 	private Status status;
 	
 	@ManyToOne()
+	@JsonIgnore
 	@JoinColumn(name = "cart_id", nullable = false)
 	private Cart cart;
 

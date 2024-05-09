@@ -35,7 +35,6 @@ public class Accessibility_item {
 
 	@ManyToOne
 	@JoinColumn(name = "product_id")
-	@JsonIgnore
 	private Product product;
 
 	@ManyToOne()

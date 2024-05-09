@@ -47,7 +47,7 @@ public class AuthService {
 	@Autowired
 	private AccountProfileRepository profileRepository;
 	
-	private ValidationHelper validationHelper;
+	private ValidationHelper validationHelper = new ValidationHelper();
 //
 //	@Autowired
 //	private AccountProfileRepository profileRepository;
@@ -87,10 +87,11 @@ public class AuthService {
 		Map<String, String> errors = new HashMap<>();
 		Optional<Account> foundAccount = repository.findByAccountUsername(request.getUsername());
 
-		if (foundAccount != null) {
+		if (!foundAccount.isEmpty()) {
 			return ResponseEntity.status(HttpStatus.CONFLICT).body(new ResponseObject(false,
 					HttpStatus.CONFLICT.toString().split(" ")[0], responseMessage.get("userNameExisted"), ""));
 		} else {
+			
 			if (request.getUsername().strip().equals("")) {
 				errors.put("emptyUserName", "Username can't be empty!");
 			} else if (request.getUsername().strip().length() < 6 || request.getUsername().strip().length() > 100) {
