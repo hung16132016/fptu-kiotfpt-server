@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import com.kiotfpt.model.Account;
 import com.kiotfpt.model.AccountProfile;
+import com.kiotfpt.model.Follow;
 import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.repository.AccountProfileRepository;
 import com.kiotfpt.repository.AccountRepository;
@@ -40,8 +41,7 @@ public class AccountService {
 	}
 
 	public ResponseEntity<ResponseObject> getProfileByAccountID(int id) {
-		Optional<Account> account = repository.findById(id);
-		
+		Optional<Account> account = repository.findById(id);		
 		if (account.isPresent()) {
 			if (account.get().getStatus().getValue().equals("inactive")) 
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,

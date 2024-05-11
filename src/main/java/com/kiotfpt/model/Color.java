@@ -21,22 +21,20 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "kiotfpt_brand")
-public class Brand {
+@Table(name = "kiotfpt_color")
+public class Color {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "brand_id")
+	@Column(name = "color_id")
 	private int id;
+
+
+	@Column(name = "color_value", nullable = false)
+	private String value;
 	
-	@Column(name = "brand_name", nullable = false)
-	private String name;
-	
-	@Column(name = "brand_thumbnail", nullable = false)
-	private String thumbnail;
-	
-	@OneToMany(mappedBy = "brand", cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "account", cascade = CascadeType.ALL)
 	@JsonIgnore
-	private Collection<Product> products;
-	
+	private Collection<Repository> repo;
+
 }

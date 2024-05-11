@@ -72,7 +72,7 @@ public class SectionService {
 		if (status.get().getValue().equals("Delivered") || status.get().getValue().equals("Cancelled")) {
 			Optional<Order> order = orderRepository.findBySection(section.get());
 			Date date = new Date();
-			order.get().setOrder_time_complete(date);
+			order.get().setTimeComplete(date);
 			orderRepository.save(order.get());
 		}
 		
@@ -100,7 +100,7 @@ public class SectionService {
 	}
 
 	public ResponseEntity<ResponseObject> updateOrder(Section newOrder) {
-		Section updateOrder = repository.findById(newOrder.getSection_id()).map(Section -> {
+		Section updateOrder = repository.findById(newOrder.getId()).map(Section -> {
 			Section.setSection_total((float) newOrder.getSection_total());
 			return repository.save(Section);
 		}).orElseGet(() -> {

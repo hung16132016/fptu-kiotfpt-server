@@ -13,50 +13,27 @@ import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 @Entity
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "kiotfpt_district")
 public class District {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private int district_id;
+	@Column(name = "district_id")
+
+	private int id;
 
 	@Column(name = "district_value", nullable = false)
-	private String district_value;
+	private String value;
 	
 	@OneToMany(mappedBy = "district", cascade = CascadeType.ALL)
 	@JsonIgnore
 	private Collection<Address> addresses;
-
-	public District() {
-		super();
-	}
-
-	public District(int district_id, String district_value) {
-		super();
-		this.district_id = district_id;
-		this.district_value = district_value;
-	}
-
-
-	public int getDistrict_id() {
-		return district_id;
-	}
-
-	public String getDistrict_value() {
-		return district_value;
-	}
-
-	public void setDistrict_value(String district_value) {
-		this.district_value = district_value;
-	}
-
-	public Collection<Address> getAddresses() {
-		return addresses;
-	}
-
-	public void setAddresses(Collection<Address> addresses) {
-		this.addresses = addresses;
-	}
-
 }

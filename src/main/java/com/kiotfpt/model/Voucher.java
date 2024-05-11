@@ -1,14 +1,12 @@
 package com.kiotfpt.model;
 
-import java.util.Collection;
-
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.OneToMany;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -21,22 +19,26 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "kiotfpt_brand")
-public class Brand {
+@Table(name = "kiotfpt_voucher")
+public class Voucher {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "brand_id")
+	@Column(name = "voucher_id", nullable = false)
 	private int id;
+
+//	 - [Voucher] <voucher_id,voucher_value, shop_id, status_id>
+
+	@Column(name = "voucher_value", nullable = false)
+	private String value;
 	
-	@Column(name = "brand_name", nullable = false)
-	private String name;
-	
-	@Column(name = "brand_thumbnail", nullable = false)
-	private String thumbnail;
-	
-	@OneToMany(mappedBy = "brand", cascade = CascadeType.ALL)
+	@ManyToOne
+	@JoinColumn(name = "shop_id")
 	@JsonIgnore
-	private Collection<Product> products;
+	private Shop shop;
 	
+	@ManyToOne
+	@JoinColumn(name = "status_id")
+	@JsonIgnore
+	private Status status;
 }

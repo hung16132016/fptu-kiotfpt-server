@@ -9,6 +9,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,22 +19,34 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "kiotfpt_notify")
-public class Notify {
+@Table(name = "kiotfpt_accessibility_item")
+public class AccessibilityItem {
 
 	@Id
+	@Column(name = "item_id")
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "notify_id")
 	private int id;
 
-	@Column(name = "notify_title", nullable = false)
-	private String title;
+	@Column(name = "item_quantity")
+	private int quantity;
 
-	@Column(name = "notify_description", nullable = false)
-	private String description;
+	@Column(name = "item_total")
+	private double total;
+
+	@Column(name = "item_note")
+	private String note;
+
+	@ManyToOne
+	@JoinColumn(name = "section_id")
+	@JsonIgnore
+	private Section section;
+
+	@ManyToOne
+	@JoinColumn(name = "repo_id")
+	private Repository repo;
 
 	@ManyToOne()
-	@JoinColumn(name = "account_id", nullable = false)
-	private Account account;
+	@JoinColumn(name = "status_id")
+	private Status status;
 
 }

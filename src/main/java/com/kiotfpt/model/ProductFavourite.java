@@ -1,6 +1,5 @@
 package com.kiotfpt.model;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -17,22 +16,19 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "kiotfpt_notify")
-public class Notify {
+@Table(name = "kiotfpt_product_favourite")
+public class ProductFavourite {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "notify_id")
+	@JoinColumn(name = "product_favourite_id")
 	private int id;
 
-	@Column(name = "notify_title", nullable = false)
-	private String title;
-
-	@Column(name = "notify_description", nullable = false)
-	private String description;
-
 	@ManyToOne()
-	@JoinColumn(name = "account_id", nullable = false)
+	@JoinColumn(name = "account_id")
 	private Account account;
 
+	@ManyToOne()
+	@JoinColumn(name = "product_id")
+	private Product product;
 }

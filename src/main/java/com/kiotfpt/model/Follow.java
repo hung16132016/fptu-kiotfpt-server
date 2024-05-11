@@ -1,14 +1,12 @@
 package com.kiotfpt.model;
 
-import java.util.Collection;
-
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.OneToMany;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -21,22 +19,24 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "kiotfpt_brand")
-public class Brand {
+@Table(name = "kiotfpt_district")
+public class Follow {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "brand_id")
+	@Column(name = "follow_id")
 	private int id;
-	
-	@Column(name = "brand_name", nullable = false)
-	private String name;
-	
-	@Column(name = "brand_thumbnail", nullable = false)
-	private String thumbnail;
-	
-	@OneToMany(mappedBy = "brand", cascade = CascadeType.ALL)
+
+	@Column(name = "follow_value")
+	private String value;
+
+	@ManyToOne
+	@JoinColumn(name = "shop_id")
 	@JsonIgnore
-	private Collection<Product> products;
-	
+	private Shop shop;
+
+	@ManyToOne()
+	@JoinColumn(name = "account_id")
+	private Account account;
+
 }

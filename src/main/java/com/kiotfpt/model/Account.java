@@ -15,19 +15,26 @@ import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 @Entity
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "kiotfpt_account")
 public class Account {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private int account_id;
+	private int id;
 
 	@Column(name = "account_username", nullable = false)
-	private String account_username;
+	private String username;
 
 	@Column(name = "account_password", nullable = false)
-	private String account_password;
+	private String password;
 
 	@ManyToOne()
 	@JoinColumn(name = "role_id")
@@ -52,88 +59,13 @@ public class Account {
 	@OneToMany(mappedBy = "account", cascade = CascadeType.ALL)
 	@JsonIgnore
 	private Collection<Comment> comments;
+	
+	@OneToMany(mappedBy = "account", cascade = CascadeType.ALL)
+	@JsonIgnore
+	private Collection<Follow> follows;
+	
+	@OneToMany(mappedBy = "account", cascade = CascadeType.ALL)
+	@JsonIgnore
+	private Collection<ProductFavourite> favourite;
 
-	public Account() {
-		super();
-	}
-
-	public Account(String account_username, String account_password, Role role, Status status) {
-		super();
-		this.account_username = account_username;
-		this.account_password = account_password;
-		this.role = role;
-		this.status = status;
-	}
-
-	public int getAccount_id() {
-		return account_id;
-	}
-
-	public void setAccount_id(int account_id) {
-		this.account_id = account_id;
-	}
-
-	public String getAccount_username() {
-		return account_username;
-	}
-
-	public void setAccount_username(String account_username) {
-		this.account_username = account_username;
-	}
-
-	public String getAccount_password() {
-		return account_password;
-	}
-
-	public void setAccount_password(String account_password) {
-		this.account_password = account_password;
-	}
-
-	public Role getRole() {
-		return role;
-	}
-
-	public void setRole(Role role) {
-		this.role = role;
-	}
-
-	public Status getStatus() {
-		return status;
-	}
-
-	public void setStatus(Status status) {
-		this.status = status;
-	}
-
-	public Collection<Order> getOrders() {
-		return orders;
-	}
-
-	public void setOrders(Collection<Order> orders) {
-		this.orders = orders;
-	}
-
-	public Collection<Transaction> getTransactions() {
-		return transactions;
-	}
-
-	public void setTransactions(Collection<Transaction> transactions) {
-		this.transactions = transactions;
-	}
-
-	public Collection<Notify> getNotifies() {
-		return notifies;
-	}
-
-	public void setNotifies(Collection<Notify> notifies) {
-		this.notifies = notifies;
-	}
-
-	public Collection<Comment> getComments() {
-		return comments;
-	}
-
-	public void setComments(Collection<Comment> comments) {
-		this.comments = comments;
-	}
 }

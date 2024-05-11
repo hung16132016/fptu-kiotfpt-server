@@ -10,13 +10,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import com.kiotfpt.model.Accessibility_item;
+import com.kiotfpt.model.AccessibilityItem;
 import com.kiotfpt.model.Account;
 import com.kiotfpt.model.Brand;
 import com.kiotfpt.model.Cart;
 import com.kiotfpt.model.Category;
 import com.kiotfpt.model.Product;
-import com.kiotfpt.model.Product_Condition;
+import com.kiotfpt.model.ProductCondition;
 import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.model.Section;
 import com.kiotfpt.model.Shop;
@@ -76,7 +76,7 @@ public class CartService {
 		for(Section section: cart.get().getSections()) {
 			if (section.getStatus().getStatus_id() != 31)
 				continue;
-			for(Accessibility_item item: section.getItems()) {
+			for(AccessibilityItem item: section.getItems()) {
 				if(item.getStatus().getStatus_id() != 31) 
 					continue;
 				count = count + item.getItem_quantity();
@@ -97,10 +97,10 @@ public class CartService {
 				List<SectionResponse> list = new ArrayList<SectionResponse>();
 				for (Section section : sections) {
 
-					List<Accessibility_item> list_item = itemRepository.findBySection(section);
+					List<AccessibilityItem> list_item = itemRepository.findBySection(section);
 					if (!list_item.isEmpty()) {
-						List<Accessibility_itemResponse> items = new ArrayList<Accessibility_itemResponse>();
-						for (Accessibility_item item : list_item) {
+						List<AccessibilityItemResponse> items = new ArrayList<AccessibilityItemResponse>();
+						for (AccessibilityItem item : list_item) {
 							Product product = item.getProduct();
 
 							if (product == null) {
@@ -139,7 +139,7 @@ public class CartService {
 												""));
 							}
 
-							Accessibility_itemResponse item_res = new Accessibility_itemResponse(item);
+							AccessibilityItemResponse item_res = new AccessibilityItemResponse(item);
 							items.add(item_res);
 						}
 

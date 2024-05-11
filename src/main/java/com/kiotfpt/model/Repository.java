@@ -8,6 +8,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
@@ -21,22 +23,30 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "kiotfpt_brand")
-public class Brand {
+@Table(name = "kiotfpt_repository")
+public class Repository {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "brand_id")
+	@Column(name = "repo_id")
 	private int id;
+
+	@Column(name = "product_price")
+	private int price;
 	
-	@Column(name = "brand_name", nullable = false)
-	private String name;
+	@Column(name = "product_quantity")
+	private int quantity;
 	
-	@Column(name = "brand_thumbnail", nullable = false)
-	private String thumbnail;
+	@ManyToOne()
+	@JoinColumn(name = "color_id", nullable = false)
+	private Color color;
 	
-	@OneToMany(mappedBy = "brand", cascade = CascadeType.ALL)
+	@ManyToOne()
+	@JoinColumn(name = "size_id", nullable = false)
+	private Size size;
+	
+	@OneToMany(mappedBy = "repo", cascade = CascadeType.ALL)
 	@JsonIgnore
-	private Collection<Product> products;
-	
+	private Collection<AccessibilityItem> repositories;
+
 }
