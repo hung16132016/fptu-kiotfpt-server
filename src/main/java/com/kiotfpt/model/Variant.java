@@ -23,12 +23,12 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "kiotfpt_repository")
-public class Repository {
+@Table(name = "kiotfpt_variant")
+public class Variant {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "repo_id")
+	@Column(name = "variant_id")
 	private int id;
 
 	@Column(name = "product_price")
@@ -45,8 +45,12 @@ public class Repository {
 	@JoinColumn(name = "size_id", nullable = false)
 	private Size size;
 	
-	@OneToMany(mappedBy = "repo", cascade = CascadeType.ALL)
+	@ManyToOne()
+	@JoinColumn(name = "size_id", nullable = false)
+	private Product product;
+	
+	@OneToMany(mappedBy = "variant", cascade = CascadeType.ALL)
 	@JsonIgnore
-	private Collection<AccessibilityItem> repositories;
+	private Collection<AccessibilityItem> items;
 
 }

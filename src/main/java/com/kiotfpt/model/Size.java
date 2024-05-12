@@ -34,5 +34,5 @@ public class Size {
 
 	@OneToMany(mappedBy = "account", cascade = CascadeType.ALL)
 	@JsonIgnore
-	private Collection<Repository> repo;
+	private Collection<Variant> repo;
 }

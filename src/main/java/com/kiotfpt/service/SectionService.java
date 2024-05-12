@@ -99,9 +99,9 @@ public class SectionService {
 						HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("OrderNotFound"), orders));
 	}
 
-	public ResponseEntity<ResponseObject> updateOrder(Section newOrder) {
+	public ResponseEntity<ResponseObject> updateSection(Section newOrder) {
 		Section updateOrder = repository.findById(newOrder.getId()).map(Section -> {
-			Section.setSection_total((float) newOrder.getSection_total());
+			Section.setTotal((float) newOrder.getTotal());
 			return repository.save(Section);
 		}).orElseGet(() -> {
 			return null;

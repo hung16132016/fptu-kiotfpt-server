@@ -43,7 +43,7 @@ public class AccessibilityItem {
 
 	@ManyToOne
 	@JoinColumn(name = "repo_id")
-	private Repository repo;
+	private Variant variant;
 
 	@ManyToOne()
 	@JoinColumn(name = "status_id")

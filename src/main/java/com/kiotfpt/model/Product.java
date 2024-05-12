@@ -101,4 +101,8 @@ public class Product {
 	@OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
 	@JsonIgnore
 	private Collection<ProductFavourite> favourite;
+	
+	@OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+	@JsonIgnore
+	private Collection<Variant> repositories;
 }

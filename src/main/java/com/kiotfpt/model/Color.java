@@ -35,6 +35,6 @@ public class Color {
 	
 	@OneToMany(mappedBy = "account", cascade = CascadeType.ALL)
 	@JsonIgnore
-	private Collection<Repository> repo;
+	private Collection<Variant> repo;
 
 }
