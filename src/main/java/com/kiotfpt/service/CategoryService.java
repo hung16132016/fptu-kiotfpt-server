@@ -1,6 +1,7 @@
 package com.kiotfpt.service;
 
 import java.util.HashMap;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -13,6 +14,7 @@ import com.kiotfpt.model.Category;
 import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.repository.CategoryRepository;
 import com.kiotfpt.utils.JsonReader;
+
 @Service
 public class CategoryService {
 	@Autowired
@@ -22,10 +24,10 @@ public class CategoryService {
 
 	public ResponseEntity<ResponseObject> getAllCategory() {
 		List<Category> categories = repository.findAll();
-		
+
 		List<Category> filteredCategories = categories.stream()
 				.filter(category -> category.getStatus().getValue().equals("active")).collect(Collectors.toList());
-		
+
 		return !filteredCategories.isEmpty()
 				? ResponseEntity.status(HttpStatus.OK)
 						.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],

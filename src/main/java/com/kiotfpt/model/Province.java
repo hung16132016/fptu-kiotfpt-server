@@ -28,7 +28,6 @@ public class Province {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "province_id")
-
 	private int id;
 	
 	@Column(name = "province_value", nullable = false)

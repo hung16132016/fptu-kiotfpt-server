@@ -11,12 +11,12 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class StatusRequest {
 
-	private int status_id;
+	private int id;
 	private String value;
 
 	public StatusRequest(Status status) {
 		super();
-		this.status_id = status.getId();
+		this.id = status.getId();
 		this.value = status.getValue();
 	}
 

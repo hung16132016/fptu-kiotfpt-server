@@ -37,6 +37,7 @@ public class Follow {
 
 	@ManyToOne()
 	@JoinColumn(name = "account_id")
+	@JsonIgnore
 	private Account account;
 
 }

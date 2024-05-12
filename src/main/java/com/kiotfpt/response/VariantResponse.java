@@ -15,9 +15,7 @@ public class VariantResponse {
 	private int price;
 	private int quantity;
 	private ColorResponse color;
-	private SizeResponse size;
-	private ProductResponse product;
-	
+	private SizeResponse size;	
 
 	public VariantResponse(Variant repo) {
 		super();
@@ -26,7 +24,6 @@ public class VariantResponse {
 		this.quantity = repo.getQuantity();
 		this.color = new ColorResponse(repo.getColor());
 		this.size = new SizeResponse(repo.getSize());
-		this.product = new ProductResponse(repo.getProduct());
 	}
 
 }

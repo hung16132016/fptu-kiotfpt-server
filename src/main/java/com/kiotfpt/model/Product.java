@@ -88,10 +88,6 @@ public class Product {
 
 	@OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
 	@JsonIgnore
-	private Collection<AccessibilityItem> items;
-
-	@OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
-	@JsonIgnore
 	private List<ProductThumbnail> thumbnail;
 
 	@OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
@@ -104,5 +100,6 @@ public class Product {
 	
 	@OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
 	@JsonIgnore
-	private Collection<Variant> repositories;
+	private Collection<Variant> variants;
+	
 }

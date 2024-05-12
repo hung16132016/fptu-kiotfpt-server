@@ -26,14 +26,13 @@ public class ProductCondition {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "pc_id", nullable = false)
-
+	@Column(name = "pc_id")
 	private int id;
 
 	@Column(name = "pc_value", nullable = false)
 	private String value;
 	
-	@OneToMany(mappedBy = "product_condition", cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "condition", cascade = CascadeType.ALL)
 	@JsonIgnore
 	private Collection<Product> products;
 

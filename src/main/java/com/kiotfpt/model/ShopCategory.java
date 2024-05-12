@@ -22,7 +22,7 @@ public class ShopCategory {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "shop_category_id", nullable = false)
+	@Column(name = "shop_category_id")
 	private int id;
 
 	@ManyToOne()

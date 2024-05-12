@@ -11,13 +11,13 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class CategoryRequest {
 
-	private int category_id;
+	private int id;
 	private String name;
 	private String category_thumbnail;
 
 	public CategoryRequest(Category category) {
 		super();
-		this.category_id = category.getId();
+		this.id = category.getId();
 		this.name = category.getName();
 		this.category_thumbnail = category.getThumbnail();
 	}

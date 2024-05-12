@@ -17,4 +17,5 @@ public class SectionResponse {
 	private StatusResponse status;
 	private List<Accessibility_itemResponse> items;
 
+	
 }

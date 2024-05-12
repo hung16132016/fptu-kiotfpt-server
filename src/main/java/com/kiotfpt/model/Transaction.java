@@ -24,7 +24,7 @@ public class Transaction {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "transaction_id", nullable = false)
+	@Column(name = "transaction_id")
 	private int id;
 
 	@Column(name = "transaction_time_init", nullable = false)

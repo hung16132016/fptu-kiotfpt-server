@@ -24,7 +24,7 @@ public class Accessibility_itemResponse {
 		this.quantity = item.getQuantity();
 		this.total = item.getTotal();
 		this.note = item.getNote();
-		this.repo = new VariantResponse(item.getRepo());
+		this.repo = new VariantResponse(item.getVariant());
 		this.status = new StatusResponse(item.getStatus());
 	}
 

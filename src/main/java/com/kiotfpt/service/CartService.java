@@ -75,12 +75,12 @@ public class CartService {
 					HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("cartNotFound"), ""));
 		
 		for(Section section: cart.get().getSections()) {
-			if (section.getStatus().getStatus_id() != 31)
+			if (section.getStatus().getId() != 31)
 				continue;
 			for(AccessibilityItem item: section.getItems()) {
-				if(item.getStatus().getStatus_id() != 31) 
+				if(item.getStatus().getId() != 31) 
 					continue;
-				count = count + item.getItem_quantity();
+				count = count + item.getQuantity();
 			}
 		}
 		
@@ -102,7 +102,14 @@ public class CartService {
 					if (!list_item.isEmpty()) {
 						List<Accessibility_itemResponse> items = new ArrayList<Accessibility_itemResponse>();
 						for (AccessibilityItem item : list_item) {
+							
 							Variant var = item.getVariant();
+							
+							if (var == null) {
+								return ResponseEntity.status(HttpStatus.NOT_FOUND)
+										.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
+												"Variant of item: " + item.getId() + " not found", ""));
+							}
 							
 							Product product = var.getProduct();
 
@@ -148,8 +155,7 @@ public class CartService {
 
 						Shop get_shop = section.getShop();
 						
-						ShopResponse shop = new ShopResponse(get_shop.getId(), get_shop.getName(), null, null,
-								get_shop.getThumbnail(), null);
+						ShopResponse shop = new ShopResponse(get_shop);
 
 						StatusResponse status = new StatusResponse(section.getStatus());
 

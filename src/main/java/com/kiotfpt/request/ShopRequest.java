@@ -1,5 +1,7 @@
 package com.kiotfpt.request;
 
+import com.kiotfpt.model.Shop;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,21 +11,28 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ShopRequest {
 
-	private int shop_id;
-	private String shop_name;
-	private String shop_email;
-	private String shop_phone;
-	private String shop_thumbnail;
+	private int id;
+	private String name;
+	private String email;
+	private String phone;
+	private String thumbnail;
+	private float rate;
+	private boolean official;
+	private int follower;
 	private AddressRequest address;
+	private AccountRequest account;
 
-//    public ShopRequest(Shop shop) {
-//    	super();
-//        this.shop_id = shop.getShop_id();
-//        this.shop_name = shop.getShop_name();
-//        this.shop_email = shop.getShop_email();
-//        this.shop_phone = shop.getShop_phone();
-//        this.shop_thumbnail = shop.getShop_thumbnail();
-//        this.address = new AddressRequest(shop.getAddress());
-//    }
+    public ShopRequest(Shop shop) {
+    	super();
+        this.id = shop.getId();
+        this.name = shop.getName();
+        this.email = shop.getEmail();
+        this.phone = shop.getPhone();
+        this.thumbnail = shop.getThumbnail();
+        this.rate = shop.getRate();
+        this.official = shop.isOfficial();
+        this.follower = shop.getFollower();
+        this.address = new AddressRequest(shop.getAddress());
+    }
 
 }

@@ -11,13 +11,13 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Product_ConditionRequest {
 
-	private int pc_id;
-	private String pc_value;
+	private int id;
+	private String value;
 
 	public Product_ConditionRequest(ProductCondition condition) {
 		super();
-		this.pc_id = condition.getId();
-		this.pc_value = condition.getValue();
+		this.id = condition.getId();
+		this.value = condition.getValue();
 	}
 
 }

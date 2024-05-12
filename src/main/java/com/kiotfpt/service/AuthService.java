@@ -54,16 +54,17 @@ public class AuthService {
 
 	HashMap<String, String> responseMessage = new JsonReader().readJsonFile();
 
+	//fix
 	public ResponseEntity<ResponseObject> signIn(String username, String password) {
 		if (username.trim() == "" || password.trim() == "") 
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
 					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Input can not be empty", new int[0]));
 
-		Optional<Account> account = repository.findByAccountUsername(username);
+		Optional<Account> account = repository.findByUsername(username);
 		if (!account.isPresent()) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
 					HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("accountNotFound"), new int[0]));
-		} else if (!account.get().getAccount_password().equals(MD5.generateMD5Hash(password))) 
+		} else if (!account.get().getPassword().equals(MD5.generateMD5Hash(password))) 
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
 					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Wrong password", new int[0]));
 		
@@ -73,19 +74,20 @@ public class AuthService {
 							responseMessage.get("accountNotActivate"), new int[0]));
 
 		Map<String, String> map = new HashMap<>();
-		map.put("account_id", String.valueOf(account.get().getAccount_id()));
-		map.put("role", account.get().getRole().getRole_value());
+		map.put("account_id", String.valueOf(account.get().getId()));
+		map.put("role", account.get().getRole().getValue());
 		if (map.get("role").equals("Seller")) {
 			Optional<Shop> shop = shoprepository.findByAccount(account.get());
-			map.put("shop_id", String.valueOf(shop.get().getShop_id()));
+			map.put("shop_id", String.valueOf(shop.get().getId()));
 		}
 		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
 				HttpStatus.OK.toString().split(" ")[0], responseMessage.get("signInSuccess"), map));
 	}
 	
+	//fix
 	public ResponseEntity<ResponseObject> signUp(AccountSignUpRequest request) {
 		Map<String, String> errors = new HashMap<>();
-		Optional<Account> foundAccount = repository.findByAccountUsername(request.getUsername());
+		Optional<Account> foundAccount = repository.findByUsername(request.getUsername());
 
 		if (!foundAccount.isEmpty()) {
 			return ResponseEntity.status(HttpStatus.CONFLICT).body(new ResponseObject(false,
@@ -116,8 +118,8 @@ public class AuthService {
 				
 				Account accountSignUp = new Account();
 				accountSignUp.setRole(role.get());
-				accountSignUp.setAccount_username(request.getUsername().strip());
-				accountSignUp.setAccount_password(MD5.generateMD5Hash(request.getPassword().strip()));  
+				accountSignUp.setUsername(request.getUsername().strip());
+				accountSignUp.setPassword(MD5.generateMD5Hash(request.getPassword().strip()));  
 				accountSignUp.setStatus(status.get());
 				
 				accountSignUp = repository.save(accountSignUp);

@@ -36,13 +36,13 @@ public class AccessibilityItem {
 	@Column(name = "item_note")
 	private String note;
 
-	@ManyToOne
+	@ManyToOne()
 	@JoinColumn(name = "section_id")
 	@JsonIgnore
 	private Section section;
 
-	@ManyToOne
-	@JoinColumn(name = "repo_id")
+	@ManyToOne()
+	@JoinColumn(name = "variant_id")
 	private Variant variant;
 
 	@ManyToOne()

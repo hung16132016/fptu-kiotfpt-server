@@ -26,13 +26,13 @@ public class Size {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "size_id", nullable = false)
+	@Column(name = "size_id")
 	private int id;
 
 	@Column(name = "size_value", nullable = false)
 	private String value;
 
-	@OneToMany(mappedBy = "account", cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "size", cascade = CascadeType.ALL)
 	@JsonIgnore
 	private Collection<Variant> repo;
 }

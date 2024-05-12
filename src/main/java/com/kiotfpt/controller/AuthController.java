@@ -20,11 +20,13 @@ public class AuthController {
 	@Autowired
 	private AuthService service;
 
+	//fix
 	@PostMapping("/sign-in")
 	public ResponseEntity<ResponseObject> signIn(@RequestBody AccountRequest request) {
 		return service.signIn(request.getUsername(), request.getPassword());
 	}
 
+	//fix
 	@PostMapping("/sign-up")
 	public ResponseEntity<ResponseObject> signUp(@RequestBody AccountSignUpRequest request) {
 		return service.signUp(request);

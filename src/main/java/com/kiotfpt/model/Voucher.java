@@ -24,10 +24,8 @@ public class Voucher {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "voucher_id", nullable = false)
+	@Column(name = "voucher_id")
 	private int id;
-
-//	 - [Voucher] <voucher_id,voucher_value, shop_id, status_id>
 
 	@Column(name = "voucher_value", nullable = false)
 	private String value;

@@ -11,15 +11,15 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class BrandRequest {
 
-	private int brand_id;
-	private String brand_name;
-	private String brand_thumbnail;
+	private int id;
+	private String name;
+	private String thumbnail;
 
 	public BrandRequest(Brand brand) {
 		super();
-		this.brand_id = brand.getId();
-		this.brand_name = brand.getName();
-		this.brand_thumbnail = brand.getThumbnail();
+		this.id = brand.getId();
+		this.name = brand.getName();
+		this.thumbnail = brand.getThumbnail();
 	}
 
 }

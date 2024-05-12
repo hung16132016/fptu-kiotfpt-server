@@ -12,6 +12,6 @@ import com.kiotfpt.model.Account;
 @Repository
 public interface AccountRepository extends JpaRepository<Account, Integer> {
 	
-	@Query("SELECT a FROM Account a WHERE a.account_username = :username")
-	Optional<Account> findByAccountUsername(@Param("username") String username);
+	@Query("SELECT a FROM Account a WHERE a.username = :username")
+	Optional<Account> findByUsername(@Param("username") String username);
 }

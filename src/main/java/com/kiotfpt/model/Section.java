@@ -28,6 +28,7 @@ public class Section {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "section_id")
 	private int id;
 
 	@Column(name = "section_total", nullable = false)

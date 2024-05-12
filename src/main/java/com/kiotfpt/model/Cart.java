@@ -27,7 +27,7 @@ import lombok.NoArgsConstructor;
 public class Cart {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "cart_id", nullable = false)
+	@Column(name = "cart_id")
 	private int id;
 	
 	@OneToOne(cascade = CascadeType.ALL)

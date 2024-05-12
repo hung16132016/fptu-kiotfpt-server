@@ -46,7 +46,7 @@ public class Variant {
 	private Size size;
 	
 	@ManyToOne()
-	@JoinColumn(name = "size_id", nullable = false)
+	@JoinColumn(name = "product_id", nullable = false)
 	private Product product;
 	
 	@OneToMany(mappedBy = "variant", cascade = CascadeType.ALL)

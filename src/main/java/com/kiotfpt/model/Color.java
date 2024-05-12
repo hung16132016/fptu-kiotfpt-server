@@ -33,7 +33,7 @@ public class Color {
 	@Column(name = "color_value", nullable = false)
 	private String value;
 	
-	@OneToMany(mappedBy = "account", cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "color", cascade = CascadeType.ALL)
 	@JsonIgnore
 	private Collection<Variant> repo;
 

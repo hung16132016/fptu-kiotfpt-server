@@ -12,6 +12,6 @@ import com.kiotfpt.model.Cart;
 @Repository
 public interface CartRepository extends JpaRepository<Cart, Integer> {
 
-	@Query("SELECT c FROM Cart c WHERE c.account.account_id = :account_id")
+	@Query("SELECT c FROM Cart c WHERE c.account.id = :account_id")
 	Optional<Cart> findCartByAccountID(@Param("account_id") int account_id);
 }
