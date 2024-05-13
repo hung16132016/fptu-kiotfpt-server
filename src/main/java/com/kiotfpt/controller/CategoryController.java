@@ -28,6 +28,12 @@ public class CategoryController {
 	public ResponseEntity<ResponseObject> getAllCategory() {
 		return service.getAllCategory();
 	}
+	
+	@GetMapping("/popular")
+	public ResponseEntity<ResponseObject> getPopularCategory() {
+		return service.getPopularCategory();
+	}
+	
 
 //	@PostMapping("/category/add")
 //	public ResponseEntity<ResponseObject> createCategory(@RequestBody Category newCategory) {

@@ -35,3 +35,4 @@ build/
 
 ## Maven ##
 application.properties
+/.apt_generated_tests/
