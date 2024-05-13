@@ -87,6 +87,8 @@ public class ProductController {
 	@GetMapping("/product/official")
 	public ResponseEntity<ResponseObject> getOfficialProducts() {
 		return service.getOfficialProducts();
+	}
+	
 	@GetMapping("/product/top-deal")
 	public ResponseEntity<ResponseObject> getTopDealProduct() {
 		return service.getTopDealProduct();
