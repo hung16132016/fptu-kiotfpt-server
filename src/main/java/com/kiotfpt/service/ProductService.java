@@ -453,6 +453,19 @@ public class ProductService {
 		List<Product> found = repository.findByname(name);
 		return !found.isEmpty() ? repository.findByname(name) : null;
 	}
+	
+	public ResponseEntity<ResponseObject> getTopDealProduct() {
+		List<Product> products = repository.findByTopDeal();
+		
+		return !products.isEmpty()
+				? ResponseEntity.status(HttpStatus.OK)
+						.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
+								"Data has found successfully", products))
+				: ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+						HttpStatus.NOT_FOUND.toString().split(" ")[0], "Data has not found", new int[0]));
+	}
+	
+
 
 //	public ResponseEntity<ResponseObject> getProductPopular() {
 //		List<Product> products = repository.findByProductPopularIsTrue();

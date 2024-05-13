@@ -1,8 +1,10 @@
 package com.kiotfpt.service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,12 +15,16 @@ import org.springframework.stereotype.Service;
 import com.kiotfpt.model.Category;
 import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.repository.CategoryRepository;
+import com.kiotfpt.repository.ProductRepository;
 import com.kiotfpt.utils.JsonReader;
 
 @Service
 public class CategoryService {
 	@Autowired
 	private CategoryRepository repository;
+	
+	@Autowired
+	private ProductRepository productRepository;
 
 	HashMap<String, String> responseMessage = new JsonReader().readJsonFile();
 
@@ -35,6 +41,20 @@ public class CategoryService {
 				: ResponseEntity.status(HttpStatus.NOT_FOUND)
 						.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
 								responseMessage.get("categoryNotFound"), filteredCategories));
+	}
+	
+	public ResponseEntity<ResponseObject> getPopularCategory() {
+		List<Object[]> popularCate = productRepository.findTop4PopularCategory();
+		List<Category> categories = new ArrayList<>();
+		
+		for (Object[] obj : popularCate) {
+			Optional<Category> category = repository.findById(Integer.parseInt(obj[0].toString()));
+			categories.add(category.get());
+		}
+		
+		return ResponseEntity.status(HttpStatus.OK)
+				.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
+						responseMessage.get("categoryFound"), categories));
 	}
 
 //	public ResponseEntity<ResponseObject> createCategory(Category newCategory) {

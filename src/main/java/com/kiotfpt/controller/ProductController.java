@@ -99,6 +99,11 @@ public class ProductController {
 	public ResponseEntity<ResponseObject> updateProduct(@PathVariable int id, @RequestBody ProductRequest obj) {
 		return service.updateProduct(id, obj);
 	}
+	
+	@GetMapping("/product/top-deal")
+	public ResponseEntity<ResponseObject> getTopDealProduct() {
+		return service.getTopDealProduct();
+	}
 
 //	@GetMapping("/product/search")
 //	public List<Product> searchByName(@RequestParam(name = "query", required = true) String name) {
