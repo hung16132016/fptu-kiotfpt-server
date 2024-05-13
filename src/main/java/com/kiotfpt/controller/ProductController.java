@@ -58,27 +58,6 @@ public class ProductController {
 		return service.getByKeyword(keyword, page, amount);
 	}
 
-//	@GetMapping("/product/get-by")
-//	public ResponseEntity<ResponseObject> getProduct(
-//			@RequestParam(name = "shop_id", required = false) Integer shopID,
-//			@RequestParam(name = "category_id", required = false) Integer categoryID) {
-//		if (shopID != null && categoryID != null) {
-//			// Handle the case when both parameters are provided
-//			// You can return an appropriate response or throw an exception.
-//			// For example:
-//			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-//					.body(new ResponseObject(false, HttpStatus.BAD_REQUEST.toString().split(" ")[0],
-//							"Only one of shop-id or account-id should be provided", ""));
-//		} else if (shopID != null) {
-//			return service.findByShopId(shopID);
-//		} else if (categoryID != null) {
-//			return service.findByCategoryId(categoryID);
-//		} else {
-//			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
-//					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Invalid request parameters", ""));
-//		}
-//	}
-
 	@GetMapping("/product/get-by-shop")
 	public ResponseEntity<ResponseObject> getProductByShop(@RequestParam(name = "shop_id") Integer shopID,
 			@RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "10") int amount) {
@@ -98,6 +77,16 @@ public class ProductController {
 	@PutMapping("/product/update/{id}")
 	public ResponseEntity<ResponseObject> updateProduct(@PathVariable int id, @RequestBody ProductRequest obj) {
 		return service.updateProduct(id, obj);
+	}
+	
+	@GetMapping("/product/discount")
+	public ResponseEntity<ResponseObject> getDiscountedProducts() {
+		return service.getDiscountedProducts();
+	}
+
+	@GetMapping("/product/official")
+	public ResponseEntity<ResponseObject> getOfficialProducts() {
+		return service.getOfficialProducts();
 	}
 
 //	@GetMapping("/product/search")

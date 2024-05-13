@@ -42,4 +42,8 @@ public interface ProductRepository extends JpaRepository<Product, Integer>{
 	@Query(value = "Select * from product where product.name = ?1", nativeQuery = true)
 	List<Product> findByname(String name);
 	
+    List<Product> findByOfficialTrue();
+
+	List<Product> findByDiscountGreaterThan(int discount);
+	
 }

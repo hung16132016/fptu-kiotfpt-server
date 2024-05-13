@@ -19,7 +19,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "kiotfpt_district")
+@Table(name = "kiotfpt_follow")
 public class Follow {
 
 	@Id
