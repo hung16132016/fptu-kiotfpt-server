@@ -25,4 +25,9 @@ public class BrandController {
 	public ResponseEntity<ResponseObject> getBrandByCategoryID(@RequestParam(name = "categoryID") int categoryID) {
 		return service.getBrandByCategoryID(categoryID);
 	}
+	
+	@GetMapping("/popular")
+	public ResponseEntity<ResponseObject> getPopularBrands() {
+		return service.getPopularBrands();
+	}
 }
