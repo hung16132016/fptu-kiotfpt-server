@@ -32,7 +32,7 @@ public class Variant {
 	private int id;
 
 	@Column(name = "product_price")
-	private int price;
+	private float price;
 	
 	@Column(name = "product_quantity")
 	private int quantity;
@@ -47,6 +47,7 @@ public class Variant {
 	
 	@ManyToOne()
 	@JoinColumn(name = "product_id", nullable = false)
+	@JsonIgnore
 	private Product product;
 	
 	@OneToMany(mappedBy = "variant", cascade = CascadeType.ALL)

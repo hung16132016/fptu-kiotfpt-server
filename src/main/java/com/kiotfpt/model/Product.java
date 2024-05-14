@@ -87,7 +87,6 @@ public class Product {
 	private Shop shop;
 
 	@OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
-	@JsonIgnore
 	private List<ProductThumbnail> thumbnail;
 
 	@OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
@@ -99,7 +98,6 @@ public class Product {
 	private Collection<ProductFavourite> favourite;
 	
 	@OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
-	@JsonIgnore
 	private Collection<Variant> variants;
 	
 }
