@@ -4,13 +4,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.service.AccountService;
-//
+
 @CrossOrigin(origins = "http://localhost:8080")
 @RestController
 @RequestMapping("/v1")
@@ -22,11 +21,8 @@ public class AccountController {
 	public ResponseEntity<ResponseObject> getAllAccount() {
 		return service.getAllAccount();
 	}
-//
-	@GetMapping("/profile/{id}")
-	public ResponseEntity<ResponseObject> getProfileByAccountID(@PathVariable int id) {
-		return service.getProfileByAccountID(id);
-	}
+
+	
 //
 //	@PutMapping("/profile/update/{id}")
 //	public ResponseEntity<ResponseObject> updateProfile(@PathVariable int id, @RequestBody AccountProfile profile,
