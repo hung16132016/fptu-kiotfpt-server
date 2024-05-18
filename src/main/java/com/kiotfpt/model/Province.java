@@ -36,4 +36,8 @@ public class Province {
 	@OneToMany(mappedBy = "province", cascade = CascadeType.ALL)
 	@JsonIgnore
 	private Collection<Address> addresses;
+	
+	@OneToMany(mappedBy = "province", cascade = CascadeType.ALL)
+	@JsonIgnore
+	private Collection<District> districts;
 }
