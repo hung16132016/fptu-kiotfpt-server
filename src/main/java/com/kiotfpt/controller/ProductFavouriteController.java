@@ -11,23 +11,23 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kiotfpt.model.ResponseObject;
-import com.kiotfpt.service.NotifyService;
+import com.kiotfpt.service.ProductFavouriteService;
 
 @CrossOrigin(origins = "http://localhost:8080")
 @RestController
-@RequestMapping(path = "/v1/notify")
-public class NotifyController {
-
+@RequestMapping("/v1/favourite")
+public class ProductFavouriteController {
 	@Autowired
-	private NotifyService service;
+	private ProductFavouriteService service;
 
 	@GetMapping("/get-all")
-	public ResponseEntity<ResponseObject> getAllNotifyByAccountID(@RequestParam(name = "accountID") int id) {
-		return service.getNotifyByAccountID(id);
+	public ResponseEntity<ResponseObject> getAllProductFavouriteByAccountID(@RequestParam(name = "accountID") int id) {
+		return service.getAllProductFavouriteByAccountID(id);
 	}
 	
-	@DeleteMapping("/delete/{id}")
-	public ResponseEntity<ResponseObject> deleteNotifyByID(@PathVariable int id) {
-		return service.deleteNotifyById(id);
-	}
+	@DeleteMapping("/favourite/delete/{id}")
+    public ResponseEntity<ResponseObject> deleteProductFavouriteById(@PathVariable int id) {
+		return service.deleteProductFavouriteById(id);
+
+    }
 }

@@ -1,5 +1,10 @@
 package com.kiotfpt.controller;
 
+import java.util.Map;
+
+import javax.mail.MessagingException;
+import javax.mail.internet.AddressException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -30,6 +35,11 @@ public class AuthController {
 	@PostMapping("/sign-up")
 	public ResponseEntity<ResponseObject> signUp(@RequestBody AccountSignUpRequest request) {
 		return service.signUp(request);
+	}
+	
+	@PostMapping("/sendmail")
+	public ResponseEntity<ResponseObject> sendmail(@RequestBody Map<String,String>  map) throws AddressException, MessagingException {
+		return service.sendmail(map.get("mail"));
 	}
 
 //	// check username

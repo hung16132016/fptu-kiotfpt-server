@@ -13,17 +13,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import com.kiotfpt.model.Account;
-import com.kiotfpt.model.Address;
-import com.kiotfpt.model.District;
-import com.kiotfpt.model.Province;
 import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.model.Shop;
-import com.kiotfpt.repository.AccountRepository;
 import com.kiotfpt.repository.ShopRepository;
-import com.kiotfpt.request.AddressRequest;
-import com.kiotfpt.request.DistrictRequest;
-import com.kiotfpt.request.ProvinceRequest;
 import com.kiotfpt.request.ShopRequest;
 import com.kiotfpt.response.ShopResponse;
 import com.kiotfpt.utils.JsonReader;
@@ -32,9 +24,6 @@ import com.kiotfpt.utils.JsonReader;
 public class ShopService {
 	@Autowired
 	private ShopRepository repository;
-
-	@Autowired
-	private AccountRepository accountRepository;
 
 	HashMap<String, String> responseMessage = new JsonReader().readJsonFile();
 
@@ -111,16 +100,6 @@ public class ShopService {
 	public ResponseEntity<ResponseObject> updateShop(int id, ShopRequest shop) {
 		Optional<Shop> foundshop = repository.findById(id);
 		if (foundshop.isPresent()) {
-			AddressRequest new_address = shop.getAddress();
-			DistrictRequest new_district = new_address.getDistrict();
-			ProvinceRequest new_province = new_address.getProvince();
-
-			District district = new District(new_district.getDistrict_id(), new_district.getDistrict_value(), null);
-			Province province = new Province(new_province.getProvince_id(), new_province.getProvince_value(), null);
-			Address address = new Address(new_address.getAddress_id(), new_address.getAddress_value(), district,
-					province, foundshop.get().getAddress().getProfile());
-
-			foundshop.get().setAddress(address);
 			foundshop.get().setEmail(shop.getEmail());
 			foundshop.get().setName(shop.getName());
 			foundshop.get().setPhone(shop.getPhone());

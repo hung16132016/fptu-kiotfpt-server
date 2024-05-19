@@ -28,7 +28,7 @@ public class Voucher {
 	private int id;
 
 	@Column(name = "voucher_value", nullable = false)
-	private String value;
+	private int value;
 	
 	@ManyToOne
 	@JoinColumn(name = "shop_id")

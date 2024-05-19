@@ -20,7 +20,7 @@ import com.kiotfpt.utils.JsonReader;
 public class NotifyService {
 
 	@Autowired
-	private  NotifyRepository repository;
+	private NotifyRepository repository;
 
 	@Autowired
 	private AccountRepository accountRepository;
@@ -32,16 +32,25 @@ public class NotifyService {
 		if (!acc.isEmpty()) {
 			List<Notify> notifies = repository.findAllByAccount(acc.get());
 			if (!notifies.isEmpty()) {
-				return ResponseEntity.status(HttpStatus.OK)
-						.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
-								"Notifies found", notifies));
-			} 
-			return ResponseEntity.status(HttpStatus.NOT_FOUND)
-					.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
-							"Notifies do not exist", new int[0]));
+				return ResponseEntity.status(HttpStatus.OK).body(
+						new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Notifies found", notifies));
+			}
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+					HttpStatus.NOT_FOUND.toString().split(" ")[0], "Notifies do not exist", new int[0]));
 		}
-		return ResponseEntity.status(HttpStatus.NOT_FOUND)
-				.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
-						responseMessage.get("accountNotFound"), ""));
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+				HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("accountNotFound"), ""));
 	}
+
+	public ResponseEntity<ResponseObject> deleteNotifyById(int notify_id) {
+		Optional<Notify> notify = repository.findById(notify_id);
+		if (notify.isPresent()) {
+			repository.deleteById(notify_id);
+			return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
+					HttpStatus.OK.toString().split(" ")[0], "Notify deleted successfully", ""));
+		}
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+				HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("notifyNotFound"), ""));
+	}
+
 }

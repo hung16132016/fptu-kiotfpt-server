@@ -4,17 +4,23 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import javax.mail.MessagingException;
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 import com.kiotfpt.model.Account;
 import com.kiotfpt.model.AccountProfile;
+import com.kiotfpt.model.Cart;
 import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.model.Role;
 import com.kiotfpt.model.Shop;
-import com.kiotfpt.model.Cart;
 import com.kiotfpt.model.Status;
 import com.kiotfpt.repository.AccountProfileRepository;
 import com.kiotfpt.repository.AccountRepository;
@@ -31,32 +37,34 @@ import com.kiotfpt.utils.ValidationHelper;
 public class AuthService {
 	@Autowired
 	private AccountRepository repository;
-	
+
 	@Autowired
 	private ShopRepository shoprepository;
 
 	@Autowired
 	private StatusRepository statusRepository;
-	
+
 	@Autowired
 	private RoleRepository roleRepository;
-	
+
 	@Autowired
 	private CartRepository cartRepository;
-	
+
 	@Autowired
 	private AccountProfileRepository profileRepository;
-	
+
 	private ValidationHelper validationHelper = new ValidationHelper();
-//
+
+	@Autowired
+	private JavaMailSender mailSender;
 //	@Autowired
 //	private AccountProfileRepository profileRepository;
 
 	HashMap<String, String> responseMessage = new JsonReader().readJsonFile();
 
-	//fix
+	// fix
 	public ResponseEntity<ResponseObject> signIn(String username, String password) {
-		if (username.trim() == "" || password.trim() == "") 
+		if (username.trim() == "" || password.trim() == "")
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
 					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Input can not be empty", new int[0]));
 
@@ -64,10 +72,10 @@ public class AuthService {
 		if (!account.isPresent()) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
 					HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("accountNotFound"), new int[0]));
-		} else if (!account.get().getPassword().equals(MD5.generateMD5Hash(password))) 
+		} else if (!account.get().getPassword().equals(MD5.generateMD5Hash(password)))
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
 					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Wrong password", new int[0]));
-		
+
 		if (account.get().getStatus().getValue().equals("inactive"))
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 					.body(new ResponseObject(false, HttpStatus.BAD_REQUEST.toString().split(" ")[0],
@@ -83,8 +91,8 @@ public class AuthService {
 		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
 				HttpStatus.OK.toString().split(" ")[0], responseMessage.get("signInSuccess"), map));
 	}
-	
-	//fix
+
+	// fix
 	public ResponseEntity<ResponseObject> signUp(AccountSignUpRequest request) {
 		Map<String, String> errors = new HashMap<>();
 		Optional<Account> foundAccount = repository.findByUsername(request.getUsername());
@@ -93,7 +101,7 @@ public class AuthService {
 			return ResponseEntity.status(HttpStatus.CONFLICT).body(new ResponseObject(false,
 					HttpStatus.CONFLICT.toString().split(" ")[0], responseMessage.get("userNameExisted"), ""));
 		} else {
-			
+
 			if (request.getUsername().strip().equals("")) {
 				errors.put("emptyUserName", "Username can't be empty!");
 			} else if (request.getUsername().strip().length() < 6 || request.getUsername().strip().length() > 100) {
@@ -101,13 +109,13 @@ public class AuthService {
 			} else if (!validationHelper.isValidEmail(request.getUsername().strip())) {
 				errors.put("usernameNotEmail", "Username must follow format email!");
 			}
-			
+
 			if (request.getPassword().strip().equals("")) {
 				errors.put("emptyPassword", "Password can't be empty!");
 			} else if (request.getPassword().strip().length() < 6 || request.getPassword().strip().length() > 32) {
 				errors.put("passwordLength", "Password's length must be from 6 to 32!");
 			}
-			
+
 			if (!request.getRetypePassword().strip().equals(request.getPassword().strip())) {
 				errors.put("retypePasswordNotCorrect", "Password and retype password not correct!");
 			}
@@ -115,23 +123,23 @@ public class AuthService {
 			if (errors.isEmpty()) {
 				Optional<Role> role = roleRepository.findById(2);
 				Optional<Status> status = statusRepository.findById(12);
-				
+
 				Account accountSignUp = new Account();
 				accountSignUp.setRole(role.get());
 				accountSignUp.setUsername(request.getUsername().strip());
-				accountSignUp.setPassword(MD5.generateMD5Hash(request.getPassword().strip()));  
+				accountSignUp.setPassword(MD5.generateMD5Hash(request.getPassword().strip()));
 				accountSignUp.setStatus(status.get());
-				
+
 				accountSignUp = repository.save(accountSignUp);
-				
+
 				Cart newCart = new Cart();
 				newCart.setAccount(accountSignUp);
 				cartRepository.save(newCart);
-				
+
 				AccountProfile newProfile = new AccountProfile();
 				newProfile.setAccount(accountSignUp);
 				profileRepository.save(newProfile);
-				
+
 				return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
 						HttpStatus.OK.toString().split(" ")[0], responseMessage.get("signUpSuccess"), accountSignUp));
 			}
@@ -142,7 +150,28 @@ public class AuthService {
 		}
 	}
 
-	
+	public ResponseEntity<ResponseObject> sendmail(String mail) throws AddressException, MessagingException {
+
+		MimeMessage message = mailSender.createMimeMessage();
+		message.setFrom(new InternetAddress("kiotfpt.help@gmail.com"));
+		message.setRecipients(MimeMessage.RecipientType.TO, mail);
+		message.setSubject("Email for sign up account");
+		String htmlContent = "<h2>Welcome to Mappe!</h2>"
+				+ "<img src=\"https://i.imgur.com/3lYeErR.png\" alt=\"Mappe Shop\" style=\"display: block; margin: 0 auto; width: 150px;\">"
+				+ "<div style='background-color: #f2f2f2; padding: 20px; text-align: center;'>" + "<p>Hello, "
+				+ mail + "</p>"
+				+ "<p>Thank you for submitting an account registration request on Mappe!</p>"
+				+ "<p>Please do not share the link with anyone else to avoid losing your account.</p>"
+				+ "<p>Please click this " + "<a href=\"http://localhost:8080/api/v1/auth/confirm-sign-up/"
+				+ mail + "\">" + "<p style='font-size: 24px;'><strong>confirm sign-up</strong></p>"
+				+ "</a> to activate your account.</p>" + "</div>";
+		message.setContent(htmlContent, "text/html; charset=utf-8");
+		mailSender.send(message);
+		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
+				HttpStatus.OK.toString().split(" ")[0], responseMessage.get("signUpSuccess"), ""));
+
+	}
+
 //	public ResponseEntity<ResponseObject> signUp(Map<String, String> map) {
 //		String username = map.get("username").strip();
 //		String password = map.get("password").strip();
@@ -265,7 +294,6 @@ public class AuthService {
 //
 //	}
 //
-
 
 //	public ResponseEntity<ResponseObject> signUp(Account account) throws AddressException, MessagingException {
 //		Account foundAccount = repository.findByUsername(account.getUsername().trim());

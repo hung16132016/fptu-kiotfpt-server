@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class AddressRequest {
 
+	private int address_id;
 	private int account_profile_id;
 	private String address_value;
 	private int district_id;
@@ -18,6 +19,7 @@ public class AddressRequest {
 	
 	public AddressRequest(Address address) {
 		super();
+		this.address_id = address.getId();
 		this.account_profile_id = address.getProfile().getId();
 		this.address_value = address.getValue();
 		this.district_id = address.getDistrict().getId();

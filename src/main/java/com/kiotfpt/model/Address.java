@@ -39,4 +39,6 @@ public class Address {
 	@ManyToOne()
 	@JoinColumn(name = "account_profile_id", nullable = false)
 	private AccountProfile profile;
+	
+	
 }

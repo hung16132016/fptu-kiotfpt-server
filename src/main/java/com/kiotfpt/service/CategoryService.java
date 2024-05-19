@@ -22,7 +22,7 @@ import com.kiotfpt.utils.JsonReader;
 public class CategoryService {
 	@Autowired
 	private CategoryRepository repository;
-	
+
 	@Autowired
 	private ProductRepository productRepository;
 
@@ -42,19 +42,30 @@ public class CategoryService {
 						.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
 								responseMessage.get("categoryNotFound"), filteredCategories));
 	}
-	
+
 	public ResponseEntity<ResponseObject> getPopularCategory() {
 		List<Object[]> popularCate = productRepository.findTop4PopularCategory();
 		List<Category> categories = new ArrayList<>();
-		
+
 		for (Object[] obj : popularCate) {
 			Optional<Category> category = repository.findById(Integer.parseInt(obj[0].toString()));
 			categories.add(category.get());
 		}
-		
-		return ResponseEntity.status(HttpStatus.OK)
-				.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
-						responseMessage.get("categoryFound"), categories));
+
+		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
+				HttpStatus.OK.toString().split(" ")[0], responseMessage.get("categoryFound"), categories));
+	}
+
+	public ResponseEntity<ResponseObject> getCategoryById(int id) {
+		Optional<Category> category = repository.findById(id);
+
+		if (category.isPresent()) {
+			return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
+					HttpStatus.OK.toString().split(" ")[0], "Category Found", category.get()));
+		} else {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+					HttpStatus.NOT_FOUND.toString().split(" ")[0], "Category not found", null));
+		}
 	}
 
 //	public ResponseEntity<ResponseObject> createCategory(Category newCategory) {
