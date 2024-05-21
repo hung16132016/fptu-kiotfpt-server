@@ -104,6 +104,39 @@ public class AddressService {
 				"New address is added successfully", repository.save(newAddress)));
 	}
 	
+	public ResponseEntity<ResponseObject> updateAddress(AddressRequest request) {
+		Optional<Address> address = repository.findById(request.getAddress_id());
+		if (address.isEmpty()) 
+			ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
+					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Address is not exist", new int[0]));
+		
+		Optional<Province> province = provinceRepository.findById(request.getProvince_id());
+		if (province.isEmpty()) 
+			ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
+					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Province is not exist", new int[0]));
+		
+		Optional<District> district = districtRepository.findById(request.getDistrict_id());
+		if (district.isEmpty()) 
+			ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
+					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "District is not exist", new int[0]));
+		
+		if (request.getAddress_value().length() == 0 )
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+					.body(new ResponseObject(false, "400", "Input cannot be empty!", null));
+		if (request.getAddress_value().length() == 255) 
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+					.body(new ResponseObject(false, "400", "Input is too long!", null));
+		
+		Address updateAddress = address.get();
+		updateAddress.setDistrict(district.get());
+		updateAddress.setProvince(province.get());
+		updateAddress.setValue(request.getAddress_value());
+		
+		return ResponseEntity.status(HttpStatus.OK)
+				.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
+				"New address is added successfully", repository.save(updateAddress)));
+	}
+	
 	public ResponseEntity<ResponseObject> deleteAddress(int address_id) {
 		Optional<Address> address = repository.findById(address_id);
 		if (address.isEmpty()) 
@@ -127,11 +160,22 @@ public class AddressService {
 						HttpStatus.NOT_FOUND.toString().split(" ")[0], "Data has not found", new int[0]));
 	}
 	
-//	chua xong
 	public ResponseEntity<ResponseObject> getAllDistrictByProvinceID(int province_id) {
-		
-		return ResponseEntity.status(HttpStatus.OK)
+		Optional<Province> province = provinceRepository.findById(province_id);
+		if(!province.isEmpty()) {
+			List<District> districts = districtRepository.findAllByProvince(province.get());
+			if (districts.isEmpty()) {
+				return ResponseEntity.status(HttpStatus.NOT_FOUND)
+					.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
+						"There is no district with this province", districts));
+			}
+			return ResponseEntity.status(HttpStatus.OK)
 				.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
-				"Data has found successfully", ""));
+					"There are districts with this province", districts));
+		};
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+					.body(new ResponseObject(false, HttpStatus.BAD_REQUEST.toString().split(" ")[0],
+							"Could not find any province with this ID", province.get()));
+		
 	}
 }
