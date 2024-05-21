@@ -1,5 +1,6 @@
 package com.kiotfpt.service;
 
+import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -54,6 +55,7 @@ public class AuthService {
 	private AccountProfileRepository profileRepository;
 
 	private ValidationHelper validationHelper = new ValidationHelper();
+	private MD5 md5 = new MD5();
 
 	@Autowired
 	private JavaMailSender mailSender;
@@ -93,7 +95,7 @@ public class AuthService {
 	}
 
 	// fix
-	public ResponseEntity<ResponseObject> signUp(AccountSignUpRequest request) {
+	public ResponseEntity<ResponseObject> signUp(AccountSignUpRequest request) throws AddressException, MessagingException  {
 		Map<String, String> errors = new HashMap<>();
 		Optional<Account> foundAccount = repository.findByUsername(request.getUsername());
 
@@ -122,7 +124,7 @@ public class AuthService {
 
 			if (errors.isEmpty()) {
 				Optional<Role> role = roleRepository.findById(2);
-				Optional<Status> status = statusRepository.findById(12);
+				Optional<Status> status = statusRepository.findById(15);
 
 				Account accountSignUp = new Account();
 				accountSignUp.setRole(role.get());
@@ -139,6 +141,21 @@ public class AuthService {
 				AccountProfile newProfile = new AccountProfile();
 				newProfile.setAccount(accountSignUp);
 				profileRepository.save(newProfile);
+				
+				MimeMessage message = mailSender.createMimeMessage();
+				message.setFrom(new InternetAddress("kiotfpt.help@gmail.com"));
+				message.setRecipients(MimeMessage.RecipientType.TO, request.getUsername().strip());
+				message.setSubject("Email for sign up account");
+				String htmlContent = "<h2>Welcome to Kiot FPT!</h2>"
+						+ "<div style='background-color: #f2f2f2; padding: 20px; text-align: center;'>" + "<p>Hello, "
+						+ request.getUsername().strip() + "</p>"
+						+ "<p>Thank you for submitting an account registration request on Mappe!</p>"
+						+ "<p>Please do not share the link with anyone else to avoid losing your account.</p>"
+						+ "<p>Please click this " + "<a href=\"http://localhost:8080/api/v1/auth/confirm-sign-up/"
+						+ request.getUsername().strip() + "\">" + "<p style='font-size: 24px;'><strong>confirm sign-up</strong></p>"
+						+ "</a> to activate your account.</p>" + "</div>";
+				message.setContent(htmlContent, "text/html; charset=utf-8");
+				mailSender.send(message);
 
 				return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
 						HttpStatus.OK.toString().split(" ")[0], responseMessage.get("signUpSuccess"), accountSignUp));
@@ -148,6 +165,56 @@ public class AuthService {
 					.body(new ResponseObject(false, HttpStatus.BAD_REQUEST.toString().split(" ")[0],
 							responseMessage.get("signUpFailed"), errors.values()));
 		}
+	}
+	
+	public ResponseEntity<ResponseObject> activeAccount(String username) {
+		Optional<Account> foundAccount = repository.findByUsername(username);
+		if (!foundAccount.isEmpty()) {
+			Account activeAccount = foundAccount.get();
+			if (activeAccount.getStatus().getId() == 15) {
+				Optional<Status> status = statusRepository.findById(11);
+				activeAccount.setStatus(status.get());
+				repository.save(activeAccount);
+				return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
+						HttpStatus.OK.toString().split(" ")[0], "Active account successfull", ""));
+			}
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+					.body(new ResponseObject(false, HttpStatus.BAD_REQUEST.toString().split(" ")[0],
+							"This account can not be active", ""));
+		}
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+				.body(new ResponseObject(false, HttpStatus.BAD_REQUEST.toString().split(" ")[0],
+						"Could not find any account with this username", ""));
+	}
+	
+	public ResponseEntity<ResponseObject> forgotPassword(String username) throws AddressException, MessagingException {
+		Optional<Account> foundAccount = repository.findByUsername(username);
+		if (!foundAccount.isEmpty()) {
+			Account account = foundAccount.get();
+			String newPassword = generateRandomPassword();
+			String newPasswordMD5 = md5.generateMD5Hash(newPassword);
+			account.setPassword(newPasswordMD5);
+			repository.save(account);
+			
+			MimeMessage message = mailSender.createMimeMessage();
+			message.setFrom(new InternetAddress("kiotfpt.help@gmail.com"));
+			message.setRecipients(MimeMessage.RecipientType.TO, username);
+			message.setSubject("Reset Kiot FPT Password");
+			String htmlContent = "<h2>Welcome to Kiot FPT!</h2>"
+					+ "<div style='background-color: #f2f2f2; padding: 20px; text-align: center;'>" + "<p>Hello, "
+					+ username + "</p>"
+					+ "<p>This is your new password:</p>"
+					+ "<p>Please do not share the password with anyone else to avoid losing your account.</p>"
+					+ "<p>Please click this " + newPassword + "</p>" + "</div>";
+			message.setContent(htmlContent, "text/html; charset=utf-8");
+			mailSender.send(message);
+			
+			return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
+					HttpStatus.OK.toString().split(" ")[0], responseMessage.get("Send new password to email seccessfull"), ""));
+		}
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+				.body(new ResponseObject(false, HttpStatus.BAD_REQUEST.toString().split(" ")[0],
+						"Could not find any account with this username", ""));
 	}
 
 	public ResponseEntity<ResponseObject> sendmail(String mail) throws AddressException, MessagingException {
@@ -169,7 +236,17 @@ public class AuthService {
 		mailSender.send(message);
 		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
 				HttpStatus.OK.toString().split(" ")[0], responseMessage.get("signUpSuccess"), ""));
-
+	}
+	
+	private String generateRandomPassword() {
+		String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+		StringBuilder sb = new StringBuilder(8);
+		SecureRandom random = new SecureRandom();
+		while (sb.length() < 8) {
+			int randomIndex = random.nextInt(CHARACTERS.length());
+			sb.append(CHARACTERS.charAt(randomIndex));
+		}
+		return sb.toString();
 	}
 
 //	public ResponseEntity<ResponseObject> signUp(Map<String, String> map) {
