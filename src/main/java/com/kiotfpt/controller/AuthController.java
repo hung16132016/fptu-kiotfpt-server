@@ -20,7 +20,7 @@ import com.kiotfpt.request.AccountRequest;
 import com.kiotfpt.request.AccountSignUpRequest;
 import com.kiotfpt.service.AuthService;
 
-@CrossOrigin(origins = "http://localhost:8080")
+@CrossOrigin(origins = "http://localhost:8888")
 @RestController
 @RequestMapping(path = "/v1/auth")
 public class AuthController {
@@ -40,13 +40,11 @@ public class AuthController {
 	}
 	
 	@GetMapping("/confirm-sign-up/{username}")
-	@PostMapping("/sign-up")
 	public ResponseEntity<ResponseObject> activeAccount(@PathVariable String username) throws AddressException, MessagingException{
 		return service.activeAccount(username);
 	}
 	
-	@GetMapping("/confirm-sign-up/{username}")
-	@PostMapping("/forgot-password")
+	@GetMapping("/forgot-password/{username}")
 	public ResponseEntity<ResponseObject> forgotPassword(@PathVariable String username) throws AddressException, MessagingException{
 		return service.forgotPassword(username);
 	}

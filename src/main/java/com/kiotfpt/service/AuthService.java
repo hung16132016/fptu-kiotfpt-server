@@ -151,7 +151,7 @@ public class AuthService {
 						+ request.getUsername().strip() + "</p>"
 						+ "<p>Thank you for submitting an account registration request on Mappe!</p>"
 						+ "<p>Please do not share the link with anyone else to avoid losing your account.</p>"
-						+ "<p>Please click this " + "<a href=\"http://localhost:8080/api/v1/auth/confirm-sign-up/"
+						+ "<p>Please click this link " + "<a href=\"http://localhost:8888/v1/auth/confirm-sign-up/"
 						+ request.getUsername().strip() + "\">" + "<p style='font-size: 24px;'><strong>confirm sign-up</strong></p>"
 						+ "</a> to activate your account.</p>" + "</div>";
 				message.setContent(htmlContent, "text/html; charset=utf-8");
@@ -210,7 +210,7 @@ public class AuthService {
 			mailSender.send(message);
 			
 			return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
-					HttpStatus.OK.toString().split(" ")[0], responseMessage.get("Send new password to email seccessfull"), ""));
+					HttpStatus.OK.toString().split(" ")[0], "Send new password to email seccessfull", ""));
 		}
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 				.body(new ResponseObject(false, HttpStatus.BAD_REQUEST.toString().split(" ")[0],
