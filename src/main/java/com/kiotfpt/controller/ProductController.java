@@ -1,6 +1,7 @@
 package com.kiotfpt.controller;
 
 import java.io.IOException;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +21,7 @@ import com.kiotfpt.request.ProductRequest;
 import com.kiotfpt.service.ProductService;
 
 
-@CrossOrigin(origins = "http://localhost:8080")
+@CrossOrigin(origins = "http://localhost:8888")
 @RestController
 @RequestMapping("/v1/product")
 public class ProductController {
@@ -28,31 +29,26 @@ public class ProductController {
 	@Autowired
 	private ProductService service;
 
-//	api line 13
 	@GetMapping("/get-all")
 	public ResponseEntity<ResponseObject> getAllProduct(@RequestParam(name = "page") Integer page, @RequestParam(name = "amount") Integer amount) {
 		return service.getAllProduct(page, amount);
 	}
 
-//	api line 18
 	@GetMapping("/{id}")
 	public ResponseEntity<ResponseObject> getProductById(@PathVariable int id) {
 		return service.getProductById(id);
 	}
-	
-//	api line 11
+
 	@GetMapping("/new")
 	public ResponseEntity<ResponseObject> getNew8Added() {
 		return service.getNew8Added();
 	}
 	
-//	api line 14
 	@GetMapping("/get-by-category")
 	public ResponseEntity<ResponseObject> getByCategoryID(@RequestParam(name = "categoryID") Integer category_id, @RequestParam(name = "page") Integer page, @RequestParam(name = "amount") Integer amount) {
 		return service.getByCategoryID(category_id, page, amount);
 	}
-	
-//	api line 7
+
 	@GetMapping("/search")
 	public ResponseEntity<ResponseObject> getByKeyword(@RequestParam(name = "key") String keyword, @RequestParam(name = "page") Integer page, @RequestParam(name = "amount") Integer amount) {
 		return service.getByKeyword(keyword, page, amount);
@@ -80,18 +76,24 @@ public class ProductController {
 	}
 	
 	@GetMapping("/discount")
-	public ResponseEntity<ResponseObject> getDiscountedProducts() {
-		return service.getDiscountedProducts();
+	public ResponseEntity<ResponseObject> getDiscountedProducts(@RequestParam(name = "shopID", required=false) Optional<Integer> id) {
+		if(id.isEmpty())
+			return service.getDiscountedProducts();
+		return service.getDiscountedProductsWithShopID(id.get());
 	}
 
 	@GetMapping("/official")
-	public ResponseEntity<ResponseObject> getOfficialProducts() {
-		return service.getOfficialProducts();
+	public ResponseEntity<ResponseObject> getOfficialProducts(@RequestParam(name = "shopID", required=false) Optional<Integer> id) {
+		if(id.isEmpty())
+			return service.getOfficialProducts();
+		return service.getOfficialProductsWithShopID(id.get());
 	}
 	
 	@GetMapping("/top-deal")
-	public ResponseEntity<ResponseObject> getTopDealProduct() {
-		return service.getTopDealProduct();
+	public ResponseEntity<ResponseObject> getTopDealProduct(@RequestParam(name = "shopID", required=false) Optional<Integer> id) {
+		if(id.isEmpty())
+			return service.getTopDealProduct();
+		return service.getTopDealProductWithShopId(id.get());
 	}
 
 //	@GetMapping("/search")
