@@ -466,7 +466,16 @@ public class ProductService {
 						HttpStatus.NOT_FOUND.toString().split(" ")[0], "Data has not found", new int[0]));
 	}
 	
-
+	public ResponseEntity<ResponseObject> getTopDealProductWithShopId(int shop_id) {
+		List<Product> products = repository.findByTopDealAndShopId(shop_id);
+		
+		return !products.isEmpty()
+				? ResponseEntity.status(HttpStatus.OK)
+						.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
+								"Data has found successfully", products))
+				: ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+						HttpStatus.NOT_FOUND.toString().split(" ")[0], "Data has not found", new int[0]));
+	}
 
 	public ResponseEntity<ResponseObject> getOfficialProducts() {
 		List<Product> officialProducts = repository.findByOfficialTrue();
@@ -482,9 +491,39 @@ public class ProductService {
 		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
 				HttpStatus.OK.toString().split(" ")[0], "Official products found.", officialProductResponses));
 	}
+	
+	public ResponseEntity<ResponseObject> getOfficialProductsWithShopID(int shop_id) {
+		List<Product> officialProducts = repository.findByShopIdOfficialTrue(shop_id);
+
+		if (officialProducts == null || officialProducts.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+					HttpStatus.NOT_FOUND.toString().split(" ")[0], "No official products found.", null));
+		}
+
+		List<ProductResponse> officialProductResponses = officialProducts.stream().map(ProductResponse::new)
+				.collect(Collectors.toList());
+
+		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
+				HttpStatus.OK.toString().split(" ")[0], "Official products found.", officialProductResponses));
+	}
 
 	public ResponseEntity<ResponseObject> getDiscountedProducts() {
 		List<Product> discountedProducts = repository.findByDiscountGreaterThan(0);
+
+		if (discountedProducts.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+					HttpStatus.NOT_FOUND.toString().split(" ")[0], "No discounted products found.", null));
+		}
+
+		List<ProductResponse> discountedProductResponses = discountedProducts.stream().map(ProductResponse::new)
+				.collect(Collectors.toList());
+
+		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
+				HttpStatus.OK.toString().split(" ")[0], "Discounted products found.", discountedProductResponses));
+	}
+	
+	public ResponseEntity<ResponseObject> getDiscountedProductsWithShopID(int shop_id) {
+		List<Product> discountedProducts = repository.findByShopIdAndDiscountGreaterThan(shop_id, 0);
 
 		if (discountedProducts.isEmpty()) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,

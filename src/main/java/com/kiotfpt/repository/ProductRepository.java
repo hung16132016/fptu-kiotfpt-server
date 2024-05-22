@@ -43,14 +43,19 @@ public interface ProductRepository extends JpaRepository<Product, Integer>{
 	List<Product> findByname(String name);
 	
     List<Product> findByOfficialTrue();
+    List<Product> findByShopIdOfficialTrue(int shopId);
 
 	List<Product> findByDiscountGreaterThan(int discount);
+	List<Product> findByShopIdAndDiscountGreaterThan(int shopId, int discount);
 	
 	@Query(value = "Select kiotfpt_product.category_id, count(*) as product_count from kiotfpt_product group by kiotfpt_product.category_id order by product_count desc limit 4", nativeQuery = true)
 	List<Object[]> findTop4PopularCategory();
 	
 	@Query(value = "Select * from kiotfpt_product where kiotfpt_product.product_top_deal = 1", nativeQuery = true)
 	List<Product> findByTopDeal();
+	
+	@Query(value = "Select * from kiotfpt_product where kiotfpt_product.product_top_deal = 1 and kiotfpt_product.shop_id = :shopId", nativeQuery = true)
+	List<Product> findByTopDealAndShopId(@Param("shopId") Integer shopId);
 	
 	@Query(value = "Select distinct brand_id From kiotfpt_product where kiotfpt_product.category_id = :category_id", nativeQuery = true)
 	List<Object[]> findBrandByCategory(@Param("category_id") int id);
