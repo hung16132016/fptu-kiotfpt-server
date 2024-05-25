@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.kiotfpt.model.Category;
 import com.kiotfpt.model.Product;
 
 @Repository
@@ -43,7 +44,7 @@ public interface ProductRepository extends JpaRepository<Product, Integer>{
 	List<Product> findByname(String name);
 	
     List<Product> findByOfficialTrue();
-    List<Product> findByShopIdOfficialTrue(int shopId);
+    List<Product> findByShopIdAndOfficialTrue(int shopId);
 
 	List<Product> findByDiscountGreaterThan(int discount);
 	List<Product> findByShopIdAndDiscountGreaterThan(int shopId, int discount);
@@ -59,4 +60,9 @@ public interface ProductRepository extends JpaRepository<Product, Integer>{
 	
 	@Query(value = "Select distinct brand_id From kiotfpt_product where kiotfpt_product.category_id = :category_id", nativeQuery = true)
 	List<Object[]> findBrandByCategory(@Param("category_id") int id);
+	
+	List<Product> findTop6ByCategoryAndIdNot(Category category, int productId);
+	
+	@Query(value = "Select * From kiotfpt_product where kiotfpt_product.product_min_price between :min_price and :max_price", nativeQuery = true)
+	Page<Product> findByPriceRange(@Param("min_price") float min_price, @Param("max_price") float max_price, Pageable pageable);
 }

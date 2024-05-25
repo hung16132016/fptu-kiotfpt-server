@@ -493,7 +493,7 @@ public class ProductService {
 	}
 	
 	public ResponseEntity<ResponseObject> getOfficialProductsWithShopID(int shop_id) {
-		List<Product> officialProducts = repository.findByShopIdOfficialTrue(shop_id);
+		List<Product> officialProducts = repository.findByShopIdAndOfficialTrue(shop_id);
 
 		if (officialProducts == null || officialProducts.isEmpty()) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
@@ -535,6 +535,61 @@ public class ProductService {
 
 		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
 				HttpStatus.OK.toString().split(" ")[0], "Discounted products found.", discountedProductResponses));
+	}
+	
+	public ResponseEntity<ResponseObject> getProductRelated(int product_id) {
+		Optional<Product> product = repository.findById(product_id);
+		if (!product.isEmpty()) {
+			Category cate = product.get().getCategory();
+			
+			List<Product> products = repository.findTop6ByCategoryAndIdNot(cate, product_id);
+			if (products.isEmpty()) 
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+						HttpStatus.NOT_FOUND.toString().split(" ")[0], "There is no product related to this product!", null));
+			
+			return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
+					HttpStatus.OK.toString().split(" ")[0], "Discounted products found.", products));
+		}
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+				HttpStatus.NOT_FOUND.toString().split(" ")[0], "There is no product with this product id!", null));
+	}
+	
+	public ResponseEntity<ResponseObject> getByPriceRange(float minPrice, float maxPrice, int page, int amount) {
+		if (minPrice > maxPrice) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+					.body(new ResponseObject(false, "400", "Min price must be less than or equal Max price!", null));
+		}
+		Pageable pageable = PageRequest.of(page - 1, amount);
+		Page<Product> productPage = repository.findByPriceRange(minPrice, maxPrice, pageable);
+		
+		List<Product> products = productPage.getContent();
+
+		return !products.isEmpty()
+				? ResponseEntity.status(HttpStatus.OK)
+						.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
+								"Data has found successfully", products))
+				: ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+						HttpStatus.NOT_FOUND.toString().split(" ")[0], "Data has not found with this range", new int[0]));
+		
+	}
+	
+	public ResponseEntity<ResponseObject> getByListCategoryID(List<String> categoryIdList) {
+		if (categoryIdList.isEmpty()) 
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+					.body(new ResponseObject(false, "400", "This list has at least one category ID!", null));
+		
+		List<Product> allProducts = new ArrayList<>();
+		for (String categoryId : categoryIdList) {
+            List<Product> productsByCategory = repository.findAllByCategoryid(Integer.parseInt(categoryId));
+            allProducts.addAll(productsByCategory);
+        }
+		
+		return !allProducts.isEmpty()
+				? ResponseEntity.status(HttpStatus.OK)
+						.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
+								"Data has found successfully", allProducts))
+				: ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+						HttpStatus.NOT_FOUND.toString().split(" ")[0], "Data has not found with this range", new int[0]));
 	}
 
 //	public ResponseEntity<ResponseObject> getProductPopular() {
