@@ -43,7 +43,7 @@ public interface ProductRepository extends JpaRepository<Product, Integer>{
 	List<Product> findByname(String name);
 	
     List<Product> findByOfficialTrue();
-    List<Product> findByShopIdOfficialTrue(int shopId);
+    List<Product> findByShopIdAndOfficialTrue(int shopId);
 
 	List<Product> findByDiscountGreaterThan(int discount);
 	List<Product> findByShopIdAndDiscountGreaterThan(int shopId, int discount);

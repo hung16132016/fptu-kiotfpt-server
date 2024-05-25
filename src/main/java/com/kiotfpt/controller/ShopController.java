@@ -18,41 +18,37 @@ import com.kiotfpt.service.ShopService;
 
 @CrossOrigin(origins = "http://localhost:8080")
 @RestController
-@RequestMapping("/v1")
+@RequestMapping("/v1/shop")
 public class ShopController {
 	@Autowired
 	private ShopService service;
 
-	@GetMapping("/shop/profile/{id}")
+	@GetMapping("/profile/{id}")
 	public ResponseEntity<ResponseObject> getShopByID(@PathVariable int id) {
 		return service.getShopByID(id);
 	}
 	
-    @GetMapping("/shop/get-all")
-    public ResponseEntity<ResponseObject> getAllShops(
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int amount
-    ) {
-        return service.getAllShop(page, amount);
-    }
-//
-//	@GetMapping("/shop/account/{id}")
-//	public ResponseEntity<ResponseObject> getShopByAccountID(HttpServletRequest request, @PathVariable int id) {
-//		return service.getShopByAccountID(request, id);
-//	}
-//
-    //fix
-//	@PostMapping("/shop/create")
-//	public ResponseEntity<ResponseObject> createShop(@RequestBody ShopRequest shop) {
-//		return service.createShop(shop);
-//	}
+	@GetMapping("/ban/{id}")
+	public ResponseEntity<ResponseObject> banShop(@PathVariable int id) {
+		return service.banShop(id);
+	}
 
-	@PutMapping("/shop/profile/update/{id}")
-	public ResponseEntity<ResponseObject> updateShop(@PathVariable int id,
-			@RequestBody ShopRequest shop) {
+	@GetMapping("/get-all")
+	public ResponseEntity<ResponseObject> getAllShops(@RequestParam(defaultValue = "1") int page,
+			@RequestParam(defaultValue = "10") int amount) {
+		return service.getAllShop(page, amount);
+	}
+
+	@PostMapping("/create")
+	public ResponseEntity<ResponseObject> createShop(@RequestBody ShopRequest shop) {
+		return service.createShop(shop);
+	}
+
+	@PutMapping("/profile/update/{id}")
+	public ResponseEntity<ResponseObject> updateShop(@PathVariable int id, @RequestBody ShopRequest shop) {
 		return service.updateShop(id, shop);
 	}
-	
+
 //	@GetMapping("/shop/account/getAll")
 //	public ResponseEntity<ResponseObject> getAllShopRevenueByTime(HttpServletRequest request, @RequestParam(value = "filter", required = false) int month) {		
 //		return service.getAllShopRevenueByTime(request, month);

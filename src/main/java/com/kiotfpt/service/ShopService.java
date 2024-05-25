@@ -13,17 +13,33 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import com.kiotfpt.model.Account;
+import com.kiotfpt.model.Address;
 import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.model.Shop;
+import com.kiotfpt.model.Status;
+import com.kiotfpt.repository.AccountRepository;
+import com.kiotfpt.repository.AddressRepository;
 import com.kiotfpt.repository.ShopRepository;
+import com.kiotfpt.repository.StatusRepository;
 import com.kiotfpt.request.ShopRequest;
 import com.kiotfpt.response.ShopResponse;
 import com.kiotfpt.utils.JsonReader;
+import com.kiotfpt.utils.ValidationHelper;
 
 @Service
 public class ShopService {
 	@Autowired
 	private ShopRepository repository;
+
+	@Autowired
+	private AccountRepository accountRepository;
+
+	@Autowired
+	private StatusRepository statusRepository;
+
+	@Autowired
+	private AddressRepository addressRepository;
 
 	HashMap<String, String> responseMessage = new JsonReader().readJsonFile();
 
@@ -64,38 +80,45 @@ public class ShopService {
 				HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("shopNotFound"), ""));
 	}
 
-	//Fixing
-//	public ResponseEntity<ResponseObject> createShop(ShopRequest shopRequest) {
-//
-//		if (shopRequest == null || shopRequest.getName() == null || shopRequest.getName().isEmpty()
-//				|| shopRequest.getEmail() == null || shopRequest.getEmail().isEmpty() || shopRequest.getPhone() == null
-//				|| shopRequest.getPhone().isEmpty() || shopRequest.getThumbnail() == null
-//				|| shopRequest.getThumbnail().isEmpty()) {
-//			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
-//					HttpStatus.OK.toString().split(" ")[0], "Error in input", "Invalid input data"));
-//		}
-//
-//		// Create account with email as username and hashed password
-//		Optional<Account> account = accountRepository.findByUsername(shopRequest.getAccount().getUsername());		
-//		// Create shop
-//		Shop shop = new Shop();
-//		shop.setName(shopRequest.getName());
-//		shop.setEmail(shopRequest.getEmail());
-//		shop.setPhone(shopRequest.getPhone());
-//		shop.setThumbnail(shopRequest.getThumbnail());
-//		shop.setRate(0);
-//		shop.setOfficial(false);
-//		shop.setFollower(0);
-//
-//		// Associate account with shop
-//		shop.setAccount(account.get());
-//
-//		// Save account and shop
-//		repository.save(shop);
-//
-//		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
-//				HttpStatus.OK.toString().split(" ")[0], "Create shop successfully. Here is your account", account));
-//	}
+	public ResponseEntity<ResponseObject> createShop(ShopRequest shopRequest) {
+
+		if (shopRequest == null || shopRequest.getName() == null || shopRequest.getName().isEmpty()
+				|| shopRequest.getEmail() == null || shopRequest.getEmail().isEmpty() || shopRequest.getPhone() == null
+				|| shopRequest.getPhone().isEmpty() || shopRequest.getThumbnail() == null
+				|| shopRequest.getThumbnail().isEmpty()) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
+					HttpStatus.OK.toString().split(" ")[0], "Error in input", ""));
+		}
+
+		ValidationHelper help = new ValidationHelper();
+		if (help.isValidEmail(shopRequest.getEmail()) == false) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
+					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Mail is not valid", ""));
+		}
+
+		if (help.isVietnamPhoneNumber(shopRequest.getPhone()) == false) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
+					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Phone is not valid", ""));
+		}
+
+		Optional<Account> account = accountRepository.findById(shopRequest.getAccount_id());
+		if (account.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+					new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0], "Account not found", ""));
+		}
+
+		Optional<Address> address = addressRepository.findById(shopRequest.getAddress_id());
+		if (address.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+					new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0], "Address not found", ""));
+		}
+
+		Shop shop = new Shop(shopRequest, account.get(), address.get());
+		repository.save(shop);
+
+		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
+				HttpStatus.OK.toString().split(" ")[0], "Create shop successfully. Here is your account", shop));
+	}
 
 	public ResponseEntity<ResponseObject> updateShop(int id, ShopRequest shop) {
 		Optional<Shop> foundshop = repository.findById(id);
@@ -113,29 +136,37 @@ public class ShopService {
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
 				HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("shopNotFound"), ""));
 	}
-//
-//	public ResponseEntity<ResponseObject> getShopByAccountID(HttpServletRequest request, int id) {
-//		Optional<Shop> shop = repository.findByAccountID(id);
-//		if (shop.isPresent()) {
-//			String token = "";
-//			try {
-//				token = request.getHeader("Authorization").split(" ")[1];
-//			} catch (NullPointerException e) {
-//				return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ResponseObject(false,
-//						HttpStatus.UNAUTHORIZED.toString().split(" ")[0], responseMessage.get("unauthorized"), ""));
-//			}
-//
-//			if (token.equals(shop.get().getAccount().getToken())) {
-//				return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
-//						HttpStatus.OK.toString().split(" ")[0], responseMessage.get("getShopByIdSuccess"), shop.get()));
-//			} else {
-//				return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ResponseObject(false,
-//						HttpStatus.UNAUTHORIZED.toString().split(" ")[0], responseMessage.get("unauthorized"), ""));
-//			}
-//		}
-//		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-//				HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("getShopByAccountIdFail"), ""));
-//	}
+
+	public ResponseEntity<ResponseObject> banShop(int shopId) {
+		Optional<Shop> optionalShop = repository.findById(shopId);
+		if (!optionalShop.isPresent()) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+					HttpStatus.NOT_FOUND.toString().split(" ")[0], "Shop with id: " + shopId + " not found", null));
+		}
+
+		Shop shop = optionalShop.get();
+		Account account = shop.getAccount();
+		if (account == null) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+					.body(new ResponseObject(false, HttpStatus.BAD_REQUEST.toString().split(" ")[0],
+							"No account associated with shop id: " + shopId, null));
+		}
+
+		// Fetch the inactive status
+		Optional<Status> inactiveStatus = statusRepository.findByValue("inactive");
+		if (inactiveStatus == null) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(new ResponseObject(false, HttpStatus.INTERNAL_SERVER_ERROR.toString().split(" ")[0],
+							"Inactive status not found in database", null));
+		}
+
+		// Update the account status to inactive
+		account.setStatus(inactiveStatus.get());
+		accountRepository.save(account);
+
+		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
+				HttpStatus.OK.toString().split(" ")[0], "Shop and associated account banned successfully", null));
+	}
 //
 //	public ResponseEntity<ResponseObject> getAllShopRevenueByTime(HttpServletRequest request, int month) {
 //		Account accToken = null;

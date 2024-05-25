@@ -14,6 +14,7 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.kiotfpt.request.ShopRequest;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -88,4 +89,19 @@ public class Shop {
 	@OneToMany(mappedBy = "shop", cascade = CascadeType.ALL)
 	@JsonIgnore
 	private Collection<ShopCategory> shopcategories;
+
+	public Shop(ShopRequest request, Account account, Address address) {
+		super();
+		this.name = request.getName();
+		this.email = request.getEmail();
+		this.phone = request.getPhone();
+		this.thumbnail = request.getThumbnail();
+		this.rate = 0;
+		this.official = false;
+		this.follower = 0;
+		this.account = account;
+		this.address = address;
+	}
+	
+	
 }

@@ -13,13 +13,13 @@ public class CategoryRequest {
 
 	private int id;
 	private String name;
-	private String category_thumbnail;
+	private String thumbnail;
 
 	public CategoryRequest(Category category) {
 		super();
 		this.id = category.getId();
 		this.name = category.getName();
-		this.category_thumbnail = category.getThumbnail();
+		this.thumbnail = category.getThumbnail();
 	}
 
 }

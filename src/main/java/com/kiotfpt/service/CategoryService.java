@@ -2,7 +2,6 @@ package com.kiotfpt.service;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -16,6 +15,8 @@ import com.kiotfpt.model.Category;
 import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.repository.CategoryRepository;
 import com.kiotfpt.repository.ProductRepository;
+import com.kiotfpt.repository.StatusRepository;
+import com.kiotfpt.request.CategoryRequest;
 import com.kiotfpt.utils.JsonReader;
 
 @Service
@@ -25,6 +26,9 @@ public class CategoryService {
 
 	@Autowired
 	private ProductRepository productRepository;
+
+	@Autowired
+	private StatusRepository statusRepository;
 
 	HashMap<String, String> responseMessage = new JsonReader().readJsonFile();
 
@@ -60,46 +64,46 @@ public class CategoryService {
 		Optional<Category> category = repository.findById(id);
 
 		if (category.isPresent()) {
-			return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
-					HttpStatus.OK.toString().split(" ")[0], "Category Found", category.get()));
+			return ResponseEntity.status(HttpStatus.OK).body(
+					new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Category Found", category.get()));
 		} else {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
 					HttpStatus.NOT_FOUND.toString().split(" ")[0], "Category not found", null));
 		}
 	}
 
-//	public ResponseEntity<ResponseObject> createCategory(Category newCategory) {
-//		List<Category> foundProduct = repository.findByName(newCategory.getName().trim());
-//		if (!foundProduct.isEmpty())
-//			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
-//					HttpStatus.BAD_REQUEST.toString().split(" ")[0], responseMessage.get("categoryEmpty"), ""));
-//
-//		if (foundProduct.size() > 0) {
-//			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
-//					HttpStatus.BAD_REQUEST.toString().split(" ")[0], responseMessage.get("createCategoryFail"), ""));
-//		}
-//		return ResponseEntity.status(HttpStatus.OK)
-//				.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
-//						responseMessage.get("createCategorySuccess"), repository.save(newCategory)));
-//	}
-//
-//	public ResponseEntity<ResponseObject> updateCategory(int id, Category cate) {
-//		Optional<Category> category = repository.findById(id);
-//		if (!category.isPresent())
-//			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
-//					HttpStatus.BAD_REQUEST.toString().split(" ")[0], responseMessage.get("categoryEmpty"), ""));
-//		if (category.isPresent()) {
-//			category.map(p -> {
-//				p.setName(cate.getName());
-//				p.setStatus(cate.getStatus());
-//				return repository.save(p);
-//			});
-//			return ResponseEntity.status(HttpStatus.OK)
-//					.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
-//							responseMessage.get("updateCategorySuccess"), category.get()));
-//		}
-//		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
-//				HttpStatus.BAD_REQUEST.toString().split(" ")[0], responseMessage.get("updateCategoryFail"), ""));
-//	}
+	public ResponseEntity<ResponseObject> createCategory(CategoryRequest request) {
+		Optional<Category> foundCategory = repository.findByName(request.getName().trim());
+		if (!foundCategory.isEmpty())
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+					new ResponseObject(false, HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Category existed", ""));
+
+		Category newCategory = new Category(request, statusRepository.findByValue("active").get());
+		repository.save(newCategory);
+		
+		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
+				HttpStatus.OK.toString().split(" ")[0], responseMessage.get("createCategorySuccess"), newCategory));
+	}
+
+    public ResponseEntity<ResponseObject> updateCategory(int id, CategoryRequest request) {
+        Optional<Category> optionalCategory = repository.findById(id);
+        if (!optionalCategory.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
+                            "Category with id: " + id + " not found", null));
+        }
+
+        Category category = optionalCategory.get();
+        category.setName(request.getName());
+        category.setThumbnail(request.getThumbnail());
+        // Assuming status remains the same and not updated via request
+        // If status needs to be updated, fetch the status from statusRepository and set it.
+
+        repository.save(category);
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
+                        "Category updated successfully", null));
+    }
 
 }

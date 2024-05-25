@@ -14,6 +14,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.kiotfpt.request.CategoryRequest;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -48,4 +49,13 @@ public class Category {
 	@OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
 	@JsonIgnore
 	private Collection<ShopCategory> shopcategories;
+
+	public Category(CategoryRequest request, Status status) {
+		super();
+		this.name = request.getName();
+		this.thumbnail = request.getThumbnail();
+		this.status = status;
+	}
+	
+	
 }
