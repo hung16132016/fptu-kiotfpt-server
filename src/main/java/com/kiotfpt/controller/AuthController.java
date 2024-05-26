@@ -53,6 +53,9 @@ public class AuthController {
 	public ResponseEntity<ResponseObject> sendmail(@RequestBody Map<String,String>  map) throws AddressException, MessagingException {
 		return service.sendmail(map.get("mail"));
 	}
+	
+	
+	
 
 //	// check username
 //	@PostMapping("/check-username")

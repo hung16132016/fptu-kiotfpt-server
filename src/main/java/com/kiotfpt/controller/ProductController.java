@@ -1,6 +1,8 @@
 package com.kiotfpt.controller;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,6 +96,19 @@ public class ProductController {
 		if(id.isEmpty())
 			return service.getTopDealProduct();
 		return service.getTopDealProductWithShopId(id.get());
+	}
+	
+	@GetMapping("/get-by-price-range")
+	public ResponseEntity<ResponseObject> getByPriceRange(@RequestParam(name = "min") float min, @RequestParam(name = "max") float max, 
+			@RequestParam(name = "page") Integer page, @RequestParam(name = "amount") Integer amount) {
+
+		return service.getByPriceRange(min, max, page, amount);
+	}
+	
+	@PostMapping("/get-multiple-category")
+	public ResponseEntity<ResponseObject> getByListCategoryID(@RequestBody Map<String, Object> request) {
+		List<String> category_id_list = (List<String>) request.get("category_id_list");
+		return service.getByListCategoryID(category_id_list);
 	}
 
 //	@GetMapping("/search")
