@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import com.kiotfpt.model.Category;
 import com.kiotfpt.model.ResponseObject;
+import com.kiotfpt.model.Status;
 import com.kiotfpt.repository.CategoryRepository;
 import com.kiotfpt.repository.ProductRepository;
 import com.kiotfpt.repository.StatusRepository;
@@ -104,6 +105,24 @@ public class CategoryService {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
                         "Category updated successfully", null));
+    }
+    
+    public ResponseEntity<ResponseObject> deleteCategory(int id) {
+    	Optional<Category> optionalCategory = repository.findById(id);
+        if (!optionalCategory.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
+                            "Category with id: " + id + " not found", null));
+        }
+        
+        Category category = optionalCategory.get();
+        Optional<Status> deleteStatus = statusRepository.findById(12);
+        
+        category.setStatus(deleteStatus.get());
+        repository.save(category);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
+                        "Category deleted successfully", null));
     }
 
 }
