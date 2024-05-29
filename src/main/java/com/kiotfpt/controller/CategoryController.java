@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,7 +17,7 @@ import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.request.CategoryRequest;
 import com.kiotfpt.service.CategoryService;
 
-@CrossOrigin(origins = "http://localhost:8080")
+@CrossOrigin(origins = "http://localhost:8888")
 @RestController
 @RequestMapping("/v1/category")
 @Service
@@ -45,8 +46,13 @@ public class CategoryController {
 
 	}
 
-	@PutMapping("/{id}")
+	@PutMapping("/update/{id}")
 	public ResponseEntity<ResponseObject> updateCategory(@PathVariable int id, @RequestBody CategoryRequest category) {
 		return service.updateCategory(id, category);
+	}
+	
+	@DeleteMapping("/delete/{id}")
+	public ResponseEntity<ResponseObject> deleteCategory(@PathVariable int id) {
+		return service.deleteCategory(id);
 	}
 }

@@ -1,5 +1,8 @@
 package com.kiotfpt.service;
 
+import java.util.Collection;
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -64,5 +67,25 @@ public class ShopCateService {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
                         "ShopCategory removed successfully", null));
+    }
+    
+    public ResponseEntity<ResponseObject> getShopCategoryByShopID(int shopID) {
+    	Optional<Shop> optShop = shopRepository.findById(shopID);
+    	
+    	if (optShop.isEmpty())
+    		return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
+                            "Shop with id: " + shopID + " not found", null));
+    	
+    	Shop shop = optShop.get();
+    	Collection<ShopCategory> listShopCate = shop.getShopcategories();
+    	if (listShopCate.isEmpty())
+    		return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
+                            "This shop have no shop category", null));
+    	
+    	return ResponseEntity.status(HttpStatus.OK)
+                .body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
+                        "Get shop category by shop ID successfully", listShopCate));
     }
 }
