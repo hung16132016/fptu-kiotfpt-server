@@ -10,4 +10,5 @@ import lombok.NoArgsConstructor;
 public class VoucherRequest {
 
 	private int value;
+	private int shop_id;
 }

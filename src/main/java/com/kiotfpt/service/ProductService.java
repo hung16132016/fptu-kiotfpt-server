@@ -22,6 +22,7 @@ import com.kiotfpt.model.Category;
 import com.kiotfpt.model.Color;
 import com.kiotfpt.model.Product;
 import com.kiotfpt.model.ProductCondition;
+import com.kiotfpt.model.ProductThumbnail;
 import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.model.Shop;
 import com.kiotfpt.model.Size;
@@ -32,15 +33,12 @@ import com.kiotfpt.repository.CategoryRepository;
 import com.kiotfpt.repository.ColorRepository;
 import com.kiotfpt.repository.ConditionRepository;
 import com.kiotfpt.repository.ProductRepository;
+import com.kiotfpt.repository.ProductThumbnailRepository;
 import com.kiotfpt.repository.ShopRepository;
 import com.kiotfpt.repository.SizeRepository;
 import com.kiotfpt.repository.StatusRepository;
-import com.kiotfpt.request.BrandRequest;
-import com.kiotfpt.request.CategoryRequest;
+import com.kiotfpt.repository.VariantRepository;
 import com.kiotfpt.request.ProductRequest;
-import com.kiotfpt.request.Product_ConditionRequest;
-import com.kiotfpt.request.ShopRequest;
-import com.kiotfpt.request.StatusRequest;
 import com.kiotfpt.request.VariantRequest;
 import com.kiotfpt.response.BrandResponse;
 import com.kiotfpt.response.CategoryResponse;
@@ -77,6 +75,12 @@ public class ProductService {
 
 	@Autowired
 	private SizeRepository sizeRepository;
+
+	@Autowired
+	private VariantRepository variantRepository;
+
+	@Autowired
+	private ProductThumbnailRepository thumbnailRepository;
 
 //	@Value("${path_image}")
 //	private String imageLink;
@@ -164,28 +168,62 @@ public class ProductService {
 
 		Product product = productOptional.get();
 
+		// Validate input
+		if (productRequest.getName() == null || productRequest.getDescription() == null
+				|| productRequest.getVariants() == null || productRequest.getThumbnails() == null) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
+					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Input cannot be empty!", null));
+		}
+
+		if (productRequest.getName().isEmpty() || productRequest.getDescription().isEmpty()
+				|| productRequest.getVariants().isEmpty() || productRequest.getThumbnails().isEmpty()) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
+					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Input cannot be empty!", null));
+		}
+
+		// Validate minPrice, maxPrice, and discount
+		float minPrice = productRequest.getMinPrice();
+		float maxPrice = productRequest.getMaxPrice();
+		int discount = productRequest.getDiscount();
+
+		if (minPrice < 0 || maxPrice < 0) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
+					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Price values must be non-negative!", null));
+		}
+
+		if (minPrice > maxPrice) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+					.body(new ResponseObject(false, HttpStatus.BAD_REQUEST.toString().split(" ")[0],
+							"minPrice must be less than or equal to maxPrice!", null));
+		}
+
+		if (discount < 0 || discount > 100) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
+					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Discount must be between 0 and 100!", null));
+		}
+
 		// Update product details
 		product.setName(productRequest.getName());
 		product.setDescription(productRequest.getDescription());
 		product.setMinPrice(productRequest.getMinPrice());
 		product.setMaxPrice(productRequest.getMaxPrice());
-		product.setRate(productRequest.getRate());
-		product.setBestSeller(productRequest.isBestSeller());
-		product.setPopular(productRequest.isPopular());
-		product.setTopDeal(productRequest.isTopDeal());
-		product.setOfficial(productRequest.isOfficial());
+		product.setDiscount(discount);
 
 		// Set product relationships
-		product.setCondition(conditionRepository.findById(productRequest.getCondition().getId())
-				.orElseThrow(() -> new ResourceNotFoundException("Condition not found")));
-		product.setBrand(brandRepository.findById(productRequest.getBrand().getId())
-				.orElseThrow(() -> new ResourceNotFoundException("Brand not found")));
-		product.setStatus(statusRepository.findById(productRequest.getStatus().getId())
-				.orElseThrow(() -> new ResourceNotFoundException("Status not found")));
-		product.setCategory(categoryRepository.findById(productRequest.getCategory().getId())
-				.orElseThrow(() -> new ResourceNotFoundException("Category not found")));
-		product.setShop(shopRepository.findById(productRequest.getShop().getId())
-				.orElseThrow(() -> new ResourceNotFoundException("Shop not found")));
+		try {
+			product.setCondition(conditionRepository.findById(productRequest.getCondition_id())
+					.orElseThrow(() -> new ResourceNotFoundException("Condition not found")));
+			product.setBrand(brandRepository.findById(productRequest.getBrand_id())
+					.orElseThrow(() -> new ResourceNotFoundException("Brand not found")));
+			product.setCategory(categoryRepository.findById(productRequest.getCategory_id())
+					.orElseThrow(() -> new ResourceNotFoundException("Category not found")));
+			product.setShop(shopRepository.findById(productRequest.getShop_id())
+					.orElseThrow(() -> new ResourceNotFoundException("Shop not found")));
+
+		} catch (ResourceNotFoundException e) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+					new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0], e.getMessage(), null));
+		}
 
 		// Update variants
 		List<VariantRequest> variantRequests = (List<VariantRequest>) productRequest.getVariants();
@@ -205,13 +243,24 @@ public class ProductService {
 
 		product.setVariants(variants);
 
+		// Update thumbnails
+		List<String> thumbnailUrls = productRequest.getThumbnails();
+		List<ProductThumbnail> thumbnails = new ArrayList<>();
+
+		for (String thumbnailUrl : thumbnailUrls) {
+			ProductThumbnail thumbnail = new ProductThumbnail(thumbnailUrl, product);
+			thumbnails.add(thumbnail);
+		}
+
+		product.setThumbnail(thumbnails);
+
 		// Save the updated product
 		repository.save(product);
 
 		ProductResponse response = new ProductResponse(product);
 
-		return ResponseEntity.status(HttpStatus.OK)
-				.body(new ResponseObject(true, "200", "Product updated successfully", response));
+		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
+				HttpStatus.OK.toString().split(" ")[0], "Product updated successfully", response));
 	}
 
 	public ResponseEntity<ResponseObject> deleteProduct(int id) {
@@ -235,119 +284,135 @@ public class ProductService {
 		String description = productRequest.getDescription();
 		float minPrice = productRequest.getMinPrice();
 		float maxPrice = productRequest.getMaxPrice();
-		float rate = productRequest.getRate();
-		boolean bestSeller = productRequest.isBestSeller();
-		boolean popular = productRequest.isPopular();
-		boolean topDeal = productRequest.isTopDeal();
-		boolean official = productRequest.isOfficial();
-		Product_ConditionRequest condition = productRequest.getCondition();
-		BrandRequest brand = productRequest.getBrand();
-		StatusRequest status = productRequest.getStatus();
-		CategoryRequest category = productRequest.getCategory();
-		ShopRequest shop = productRequest.getShop();
+		int discount = productRequest.getDiscount();
+		int conditionId = productRequest.getCondition_id();
+		int brandId = productRequest.getBrand_id();
+		int categoryId = productRequest.getCategory_id();
+		int shopId = productRequest.getShop_id();
 		Collection<VariantRequest> variantRequests = productRequest.getVariants();
+		List<String> thumbnailUrls = productRequest.getThumbnails();
 
 		// Validate input
-		if (name == null || description == null || variantRequests == null) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body(new ResponseObject(false, "400", "Input cannot be empty!", null));
+		if (name == null || description == null || variantRequests == null || thumbnailUrls == null) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
+					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Input cannot be empty!", null));
 		}
 
-		if (name.isEmpty() || description.isEmpty() || variantRequests.isEmpty()) {
+		if (name.isEmpty() || description.isEmpty() || variantRequests.isEmpty() || thumbnailUrls.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
+					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Input cannot be empty!", null));
+		}
+
+		// Validate minPrice, maxPrice, and discount
+		if (minPrice < 0 || maxPrice < 0) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
+					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Price values must be non-negative!", null));
+		}
+
+		if (minPrice > maxPrice) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body(new ResponseObject(false, "400", "Input cannot be empty!", null));
+					.body(new ResponseObject(false, HttpStatus.BAD_REQUEST.toString().split(" ")[0],
+							"minPrice must be less than or equal to maxPrice!", null));
+		}
+
+		if (discount < 0 || discount > 100) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
+					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Discount must be between 0 and 100!", null));
 		}
 
 		// Check category existence
-		Optional<Category> categoryOptional = categoryRepository.findById(category.getId());
+		Optional<Category> categoryOptional = categoryRepository.findById(categoryId);
 		if (categoryOptional.isEmpty()) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body(new ResponseObject(false, "400", "Category does not exist!", null));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
+					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Category does not exist!", null));
 		}
 
 		// Check shop existence
-		Optional<Shop> shopOptional = shopRepository.findById(shop.getId());
+		Optional<Shop> shopOptional = shopRepository.findById(shopId);
 		if (shopOptional.isEmpty()) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body(new ResponseObject(false, "400", "Shop does not exist!", null));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
+					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Shop does not exist!", null));
 		}
 
 		// Check brand existence
-		Optional<Brand> brandOptional = brandRepository.findById(brand.getId());
+		Optional<Brand> brandOptional = brandRepository.findById(brandId);
 		if (brandOptional.isEmpty()) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body(new ResponseObject(false, "400", "Brand does not exist!", null));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
+					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Brand does not exist!", null));
 		}
 
 		// Check status existence
-		Optional<Status> statusOptional = statusRepository.findById(status.getId());
+		Optional<Status> statusOptional = statusRepository.findByValue("active");
 		if (statusOptional.isEmpty()) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body(new ResponseObject(false, "400", "Status does not exist!", null));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
+					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Status does not exist!", null));
 		}
 
 		// Check condition existence
-		Optional<ProductCondition> conditionOptional = conditionRepository.findById(condition.getId());
+		Optional<ProductCondition> conditionOptional = conditionRepository.findById(conditionId);
 		if (conditionOptional.isEmpty()) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body(new ResponseObject(false, "400", "Product condition does not exist!", null));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
+					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Product condition does not exist!", null));
 		}
 
 		// Create the product entity
-		Product product = new Product();
-		product.setName(name);
-		product.setDescription(description);
-		product.setMinPrice(minPrice);
-		product.setMaxPrice(maxPrice);
-		product.setRate(rate);
-		product.setBestSeller(bestSeller);
-		product.setPopular(popular);
-		product.setTopDeal(topDeal);
-		product.setOfficial(official);
-		product.setCondition(conditionOptional.get());
-		product.setBrand(brandOptional.get());
-		product.setStatus(statusOptional.get());
-		product.setCategory(categoryOptional.get());
-		product.setShop(shopOptional.get());
+		Product product = new Product(productRequest, conditionOptional.get(), brandOptional.get(),
+				statusOptional.get(), categoryOptional.get(), shopOptional.get(), new ArrayList<>(), new ArrayList<>());
 
-		// Set variants
+		// Save the product first to get its ID for the variants
+		product = repository.save(product);
+
+		// Set and save variants
 		List<Variant> variants = new ArrayList<>();
 		for (VariantRequest variantRequest : variantRequests) {
-			Variant variant = new Variant();
-			variant.setPrice(variantRequest.getPrice());
-			variant.setQuantity(variantRequest.getQuantity());
-
 			// Fetch color entity from repository
 			Optional<Color> colorOptional = colorRepository.findById(variantRequest.getColorId());
-			if (colorOptional.isPresent()) {
-				variant.setColor(colorOptional.get());
-			} else {
-				// Return a 404 response if color is not found
-				return ResponseEntity.status(HttpStatus.NOT_FOUND)
-						.body(new ResponseObject(false, "404", "Color not found!", null));
+			if (colorOptional.isEmpty()) {
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+						HttpStatus.NOT_FOUND.toString().split(" ")[0], "Color not found!", null));
 			}
 
 			// Fetch size entity from repository
 			Optional<Size> sizeOptional = sizeRepository.findById(variantRequest.getSizeId());
-			if (sizeOptional.isPresent()) {
-				variant.setSize(sizeOptional.get());
-			} else {
-				// Return a 404 response if size is not found
-				return ResponseEntity.status(HttpStatus.NOT_FOUND)
-						.body(new ResponseObject(false, "404", "Size not found!", null));
+			if (sizeOptional.isEmpty()) {
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+						HttpStatus.NOT_FOUND.toString().split(" ")[0], "Size not found!", null));
 			}
+
+			Variant variant = new Variant(variantRequest.getPrice(), variantRequest.getQuantity(), colorOptional.get(),
+					sizeOptional.get(), product);
+
+			// Save the variant
+			variant = variantRepository.save(variant);
 
 			// Add the variant to the list
 			variants.add(variant);
 		}
+
+		// Update the product with the saved variants
 		product.setVariants(variants);
 
-		// Save the product
-		repository.save(product);
+		// Set and save thumbnails
+		List<ProductThumbnail> thumbnails = new ArrayList<>();
+		for (String thumbnailUrl : thumbnailUrls) {
+			ProductThumbnail thumbnail = new ProductThumbnail(thumbnailUrl, product);
+
+			// Save each thumbnail
+			thumbnail = thumbnailRepository.save(thumbnail);
+
+			// Add the thumbnail to the list
+			thumbnails.add(thumbnail);
+		}
+
+		// Update the product with the saved thumbnails
+		product.setThumbnail(thumbnails);
+
+		// Save the updated product
+		product = repository.save(product);
 		ProductResponse response = new ProductResponse(product);
 
-		return ResponseEntity.status(HttpStatus.OK)
-				.body(new ResponseObject(true, "200", "Product created successfully", response));
+		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
+				HttpStatus.OK.toString().split(" ")[0], "Product created successfully", response));
 	}
 
 	// fix
@@ -454,10 +519,10 @@ public class ProductService {
 		List<Product> found = repository.findByname(name);
 		return !found.isEmpty() ? repository.findByname(name) : null;
 	}
-	
+
 	public ResponseEntity<ResponseObject> getTopDealProduct() {
 		List<Product> products = repository.findByTopDeal();
-		
+
 		return !products.isEmpty()
 				? ResponseEntity.status(HttpStatus.OK)
 						.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
@@ -465,10 +530,10 @@ public class ProductService {
 				: ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
 						HttpStatus.NOT_FOUND.toString().split(" ")[0], "Data has not found", new int[0]));
 	}
-	
+
 	public ResponseEntity<ResponseObject> getTopDealProductWithShopId(int shop_id) {
 		List<Product> products = repository.findByTopDealAndShopId(shop_id);
-		
+
 		return !products.isEmpty()
 				? ResponseEntity.status(HttpStatus.OK)
 						.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
@@ -491,7 +556,7 @@ public class ProductService {
 		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
 				HttpStatus.OK.toString().split(" ")[0], "Official products found.", officialProductResponses));
 	}
-	
+
 	public ResponseEntity<ResponseObject> getOfficialProductsWithShopID(int shop_id) {
 		List<Product> officialProducts = repository.findByShopIdAndOfficialTrue(shop_id);
 
@@ -521,7 +586,7 @@ public class ProductService {
 		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
 				HttpStatus.OK.toString().split(" ")[0], "Discounted products found.", discountedProductResponses));
 	}
-	
+
 	public ResponseEntity<ResponseObject> getDiscountedProductsWithShopID(int shop_id) {
 		List<Product> discountedProducts = repository.findByShopIdAndDiscountGreaterThan(shop_id, 0);
 
@@ -536,60 +601,64 @@ public class ProductService {
 		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
 				HttpStatus.OK.toString().split(" ")[0], "Discounted products found.", discountedProductResponses));
 	}
-	
+
 	public ResponseEntity<ResponseObject> getProductRelated(int product_id) {
 		Optional<Product> product = repository.findById(product_id);
 		if (!product.isEmpty()) {
 			Category cate = product.get().getCategory();
-			
+
 			List<Product> products = repository.findTop6ByCategoryAndIdNot(cate, product_id);
-			if (products.isEmpty()) 
-				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-						HttpStatus.NOT_FOUND.toString().split(" ")[0], "There is no product related to this product!", null));
-			
+			if (products.isEmpty())
+				return ResponseEntity.status(HttpStatus.NOT_FOUND)
+						.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
+								"There is no product related to this product!", null));
+
 			return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
 					HttpStatus.OK.toString().split(" ")[0], "Discounted products found.", products));
 		}
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
 				HttpStatus.NOT_FOUND.toString().split(" ")[0], "There is no product with this product id!", null));
 	}
-	
+
 	public ResponseEntity<ResponseObject> getByPriceRange(float minPrice, float maxPrice, int page, int amount) {
 		if (minPrice > maxPrice) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body(new ResponseObject(false, "400", "Min price must be less than or equal Max price!", null));
+					.body(new ResponseObject(false, HttpStatus.BAD_REQUEST.toString().split(" ")[0],
+							"Min price must be less than or equal Max price!", null));
 		}
 		Pageable pageable = PageRequest.of(page - 1, amount);
 		Page<Product> productPage = repository.findByPriceRange(minPrice, maxPrice, pageable);
-		
+
 		List<Product> products = productPage.getContent();
 
 		return !products.isEmpty()
 				? ResponseEntity.status(HttpStatus.OK)
 						.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
 								"Data has found successfully", products))
-				: ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-						HttpStatus.NOT_FOUND.toString().split(" ")[0], "Data has not found with this range", new int[0]));
-		
+				: ResponseEntity.status(HttpStatus.NOT_FOUND)
+						.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
+								"Data has not found with this range", new int[0]));
+
 	}
-	
+
 	public ResponseEntity<ResponseObject> getByListCategoryID(List<String> categoryIdList) {
-		if (categoryIdList.isEmpty()) 
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body(new ResponseObject(false, "400", "This list has at least one category ID!", null));
-		
+		if (categoryIdList.isEmpty())
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
+					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "This list has at least one category ID!", null));
+
 		List<Product> allProducts = new ArrayList<>();
 		for (String categoryId : categoryIdList) {
-            List<Product> productsByCategory = repository.findAllByCategoryid(Integer.parseInt(categoryId));
-            allProducts.addAll(productsByCategory);
-        }
-		
+			List<Product> productsByCategory = repository.findAllByCategoryid(Integer.parseInt(categoryId));
+			allProducts.addAll(productsByCategory);
+		}
+
 		return !allProducts.isEmpty()
 				? ResponseEntity.status(HttpStatus.OK)
 						.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
 								"Data has found successfully", allProducts))
-				: ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-						HttpStatus.NOT_FOUND.toString().split(" ")[0], "Data has not found with this range", new int[0]));
+				: ResponseEntity.status(HttpStatus.NOT_FOUND)
+						.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
+								"Data has not found with this range", new int[0]));
 	}
 
 //	public ResponseEntity<ResponseObject> getProductPopular() {

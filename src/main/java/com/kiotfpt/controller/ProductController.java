@@ -67,7 +67,7 @@ public class ProductController {
 		return service.createProduct(product);
 	}
 
-	@DeleteMapping("product/delete/{id}")
+	@DeleteMapping("/delete/{id}")
 	public ResponseEntity<ResponseObject> deleteProduct(@PathVariable int id) {
 		return service.deleteProduct(id);
 	}

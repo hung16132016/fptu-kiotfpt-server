@@ -35,4 +35,8 @@ public class ProductThumbnail {
 	@JsonIgnore
 	private Product product;
 
+    public ProductThumbnail(String link, Product product) {
+        this.link = link;
+        this.product = product;
+    }
 }

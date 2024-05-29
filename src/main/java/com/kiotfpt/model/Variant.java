@@ -54,4 +54,11 @@ public class Variant {
 	@JsonIgnore
 	private Collection<AccessibilityItem> items;
 
+    public Variant(float price, int quantity, Color color, Size size, Product product) {
+        this.price = price;
+        this.quantity = quantity;
+        this.color = color;
+        this.size = size;
+        this.product = product;
+    }
 }

@@ -29,7 +29,7 @@ public class VoucherService {
 
 	@Autowired
 	private ShopRepository shopRepository;
-	
+
 	@Autowired
 	private StatusRepository statusRepository;
 
@@ -73,43 +73,71 @@ public class VoucherService {
 		return ResponseEntity.status(HttpStatus.OK).body(
 				new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Delete voucher successful", null));
 	}
-	
-    public ResponseEntity<ResponseObject> createVoucher(VoucherRequest request) {
-        // Fetch the active Status
-        Optional<Status> status = statusRepository.findByValue("active");
 
-        // Create a new Voucher entity
-        Voucher voucher = new Voucher();
-        voucher.setValue(request.getValue());
-        voucher.setStatus(status.get());
+	public ResponseEntity<ResponseObject> createVoucher(VoucherRequest request) {
+		int value = request.getValue();
+		if (value <= 0 || value > 100) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
+					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Voucher value must be between 1 and 100", null));
+		}
 
-        // Save the Voucher entity
-        Voucher savedVoucher = repository.save(voucher);
+		// Fetch the active Status
+		Optional<Status> status = statusRepository.findByValue("active");
+		if (status.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(new ResponseObject(false, HttpStatus.INTERNAL_SERVER_ERROR.toString().split(" ")[0],
+							"Active status not found in database", null));
+		}
 
-        // Return a successful response
-        return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
-                HttpStatus.OK.toString().split(" ")[0], "Voucher created successfully", new VoucherResponse(savedVoucher)));
-    }
-    
-    public ResponseEntity<ResponseObject> updateVoucher(int id, VoucherRequest request) {
-        // Check if the voucher exists
-        Optional<Voucher> optionalVoucher = repository.findById(id);
-        if (!optionalVoucher.isPresent()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
-                            "Voucher with id: " + id + " not found", null));
-        }
+		// Fetch the shop by ID
+		Optional<Shop> shop = shopRepository.findById(request.getShop_id());
+		if (shop.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND)
+					.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
+							"Shop with ID: " + request.getShop_id() + " not found", null));
+		}
 
-        Voucher voucher = optionalVoucher.get();
+		// Create a new Voucher entity
+		Voucher voucher = new Voucher();
+		voucher.setValue(request.getValue());
+		voucher.setStatus(status.get());
+		voucher.setShop(shop.get());
 
-        // Update the Voucher entity
-        voucher.setValue(request.getValue());
+		// Save the Voucher entity
+		Voucher savedVoucher = repository.save(voucher);
 
-        // Save the updated Voucher entity
-        Voucher updatedVoucher = repository.save(voucher);
+		// Return a successful response
+		return ResponseEntity.status(HttpStatus.OK)
+				.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Voucher created successfully",
+						new VoucherResponse(savedVoucher)));
+	}
 
-        // Return a successful response
-        return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
-                HttpStatus.OK.toString().split(" ")[0], "Voucher updated successfully", new VoucherResponse(updatedVoucher)));
-    }
+	public ResponseEntity<ResponseObject> updateVoucher(int id, VoucherRequest request) {
+		int value = request.getValue();
+		
+		// Check if the voucher exists
+		Optional<Voucher> optionalVoucher = repository.findById(id);
+		if (!optionalVoucher.isPresent()) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+					HttpStatus.NOT_FOUND.toString().split(" ")[0], "Voucher with id: " + id + " not found", null));
+		}
+		
+		if (value <= 0 || value > 100) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
+					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Voucher value must be between 1 and 100", null));
+		}
+
+		Voucher voucher = optionalVoucher.get();
+
+		// Update the Voucher entity
+		voucher.setValue(request.getValue());
+
+		// Save the updated Voucher entity
+		Voucher updatedVoucher = repository.save(voucher);
+
+		// Return a successful response
+		return ResponseEntity.status(HttpStatus.OK)
+				.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Voucher updated successfully",
+						new VoucherResponse(updatedVoucher)));
+	}
 }

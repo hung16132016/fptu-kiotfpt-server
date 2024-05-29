@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.request.ShopRequest;
+import com.kiotfpt.request.StatusRequest;
 import com.kiotfpt.service.ShopService;
 
 @CrossOrigin(origins = "http://localhost:8080")
@@ -28,9 +29,9 @@ public class ShopController {
 		return service.getShopByID(id);
 	}
 	
-	@GetMapping("/ban/{id}")
-	public ResponseEntity<ResponseObject> banShop(@PathVariable int id) {
-		return service.banShop(id);
+    @PostMapping("/ban/{id}")
+	public ResponseEntity<ResponseObject> banShop(@PathVariable int id, @RequestBody StatusRequest request) {
+		return service.banShop(id, request);
 	}
 
 	@GetMapping("/get-all")
@@ -48,6 +49,11 @@ public class ShopController {
 	public ResponseEntity<ResponseObject> updateShop(@PathVariable int id, @RequestBody ShopRequest shop) {
 		return service.updateShop(id, shop);
 	}
+	
+    @GetMapping("/popular")
+    public ResponseEntity<ResponseObject> getTop10ShopsByTransactions() {
+        return service.getTop10ShopsByTransactions();
+    }
 
 //	@GetMapping("/shop/account/getAll")
 //	public ResponseEntity<ResponseObject> getAllShopRevenueByTime(HttpServletRequest request, @RequestParam(value = "filter", required = false) int month) {		

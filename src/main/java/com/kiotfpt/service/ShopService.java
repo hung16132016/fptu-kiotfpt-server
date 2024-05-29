@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -23,6 +24,7 @@ import com.kiotfpt.repository.AddressRepository;
 import com.kiotfpt.repository.ShopRepository;
 import com.kiotfpt.repository.StatusRepository;
 import com.kiotfpt.request.ShopRequest;
+import com.kiotfpt.request.StatusRequest;
 import com.kiotfpt.response.ShopResponse;
 import com.kiotfpt.utils.JsonReader;
 import com.kiotfpt.utils.ValidationHelper;
@@ -86,8 +88,8 @@ public class ShopService {
 				|| shopRequest.getEmail() == null || shopRequest.getEmail().isEmpty() || shopRequest.getPhone() == null
 				|| shopRequest.getPhone().isEmpty() || shopRequest.getThumbnail() == null
 				|| shopRequest.getThumbnail().isEmpty()) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
-					HttpStatus.OK.toString().split(" ")[0], "Error in input", ""));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+					.body(new ResponseObject(false, HttpStatus.OK.toString().split(" ")[0], "Error in input", ""));
 		}
 
 		ValidationHelper help = new ValidationHelper();
@@ -123,6 +125,17 @@ public class ShopService {
 	public ResponseEntity<ResponseObject> updateShop(int id, ShopRequest shop) {
 		Optional<Shop> foundshop = repository.findById(id);
 		if (foundshop.isPresent()) {
+			ValidationHelper help = new ValidationHelper();
+			if (help.isValidEmail(shop.getEmail()) == false) {
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
+						HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Mail is not valid", ""));
+			}
+
+			if (help.isVietnamPhoneNumber(shop.getPhone()) == false) {
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
+						HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Phone is not valid", ""));
+			}
+
 			foundshop.get().setEmail(shop.getEmail());
 			foundshop.get().setName(shop.getName());
 			foundshop.get().setPhone(shop.getPhone());
@@ -137,7 +150,7 @@ public class ShopService {
 				HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("shopNotFound"), ""));
 	}
 
-	public ResponseEntity<ResponseObject> banShop(int shopId) {
+	public ResponseEntity<ResponseObject> banShop(int shopId, StatusRequest request) {
 		Optional<Shop> optionalShop = repository.findById(shopId);
 		if (!optionalShop.isPresent()) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
@@ -152,20 +165,33 @@ public class ShopService {
 							"No account associated with shop id: " + shopId, null));
 		}
 
-		// Fetch the inactive status
-		Optional<Status> inactiveStatus = statusRepository.findByValue("inactive");
-		if (inactiveStatus == null) {
+		// Determine the new status value
+		String statusValue = request.getValue().equalsIgnoreCase("true") ? "inactive" : "active";
+
+		// Fetch the corresponding status from the database
+		Optional<Status> statusOptional = statusRepository.findByValue(statusValue);
+		if (!statusOptional.isPresent()) {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
 					.body(new ResponseObject(false, HttpStatus.INTERNAL_SERVER_ERROR.toString().split(" ")[0],
-							"Inactive status not found in database", null));
+							statusValue + " status not found in database", null));
 		}
 
-		// Update the account status to inactive
-		account.setStatus(inactiveStatus.get());
+		// Update the account status
+		account.setStatus(statusOptional.get());
 		accountRepository.save(account);
 
-		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
-				HttpStatus.OK.toString().split(" ")[0], "Shop and associated account banned successfully", null));
+		return ResponseEntity.status(HttpStatus.OK).body(
+				new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Change status successfully", null));
+	}
+
+	public ResponseEntity<ResponseObject> getTop10ShopsByTransactions() {
+		List<Shop> topShops = repository.findTop10ByTransactions();
+		List<ShopResponse> shopResponses = topShops.stream().map(shop -> new ShopResponse(shop))
+				.collect(Collectors.toList());
+
+		return ResponseEntity.status(HttpStatus.OK)
+				.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
+						"Top 10 shops by transactions retrieved successfully", shopResponses));
 	}
 //
 //	public ResponseEntity<ResponseObject> getAllShopRevenueByTime(HttpServletRequest request, int month) {
