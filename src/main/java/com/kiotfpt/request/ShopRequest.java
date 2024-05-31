@@ -14,10 +14,7 @@ public class ShopRequest {
 	private String email;
 	private String phone;
 	private String thumbnail;
-	private float rate;
-	private boolean official;
-	private int follower;
-	private int address_id;
+	private AddressRequest address;
 	private int account_id;
 
 }

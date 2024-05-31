@@ -20,7 +20,6 @@ import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.model.Shop;
 import com.kiotfpt.model.Status;
 import com.kiotfpt.repository.AccountRepository;
-import com.kiotfpt.repository.AddressRepository;
 import com.kiotfpt.repository.ShopRepository;
 import com.kiotfpt.repository.StatusRepository;
 import com.kiotfpt.request.ShopRequest;
@@ -39,9 +38,6 @@ public class ShopService {
 
 	@Autowired
 	private StatusRepository statusRepository;
-
-	@Autowired
-	private AddressRepository addressRepository;
 
 	HashMap<String, String> responseMessage = new JsonReader().readJsonFile();
 
@@ -109,13 +105,17 @@ public class ShopService {
 					new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0], "Account not found", ""));
 		}
 
-		Optional<Address> address = addressRepository.findById(shopRequest.getAddress_id());
-		if (address.isEmpty()) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-					new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0], "Address not found", ""));
+		AddressService service = new AddressService();
+		
+		ResponseEntity<ResponseObject> response = service.createAddress(shopRequest.getAddress());
+		
+		if (response.getBody().getResult() == false) {
+			return response;
 		}
-
-		Shop shop = new Shop(shopRequest, account.get(), address.get());
+		
+	    Address address = (Address) response.getBody().getData();
+	    
+		Shop shop = new Shop(shopRequest, account.get(), address);
 		repository.save(shop);
 
 		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
