@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.kiotfpt.model.Brand;
+import com.kiotfpt.model.Category;
 import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.repository.BrandRepository;
 import com.kiotfpt.repository.ProductRepository;
@@ -44,20 +45,16 @@ public class BrandService {
 	}
 	
     public ResponseEntity<ResponseObject> getPopularBrands() {
-        List<Brand> popularBrands = repository.findPopularBrandsWithLimit(PageRequest.of(0, 4));
+        List<Object[]> popularBrands = productRepository.findTop4PopularBrand();
+        List<Brand> brands = new ArrayList<>();
 
-        if (popularBrands.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
-                            "No popular brands found.", null));
-        }
-
-        List<BrandResponse> brandResponses = popularBrands.stream()
-                .map(brand -> new BrandResponse(brand, brand.getProducts()))
-                .collect(Collectors.toList());
-
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
-                        "Popular brands found.", brandResponses));
+        for (Object[] obj : popularBrands) {
+			Optional<Brand> brand = repository.findById(Integer.parseInt(obj[0].toString()));
+			brands.add(brand.get());
+		}
+        
+        return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
+				HttpStatus.OK.toString().split(" ")[0], "Get popular brand successfull", brands));
     }
+    
 }
