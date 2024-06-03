@@ -60,5 +60,4 @@ public class AddressController {
 		return service.getAllDistrictByProvinceID(id);
 	}
 	
-	
 }

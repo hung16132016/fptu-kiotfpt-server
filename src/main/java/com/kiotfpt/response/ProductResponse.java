@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.kiotfpt.model.AccessibilityItem;
 import com.kiotfpt.model.Product;
+import com.kiotfpt.model.ProductThumbnail;
 import com.kiotfpt.model.Variant;
 
 import lombok.AllArgsConstructor;
@@ -34,6 +36,7 @@ public class ProductResponse {
 	private CategoryResponse category;
 	private ShopResponse shop;
 	private Collection<VariantResponse> variants;
+	private Collection<ProductThumbnail> thumbnail;
 
 	public ProductResponse(Product product) {
 		super();
@@ -61,6 +64,13 @@ public class ProductResponse {
 			list.add(v);
 		}
 		this.variants = list;
+		this.thumbnail = product.getThumbnail();
+	}
+
+	public ProductResponse(Product product, AccessibilityItem item) {
+		this.name = product.getName();
+		this.status = new StatusResponse(product.getStatus());
+		this.thumbnail = product.getThumbnail();
 	}
 
 }

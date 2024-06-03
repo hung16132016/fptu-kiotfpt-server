@@ -8,10 +8,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ItemRequest {
-
-	private int item_id;
-	private int item_quantity;
-	private double item_total;
-	private String item_note;
+	private int amount;
+	private int account_id;
+	private int variant_id;
 
 }

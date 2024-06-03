@@ -32,14 +32,5 @@ public class CartController {
 	public ResponseEntity<ResponseObject> getAmountCartByAccountID(@RequestParam(name = "accountID") int accountID) {
 		return service.getAmountCartByAccountID(accountID);
 	}
-//
-//	@PostMapping("/create")
-//	public ResponseEntity<ResponseObject> createOrder(@RequestBody Map<String, String> map) {
-//		return service.createOrder(map);
-//	}
-//
-//	@PutMapping("/update")
-//	public ResponseEntity<ResponseObject> updateOrder(@RequestBody Cart cart) {
-//		return service.updateOrder(cart);
-//	}
+
 }

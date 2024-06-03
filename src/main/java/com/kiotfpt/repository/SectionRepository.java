@@ -1,6 +1,7 @@
 package com.kiotfpt.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -14,4 +15,7 @@ public interface SectionRepository extends JpaRepository<Section, Integer> {
 	List<Section> findByShop(Shop shop);
 	
 	List<Section> findByCart(Cart cart);
+	
+    Optional<Section> findByShopIdAndAccountId(int shopId, int accountId);
+
 }

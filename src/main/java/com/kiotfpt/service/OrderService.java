@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.kiotfpt.model.AccessibilityItem;
 import com.kiotfpt.model.Account;
 import com.kiotfpt.model.Order;
@@ -21,14 +22,15 @@ import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.model.Section;
 import com.kiotfpt.model.Shop;
 import com.kiotfpt.model.Status;
+import com.kiotfpt.model.Transaction;
 import com.kiotfpt.repository.AccessibilityItemRepository;
 import com.kiotfpt.repository.AccountRepository;
 import com.kiotfpt.repository.OrderRepository;
 import com.kiotfpt.repository.SectionRepository;
 import com.kiotfpt.repository.ShopRepository;
 import com.kiotfpt.repository.StatusRepository;
+import com.kiotfpt.repository.TransactionRepository;
 import com.kiotfpt.request.CreateOrderRequest;
-import com.kiotfpt.request.ItemRequest;
 import com.kiotfpt.request.SectionRequest;
 import com.kiotfpt.request.StatusRequest;
 import com.kiotfpt.response.OrderResponse;
@@ -52,14 +54,11 @@ public class OrderService {
 	@Autowired
 	private StatusRepository statusRepository;
 
-//	@Autowired
-//	private ProductRepository productRepository;
-	
 	@Autowired
 	private AccessibilityItemRepository itemRepository;
 
-//	@Autowired
-//	private JavaMailSender mailSender;
+	@Autowired
+	private TransactionRepository transactionRepository;
 
 	public String randomNumber;
 
@@ -107,16 +106,16 @@ public class OrderService {
 	public ResponseEntity<ResponseObject> getCurrentOrders(int account_id) {
 		Optional<Account> acc = accountRepository.findById(account_id);
 		if (!acc.isEmpty()) {
-			List<Order> transactions = repository.findAllByAccount(acc.get());
-			if (!transactions.isEmpty()) {
+			List<Order> orders = repository.findAllByAccount(acc.get());
+			if (!orders.isEmpty()) {
 				List<Order> returnListOrders = new ArrayList<>(); // List to store products with status not 2, 3, or
 																	// 4
 				// Iterate through foundProduct list to check status
-				for (Order transaction : transactions) {
-					int status = transaction.getSection().getStatus().getId();
+				for (Order order : orders) {
+					int status = order.getSection().getStatus().getId();
 					// Check if status is not 2, 3, or 4
 					if (status == 1 || status == 2 || status == 3 || status == 4) {
-						returnListOrders.add(transaction);
+						returnListOrders.add(order);
 					}
 				}
 				if (!returnListOrders.isEmpty()) {
@@ -129,69 +128,157 @@ public class OrderService {
 									responseMessage.get("getProductByShopIdFail"), ""));
 				}
 			}
-			return ResponseEntity.status(HttpStatus.NOT_FOUND)
-					.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
-							responseMessage.get("transactionNotFound"), transactions));
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+					HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("transactionNotFound"), orders));
 		}
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
 				HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("accountNotFound"), ""));
 	}
 
 	public ResponseEntity<ResponseObject> createOrder(CreateOrderRequest input) {
-		// Assuming each section is one order
-		for (SectionRequest sectionRequest : input.getSections()) {
-			Section section = sectionRepository.findById(sectionRequest.getSection_id()).orElse(null);
-			if (section != null) {
+		try {
+			for (SectionRequest sectionRequest : input.getSections()) {
+
+				// Validate Section existence
+				Optional<Section> optionalSection = sectionRepository.findById(sectionRequest.getSection_id());
+				if (optionalSection.isEmpty()) {
+					return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+							HttpStatus.NOT_FOUND.toString().split(" ")[0], "Section not found", null));
+				}
+				Section section = optionalSection.get();
+
+				// Validate Shop existence
 				Shop shop = section.getShop();
-				Account account = accountRepository.findById(input.getAccountId()).orElse(null);
-				Status status = statusRepository.findByValue("Pending").orElse(null);
+				if (shop == null) {
+					return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+							HttpStatus.NOT_FOUND.toString().split(" ")[0], "Shop not found", null));
+				}
 
-				Order order = new Order();
-				order.setTimeInit(new Date());
-				order.setDesc("Desciption");
-				order.setTotal(calculateOrderTotal(sectionRequest.getItems())); // Implement this method
+				// Validate Account existence
+				Optional<Account> optionalAccount = accountRepository.findById(input.getAccountId());
+				if (optionalAccount.isEmpty()) {
+					return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+							HttpStatus.NOT_FOUND.toString().split(" ")[0], "Account not found", null));
+				}
+				Account account = optionalAccount.get();
 
-				order.setSection(section);
-				order.setShop(shop);
-				order.setAccount(account);
-				order.setStatus(status);
+				// Fetch the 'Pending' Status
+				Optional<Status> optionalStatus = statusRepository.findByValue("pending");
+				Optional<Status> processStatus = statusRepository.findByValue("processing");
+				if (optionalStatus.isEmpty() || processStatus.isEmpty()) {
+					return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+							HttpStatus.NOT_FOUND.toString().split(" ")[0], "Status not found", null));
+				}
+				Status status = optionalStatus.get();
 
-				repository.save(order);
+				// Fetch the accessibility items of the section
+				List<AccessibilityItem> accessibilityItems = itemRepository.findBySection(section);
 
-				return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
-						HttpStatus.OK.toString().split(" ")[0], "Order created successfully", order));
+				if (sectionRequest.getItem_id().size() == accessibilityItems.size()) {
+					// Create and populate Order entity
+					Order order = new Order(sectionRequest, calculateOrderTotal(sectionRequest.getItem_id()), section,
+							shop, account, status);
+
+					section.setStatus(processStatus.get());
+					for (Integer itemId : sectionRequest.getItem_id()) {
+						AccessibilityItem item = itemRepository.findById(itemId).orElse(null);
+						if (item != null) {
+							item.setStatus(processStatus.get());
+							itemRepository.save(item);
+						}
+					}
+
+					// Save the Order entity
+					repository.save(order);
+				} else if (sectionRequest.getItem_id().size() < accessibilityItems.size()) {
+					// Create a new section
+					Section newSection = new Section();
+					newSection.setShop(shop);
+					newSection.setCart(section.getCart());
+					newSection.setStatus(processStatus.get());
+					newSection.setTotal(section.getTotal());
+
+					// Save the new section
+					Section savedSection = sectionRepository.save(newSection);
+
+					// Move the items to the new section
+					for (Integer itemId : sectionRequest.getItem_id()) {
+						AccessibilityItem item = itemRepository.findById(itemId).orElse(null);
+						if (item != null) {
+							item.setSection(savedSection);
+							item.setStatus(processStatus.get());
+							itemRepository.save(item);
+						}
+					}
+
+					// Create and populate Order entity for the new section
+					Order order = new Order(sectionRequest, calculateOrderTotal(sectionRequest.getItem_id()),
+							savedSection, shop, account, status);
+
+					// Save the Order entity
+					repository.save(order);
+				} else {
+					return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+							.body(new ResponseObject(false, HttpStatus.BAD_REQUEST.toString().split(" ")[0],
+									"Invalid number of items in section request", null));
+				}
 			}
+			return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
+					HttpStatus.OK.toString().split(" ")[0], "Order created successfully", null));
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(new ResponseObject(false, HttpStatus.INTERNAL_SERVER_ERROR.toString().split(" ")[0],
+							"An error occurred while creating the order", null));
 		}
-		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-				new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0], "Section not found", null));
 	}
 
-    private float calculateOrderTotal(List<ItemRequest> items) {
-        float total = 0.0f;
-        for (ItemRequest itemRequest : items) {
-            AccessibilityItem item = itemRepository.findById(itemRequest.getItem_id()).orElse(null);
-            if (item != null) {
-//                double productPrice = item.getProduct().getProduct_price();
-                total += itemRequest.getItem_quantity() * item.getVariant().getPrice();
-            } else {
-                // Handle the case where the item is not found
-                // You may throw an exception, log an error, or handle it based on your requirements
-                // For now, let's just log an error
-                System.err.println("Item not found for ID: " + itemRequest.getItem_id());
-            }
-        }
-        return total;
-    }
+	private float calculateOrderTotal(List<Integer> items) {
+		float total = 0.0f;
+		for (Integer items_id : items) {
+			AccessibilityItem item = itemRepository.findById(items_id).orElse(null);
+			if (item != null) {
+				total += item.getQuantity() * item.getVariant().getPrice();
+			} else {
+				System.err.println("Item not found for ID: " + items_id);
+			}
+		}
+		return total;
+	}
 
-	public ResponseEntity<ResponseObject> updateOrderStatus(int id, StatusRequest status) {
+	public ResponseEntity<ResponseObject> updateOrderStatus(int id, StatusRequest status)
+			throws JsonProcessingException {
 		Optional<Order> order = repository.findById(id);
 		if (!order.isEmpty()) {
 			Optional<Status> newStat = statusRepository.findByValue(status.getValue());
 			if (!newStat.isEmpty()) {
-				order.get().setStatus(newStat.get());
-				return ResponseEntity.status(HttpStatus.OK)
-						.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
-								"Update order sucessfully", repository.save(order.get())));
+				if (newStat.get().getValue() == "completed") {
+
+					order.get().setTimeComplete(new Date());
+					order.get().setStatus(newStat.get());
+					order.get().getSection().setStatus(newStat.get());
+
+					for (AccessibilityItem item : order.get().getSection().getItems()) {
+						item.setStatus(newStat.get());
+						itemRepository.save(item);
+					}
+					Transaction trans = new Transaction(order.get());
+
+					repository.save(order.get());
+					transactionRepository.save(trans);
+					return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
+							HttpStatus.OK.toString().split(" ")[0], "Create transaction successfully", trans));
+				} else {
+					order.get().setStatus(newStat.get());
+					order.get().getSection().setStatus(newStat.get());
+
+					for (AccessibilityItem item : order.get().getSection().getItems()) {
+						item.setStatus(newStat.get());
+						itemRepository.save(item);
+					}
+					return ResponseEntity.status(HttpStatus.OK)
+							.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
+									"Update order sucessfully", repository.save(order.get())));
+				}
 			}
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
 					HttpStatus.NOT_FOUND.toString().split(" ")[0], "Status does not exist", ""));
@@ -200,98 +287,4 @@ public class OrderService {
 				new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0], "Order does not exist", ""));
 	}
 
-//    private void createTransaction(Order order) {
-//        Transaction transaction = new Transaction();
-//        transaction.setTransaction_time_init(order.getOrder_time_init());
-//        transaction.setTransaction_time_complete(new Date());
-//        transaction.setTransaction_desc(order.getOrder_desc());
-//        transaction.setTransaction_total(order.getOrder_total());
-//        transaction.setShop(order.getShop());
-//        transaction.setAccount(order.getAccount());
-//        transactionRepository.save(transaction);
-//    }
-
-//	public ResponseEntity<ResponseObject> updateOrder(Order newOrder) {
-//		Order updateOrder = repository.findById(newOrder.getID()).map(transaction -> {
-//			transaction.setTotal(newOrder.getTotal());
-//			transaction.setDesciption(newOrder.getDesciption());
-//			transaction.setStatus(newOrder.getStatus());
-//			transaction.setTime(newOrder.getTime());
-//			return repository.save(transaction);
-//		}).orElseGet(() -> {
-//			return null;
-//		});
-//		if (updateOrder == null) {
-//			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-//					HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("transactionNotFound"), ""));
-//		} else {
-//			return ResponseEntity.status(HttpStatus.OK)
-//					.body(new ResponseObject(false, HttpStatus.OK.toString().split(" ")[0],
-//							responseMessage.get("updateOrderSuccess"), updateOrder));
-//		}
-//	}
-//
-
-//
-//	public ResponseEntity<ResponseObject> checkOtpPayment(Map<String, String> obj, HttpServletRequest request) {
-//		Optional<Order> transaction = repository.findById(Integer.parseInt(obj.get("transaction_id")));
-//		if (transaction.isPresent()) {
-//			Optional<Account> acc = accountRepository.findById((transaction.get().getAccount().getID()));
-//			if (acc.isPresent()) {
-//				String checkToken = new TokenUtils().checkMatch(acc.get().getID(), request, accountRepository);
-//				switch (checkToken) {
-//				case "ok":
-//					if (transaction.get().getAccount() == null) {
-//						return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-//								.body(new ResponseObject(false, HttpStatus.BAD_REQUEST.toString().split(" ")[0],
-//										responseMessage.get("accountNotFound"), ""));
-//					} else {
-//						if (transaction.get().getAccount().getID() != acc.get().getID()) {
-//							return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-//									.body(new ResponseObject(false, HttpStatus.UNAUTHORIZED.toString().split(" ")[0],
-//											responseMessage.get("unauthorized"), ""));
-//						} else {
-//							if (obj.get("otpCode").isEmpty()) {
-//								return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-//										.body(new ResponseObject(false, HttpStatus.BAD_REQUEST.toString().split(" ")[0],
-//												responseMessage.get("OtpEmpty"), ""));
-//							} else if (obj.get("otpCode").equals(randomNumber)) {
-//								if (acc.get().getWallet() > transaction.get().getTotal()) {
-//									acc.get().setWallet(acc.get().getWallet() - transaction.get().getTotal());
-//									accountRepository.save(acc.get());
-//									transaction.get().setStatus(1);
-//									repository.save(transaction.get());
-//									return ResponseEntity.status(HttpStatus.OK)
-//											.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
-//													responseMessage.get("paymentSuccess"), acc.get().getWallet()));
-//								} else
-//									return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-//											.body(new ResponseObject(false,
-//													HttpStatus.BAD_REQUEST.toString().split(" ")[0],
-//													responseMessage.get("notEnoughMoney"), ""));
-//							} else
-//								return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-//										.body(new ResponseObject(false, HttpStatus.BAD_REQUEST.toString().split(" ")[0],
-//												responseMessage.get("OtpWrong"), ""));
-//						}
-//					}
-//				case "unauthorized":
-//					return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ResponseObject(false,
-//							HttpStatus.UNAUTHORIZED.toString().split(" ")[0], responseMessage.get("unauthorized"), ""));
-//				case "empty":
-//					return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ResponseObject(false,
-//							HttpStatus.UNAUTHORIZED.toString().split(" ")[0], responseMessage.get("unauthorized"), ""));
-//				default:
-//					return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-//							HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("tokenNotFound"), ""));
-//				}
-//			} else
-//				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-//						HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("accountNotFound"), ""));
-//
-//		} else
-//			return ResponseEntity.status(HttpStatus.NOT_FOUND)
-//					.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
-//							responseMessage.get("notFoundOrder") + obj.get("transaction_id"), ""));
-//	}
 }

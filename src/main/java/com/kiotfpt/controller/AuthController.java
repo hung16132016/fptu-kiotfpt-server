@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.request.AccountRequest;
 import com.kiotfpt.request.AccountSignUpRequest;
@@ -49,39 +50,10 @@ public class AuthController {
 		return service.forgotPassword(username);
 	}
 	
-	@PostMapping("/sendmail")
-	public ResponseEntity<ResponseObject> sendmail(@RequestBody Map<String,String>  map) throws AddressException, MessagingException {
-		return service.sendmail(map.get("mail"));
+	@GetMapping("/sendmail")
+	public ResponseEntity<ResponseObject> sendmail() throws AddressException, MessagingException, JsonProcessingException {
+		return service.sendmail();
 	}
 	
-	
-	
-
-//	// check username
-//	@PostMapping("/check-username")
-//	public ResponseEntity<ResponseObject> checkus(@RequestBody Account account)
-//			throws AddressException, MessagingException {
-//		return service.checkus(account);
-//	}
-//
-//	@PostMapping("/check-otp-forgot")
-//	public ResponseEntity<ResponseObject> checkOtpForgot(@RequestBody Map<String, String> obj) {
-//		return service.checkOtpForgot(obj);
-//	}
-//
-//	@PutMapping("/reset-password")
-//	public ResponseEntity<ResponseObject> resetPassword(@RequestBody Map<String, String> obj) {
-//		return service.resetPassword(obj);
-//	}
-//
-//	@GetMapping("/confirm-sign-up/{id}")
-//	public String confirmSignup(@PathVariable int id) {
-//		return service.confirmSignup(id);
-//	}
-//
-//	@GetMapping("/sign-out")
-//	public ResponseEntity<ResponseObject> signOut(HttpServletRequest httpRequest) {
-//		return service.signOut(httpRequest);
-//	}
 }
 

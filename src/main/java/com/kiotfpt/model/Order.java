@@ -13,6 +13,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
+import com.kiotfpt.request.SectionRequest;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -56,4 +58,20 @@ public class Order {
 	@ManyToOne()
 	@JoinColumn(name = "status_id", nullable = false)
 	private Status status;
+
+	public Order(SectionRequest sectionRequest, float total, Section section, Shop shop, Account account,
+			Status status) {
+		super();
+		this.timeInit = new Date();
+		this.timeComplete = null;
+		this.desc = sectionRequest.getDesc() == null || sectionRequest.getDesc().isEmpty() ? "No note"
+				: sectionRequest.getDesc();
+
+		this.total = total;
+		this.section = section;
+		this.shop = shop;
+		this.account = account;
+		this.status = status;
+	}
+
 }

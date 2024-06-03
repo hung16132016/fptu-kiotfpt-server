@@ -22,27 +22,4 @@ public class AccountController {
 		return service.getAllAccount();
 	}
 
-	
-//
-//	@PutMapping("/profile/update/{id}")
-//	public ResponseEntity<ResponseObject> updateProfile(@PathVariable int id, @RequestBody AccountProfile profile,
-//			HttpServletRequest request) {
-//		return service.updateProfile(id, profile, request);
-//	}
-//
-//	@PostMapping("/account/update-wallet")
-//	public ResponseEntity<ResponseObject> updateWallet(@RequestBody Map<String, String> obj)
-//			throws AddressException, MessagingException {
-//		return service.updateWallet(obj);
-//	}
-//
-//	@PutMapping("/account/check-otp-add-money-to-wallet")
-//	public ResponseEntity<ResponseObject> checkOtpWallet(@RequestBody Map<String, String> obj) {
-//		return service.checkOtpWallet(obj);
-//	}
-//
-//	@PutMapping("/account/check-otp-payment")
-//	public ResponseEntity<ResponseObject> checkOtpPayment(@RequestBody Map<String, String> obj) {
-//		return service.checkOtpPayment(obj);
-//	}
 }

@@ -27,9 +27,6 @@ public class Follow {
 	@Column(name = "follow_id")
 	private int id;
 
-	@Column(name = "follow_value")
-	private String value;
-
 	@ManyToOne
 	@JoinColumn(name = "shop_id")
 	@JsonIgnore

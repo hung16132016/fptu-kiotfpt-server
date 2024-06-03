@@ -111,34 +111,4 @@ public class ProductController {
 		return service.getByListCategoryID(category_id_list);
 	}
 
-//	@GetMapping("/search")
-//	public List<Product> searchByName(@RequestParam(name = "query", required = true) String name) {
-//		return service.searchByName(name);
-//	}
-
-//	@GetMapping("/get-list-popular")
-//	public ResponseEntity<ResponseObject> getProductPopular() {
-//		return service.getProductPopular();
-//	}
-//	
-//	@GetMapping("/get-list-product")
-//	public ResponseEntity<ResponseObject> getProductByPage(@RequestParam("page") int page) {
-//		return service.getProductByPage(page);
-//	}
-//	
-//	@GetMapping("")
-//	public ResponseEntity<ResponseObject> getProductByID(@RequestParam("id") int product_id) {
-//		return service.getProductByID(product_id);
-//	}
-//	
-//	@GetMapping("/filter")
-//	public ResponseEntity<ResponseObject> getProductByID(@RequestParam("price") String price) {
-//		return service.getSortedProducts(price);
-//	}
-//	
-//	@GetMapping("/search")
-//	public ResponseEntity<ResponseObject> getProductByName(@RequestParam("name") String name) {
-//		return service.getProductByName(name);
-//	}
-
 }

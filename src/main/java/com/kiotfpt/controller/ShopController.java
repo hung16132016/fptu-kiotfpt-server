@@ -55,19 +55,4 @@ public class ShopController {
         return service.getTop10ShopsByTransactions();
     }
 
-//	@GetMapping("/shop/account/getAll")
-//	public ResponseEntity<ResponseObject> getAllShopRevenueByTime(HttpServletRequest request, @RequestParam(value = "filter", required = false) int month) {		
-//		return service.getAllShopRevenueByTime(request, month);
-//	}
-//
-//	@GetMapping("/shop/account/getTotalRevenue")
-//	public ResponseEntity<ResponseObject> getTotalRevenueByTime(HttpServletRequest request,@RequestParam(value = "filter", required = false) int month) {		
-//		return service.getTotalRevenueByTime(request, month);
-//	}
-//	
-//	@GetMapping("/shop/getTotalRevenueByYear")
-//	public ResponseEntity<ResponseObject> getTotalRevenueByYear(HttpServletRequest request,@RequestParam(value = "filter", required = false) int year) {		
-//		return service.getTotalRevenueByYear(request, year);
-//	}
-
 }

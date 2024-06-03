@@ -40,7 +40,7 @@ public class CartService {
 
 	@Autowired
 	private SectionRepository sectionRepository;
-	
+
 	@Autowired
 	private AccountRepository accountRepository;
 
@@ -51,42 +51,30 @@ public class CartService {
 //	private AddressDeliverRepository addRepository;
 	HashMap<String, String> responseMessage = new JsonReader().readJsonFile();
 
-//	public ResponseEntity<ResponseObject> getCartByAccount(int account_id) {
-//			List<Cart> carts = repository.findAllByAccountId(account_id);
-//			return !carts.isEmpty()
-//					? ResponseEntity.status(HttpStatus.OK)
-//							.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
-//									responseMessage.get("cartFound"), carts.get(0)))
-//					: ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-//							HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("cartNotFound"), ""));
-//	}
-	
 	public ResponseEntity<ResponseObject> getAmountCartByAccountID(int accountID) {
 		Optional<Account> account = accountRepository.findById(accountID);
 		int count = 0;
-		if(account.isEmpty()) 
+		if (account.isEmpty())
 			ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
 					HttpStatus.NOT_FOUND.toString().split(" ")[0], "Data has not found", new int[0]));
-		
-		
+
 		Optional<Cart> cart = repository.findCartByAccountID(accountID);
-		if(cart.isEmpty())
+		if (cart.isEmpty())
 			ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
 					HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("cartNotFound"), ""));
-		
-		for(Section section: cart.get().getSections()) {
+
+		for (Section section : cart.get().getSections()) {
 			if (section.getStatus().getId() != 31)
 				continue;
-			for(AccessibilityItem item: section.getItems()) {
-				if(item.getStatus().getId() != 31) 
+			for (AccessibilityItem item : section.getItems()) {
+				if (item.getStatus().getId() != 31)
 					continue;
 				count = count + item.getQuantity();
 			}
 		}
-		
-		return ResponseEntity.status(HttpStatus.OK)
-						.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
-								responseMessage.get("cartFound"), count));
+
+		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
+				HttpStatus.OK.toString().split(" ")[0], responseMessage.get("cartFound"), count));
 	}
 
 	public ResponseEntity<ResponseObject> getCartByID(int cart_id) {
@@ -102,15 +90,15 @@ public class CartService {
 					if (!list_item.isEmpty()) {
 						List<Accessibility_itemResponse> items = new ArrayList<Accessibility_itemResponse>();
 						for (AccessibilityItem item : list_item) {
-							
+
 							Variant var = item.getVariant();
-							
+
 							if (var == null) {
 								return ResponseEntity.status(HttpStatus.NOT_FOUND)
 										.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
 												"Variant of item: " + item.getId() + " not found", ""));
 							}
-							
+
 							Product product = var.getProduct();
 
 							if (product == null) {
@@ -123,8 +111,7 @@ public class CartService {
 							if (condition == null) {
 								return ResponseEntity.status(HttpStatus.NOT_FOUND)
 										.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
-												"Condition of product id: " + product.getId() + " not found",
-												""));
+												"Condition of product id: " + product.getId() + " not found", ""));
 							}
 							Brand brand = product.getBrand();
 
@@ -145,22 +132,21 @@ public class CartService {
 							if (category == null) {
 								return ResponseEntity.status(HttpStatus.NOT_FOUND)
 										.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
-												"Category of product id: " + product.getId() + "not found",
-												""));
+												"Category of product id: " + product.getId() + "not found", ""));
 							}
 
-							Accessibility_itemResponse item_res = new Accessibility_itemResponse(item);
+							Accessibility_itemResponse item_res = new Accessibility_itemResponse(item, product);
 							items.add(item_res);
 						}
 
 						Shop get_shop = section.getShop();
-						
+
 						ShopResponse shop = new ShopResponse(get_shop);
 
 						StatusResponse status = new StatusResponse(section.getStatus());
 
-						SectionResponse response = new SectionResponse(section.getId(),
-								section.getTotal(), shop, status, items);
+						SectionResponse response = new SectionResponse(section.getId(), section.getTotal(), shop,
+								status, items);
 						list.add(response);
 					} else {
 						return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,

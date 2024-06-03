@@ -11,6 +11,11 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.kiotfpt.response.TransactionDesc;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -33,7 +38,7 @@ public class Transaction {
 	@Column(name = "transaction_time_complete")
 	private Date timeComplete;
 
-	@Column(name = "transaction_desc", nullable = false)
+	@Column(name = "transaction_desc", nullable = false, length = 1000)
 	private String desc;
 
 	@Column(name = "transaction_total", nullable = false)
@@ -46,4 +51,17 @@ public class Transaction {
 	@ManyToOne()
 	@JoinColumn(name = "account_id", nullable = false)
 	private Account account;
+
+	public Transaction(Order order) throws JsonProcessingException {
+		super();
+		this.timeInit = order.getTimeInit();
+		this.timeComplete = order.getTimeComplete();
+		ObjectMapper objectMapper = new ObjectMapper();
+		objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+		this.desc = objectMapper.writeValueAsString(new TransactionDesc(order));
+		this.total = order.getTotal();
+		this.shop = order.getShop();
+		this.account = order.getAccount();
+	}
+
 }
