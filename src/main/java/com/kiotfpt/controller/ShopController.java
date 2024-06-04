@@ -54,5 +54,10 @@ public class ShopController {
     public ResponseEntity<ResponseObject> getTop10ShopsByTransactions() {
         return service.getTop10ShopsByTransactions();
     }
+    
+    @GetMapping("/get-by-product")
+    public ResponseEntity<ResponseObject> getShopByProductId(@RequestParam int productId) {
+        return service.getShopByProductId(productId);
+    }
 
 }

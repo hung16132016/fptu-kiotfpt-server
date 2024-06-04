@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import com.kiotfpt.model.Account;
 import com.kiotfpt.model.Address;
+import com.kiotfpt.model.Product;
 import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.model.Shop;
 import com.kiotfpt.model.Status;
@@ -198,6 +199,29 @@ public class ShopService {
 				.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
 						"Top 10 shops by transactions retrieved successfully", shopResponses));
 	}
+	
+
+    public ResponseEntity<ResponseObject> getShopByProductId(int productId) {
+            // Retrieve the product by ID
+            Optional<Product> optionalProduct = productRepository.findById(productId);
+            if (optionalProduct.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0], "Product not found", null));
+            }
+
+            // Get the shop associated with the product
+            Product product = optionalProduct.get();
+            Shop shop = product.getShop();
+
+            if (shop == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0], "Shop not found for the product", null));
+            }
+
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Shop found", shop));
+
+    }
 //
 //	public ResponseEntity<ResponseObject> getAllShopRevenueByTime(HttpServletRequest request, int month) {
 //		Account accToken = null;
