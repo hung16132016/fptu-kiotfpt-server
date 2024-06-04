@@ -55,7 +55,7 @@ public interface ProductRepository extends JpaRepository<Product, Integer>{
 	@Query(value = "Select kiotfpt_product.category_id, count(*) as product_count from kiotfpt_product group by kiotfpt_product.category_id order by product_count desc limit 4", nativeQuery = true)
 	List<Object[]> findTop4PopularCategory();
 	
-	@Query(value = "Select kiotfpt_product.brand_id, count(*) as product_count from kiotfpt_product group by kiotfpt_product.brand order by product_count desc limit 4", nativeQuery = true)
+	@Query(value = "Select kiotfpt_product.brand_id, count(*) as product_count from kiotfpt_product group by kiotfpt_product.brand_id order by product_count desc limit 4;", nativeQuery = true)
 	List<Object[]> findTop4PopularBrand();
 	
 	@Query(value = "Select * from kiotfpt_product where kiotfpt_product.product_top_deal = 1", nativeQuery = true)
@@ -71,4 +71,7 @@ public interface ProductRepository extends JpaRepository<Product, Integer>{
 	
 	@Query(value = "Select * From kiotfpt_product where kiotfpt_product.product_min_price between :min_price and :max_price", nativeQuery = true)
 	Page<Product> findByPriceRange(@Param("min_price") float min_price, @Param("max_price") float max_price, Pageable pageable);
+	
+	@Query(value = "SELECT * FROM kiotfpt_product WHERE kiotfpt_product.status_id = 11", nativeQuery = true) //haibang
+	List<Product> findAllActiveProduct();
 }

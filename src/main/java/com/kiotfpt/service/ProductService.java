@@ -636,5 +636,14 @@ public class ProductService {
 						.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
 								"Data has not found with this range", new int[0]));
 	}
+	
+	public ResponseEntity<ResponseObject> getTotalPage(int amount) {
+		List<Product> products = repository.findAllActiveProduct();
+		int number_of_page = (int) Math.ceil((double) products.size() / 10);
+
+		return ResponseEntity.status(HttpStatus.OK)
+						.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
+								"Data has found successfully", number_of_page ));
+	}
 
 }
