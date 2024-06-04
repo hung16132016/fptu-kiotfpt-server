@@ -110,5 +110,10 @@ public class ProductController {
 		List<String> category_id_list = (List<String>) request.get("category_id_list");
 		return service.getByListCategoryID(category_id_list);
 	}
+	
+	@GetMapping("/total-page")
+	public ResponseEntity<ResponseObject> getTotalPage(@RequestParam(name = "amount") int amount) {
+		return service.getTotalPage(amount);
+	}
 
 }
