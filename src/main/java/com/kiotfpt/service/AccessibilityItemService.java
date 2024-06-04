@@ -50,7 +50,6 @@ public class AccessibilityItemService {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
 						HttpStatus.NOT_FOUND.toString().split(" ")[0], "Account not found", null));
 			}
-			Account account = optionalAccount.get();
 
 			// Validate Cart
 			Optional<Cart> optionalCart = cartRepository.findCartByAccountID(itemRequest.getAccount_id());
@@ -73,7 +72,7 @@ public class AccessibilityItemService {
 					.orElseThrow(() -> new IllegalStateException("Status 'in cart' not found"));
 
 			// Find existing section for the shop
-			Section section = sectionRepository.findByShopIdAndAccountId(variant.getProduct().getShop().getId(), account.getId())
+			Section section = sectionRepository.findByShopIdAndCartId(variant.getProduct().getShop().getId(), cart.getId())
 					.orElse(null);
 
 			// If section does not exist, create a new section

@@ -16,6 +16,6 @@ public interface SectionRepository extends JpaRepository<Section, Integer> {
 	
 	List<Section> findByCart(Cart cart);
 	
-    Optional<Section> findByShopIdAndAccountId(int shopId, int accountId);
+    Optional<Section> findByShopIdAndCartId(int shopId, int accountId);
 
 }
