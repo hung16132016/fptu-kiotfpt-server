@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 
 import com.kiotfpt.model.Category;
 import com.kiotfpt.model.Product;
+import com.kiotfpt.model.Shop;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Integer>{
@@ -36,7 +37,9 @@ public interface ProductRepository extends JpaRepository<Product, Integer>{
             countQuery = "SELECT count(*) FROM kiotfpt_product WHERE kiotfpt_product.shop_id = :id",
             nativeQuery = true)
     Page<Product> findAllByShopId(@Param("id") int id, Pageable pageable);
-	
+    
+    List<Product> findAllByShop(Shop shop);
+
 	@Query(value = "Select * from kiotfpt_product where kiotfpt_product.category_id = ?1", nativeQuery = true)
 	List<Product> findAllByCategoryid(int id);
 	

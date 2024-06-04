@@ -20,6 +20,7 @@ import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.model.Shop;
 import com.kiotfpt.model.Status;
 import com.kiotfpt.repository.AccountRepository;
+import com.kiotfpt.repository.ProductRepository;
 import com.kiotfpt.repository.ShopRepository;
 import com.kiotfpt.repository.StatusRepository;
 import com.kiotfpt.request.ShopRequest;
@@ -38,6 +39,10 @@ public class ShopService {
 
 	@Autowired
 	private StatusRepository statusRepository;
+	
+	@Autowired
+	private ProductRepository productRepository;
+	
 
 	HashMap<String, String> responseMessage = new JsonReader().readJsonFile();
 
@@ -186,7 +191,7 @@ public class ShopService {
 
 	public ResponseEntity<ResponseObject> getTop10ShopsByTransactions() {
 		List<Shop> topShops = repository.findTop10ByTransactions();
-		List<ShopResponse> shopResponses = topShops.stream().map(shop -> new ShopResponse(shop))
+		List<ShopResponse> shopResponses = topShops.stream().map(shop -> new ShopResponse(shop, productRepository.findAllByShop(shop)))
 				.collect(Collectors.toList());
 
 		return ResponseEntity.status(HttpStatus.OK)

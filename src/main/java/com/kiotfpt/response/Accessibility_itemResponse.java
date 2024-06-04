@@ -18,7 +18,7 @@ public class Accessibility_itemResponse {
 	private String note;
 	private VariantResponse repo;
 	private StatusResponse status;
-	private ProductResponse product;
+	private ProductMiniResponse product;
 
 	public Accessibility_itemResponse(AccessibilityItem item) {
 		super();
@@ -38,7 +38,7 @@ public class Accessibility_itemResponse {
 		this.note = item.getNote();
 		this.repo = new VariantResponse(item.getVariant());
 		this.status = new StatusResponse(item.getStatus());
-		this.product = new ProductResponse(product, item);
+		this.product = new ProductMiniResponse(product, item);
 	}
 
 }

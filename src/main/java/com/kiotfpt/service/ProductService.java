@@ -40,12 +40,7 @@ import com.kiotfpt.repository.StatusRepository;
 import com.kiotfpt.repository.VariantRepository;
 import com.kiotfpt.request.ProductRequest;
 import com.kiotfpt.request.VariantRequest;
-import com.kiotfpt.response.BrandResponse;
-import com.kiotfpt.response.CategoryResponse;
 import com.kiotfpt.response.ProductResponse;
-import com.kiotfpt.response.Product_ConditionResponse;
-import com.kiotfpt.response.ShopResponse;
-import com.kiotfpt.response.StatusResponse;
 import com.kiotfpt.response.VariantResponse;
 import com.kiotfpt.utils.JsonReader;
 
@@ -443,26 +438,7 @@ public class ProductService {
 					variantResponses.add(new VariantResponse(variant));
 				}
 
-				ProductResponse res = new ProductResponse();
-				res.setId(product.getId());
-				res.setSold(product.getSold());
-				res.setDiscount(product.getDiscount());
-				res.setName(product.getName());
-				res.setDescription(product.getDescription());
-				res.setMinPrice(product.getMinPrice());
-				res.setMaxPrice(product.getMaxPrice());
-				res.setRate(product.getRate());
-				res.setBestSeller(product.isBestSeller());
-				res.setPopular(product.isPopular());
-				res.setTopDeal(product.isTopDeal());
-				res.setOfficial(product.isOfficial());
-				res.setCondition(new Product_ConditionResponse(product.getCondition()));
-				res.setBrand(new BrandResponse(product.getBrand()));
-				res.setStatus(new StatusResponse(product.getStatus()));
-				res.setCategory(new CategoryResponse(product.getCategory()));
-				res.setShop(new ShopResponse(product.getShop()));
-				res.setVariants(variantResponses);
-
+				ProductResponse res = new ProductResponse(product);
 				returnListProduct.add(res);
 			}
 		}
