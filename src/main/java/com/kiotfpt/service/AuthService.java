@@ -80,7 +80,7 @@ public class AuthService {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
 					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Wrong password", new int[0]));
 
-		if (account.get().getStatus().getValue().equals("inactive"))
+		if (account.get().getStatus().getValue().equals("inactive") || account.get().getStatus().getValue().equals("wait for active"))
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 					.body(new ResponseObject(false, HttpStatus.BAD_REQUEST.toString().split(" ")[0],
 							responseMessage.get("accountNotActivate"), new int[0]));
