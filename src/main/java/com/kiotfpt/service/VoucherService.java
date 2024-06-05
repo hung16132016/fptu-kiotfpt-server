@@ -39,7 +39,7 @@ public class VoucherService {
 		Optional<Shop> shop = shopRepository.findById(id);
 		if (!shop.isEmpty()) {
 			List<Voucher> vouchers = repository.findAllByShop(shop.get());
-			List<VoucherResponse> productResponses = vouchers.stream().map(voucher -> new VoucherResponse())
+			List<VoucherResponse> productResponses = vouchers.stream().map(voucher -> new VoucherResponse(voucher))
 					.collect(Collectors.toList());
 
 			if (!productResponses.isEmpty()) {
