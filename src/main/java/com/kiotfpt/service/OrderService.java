@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.kiotfpt.model.AccessibilityItem;
 import com.kiotfpt.model.Account;
+import com.kiotfpt.model.Notify;
 import com.kiotfpt.model.Order;
 import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.model.Section;
@@ -25,6 +26,7 @@ import com.kiotfpt.model.Status;
 import com.kiotfpt.model.Transaction;
 import com.kiotfpt.repository.AccessibilityItemRepository;
 import com.kiotfpt.repository.AccountRepository;
+import com.kiotfpt.repository.NotifyRepository;
 import com.kiotfpt.repository.OrderRepository;
 import com.kiotfpt.repository.SectionRepository;
 import com.kiotfpt.repository.ShopRepository;
@@ -59,6 +61,9 @@ public class OrderService {
 
 	@Autowired
 	private TransactionRepository transactionRepository;
+
+	@Autowired
+	private NotifyRepository notifyRepository;
 
 	public String randomNumber;
 
@@ -190,13 +195,14 @@ public class OrderService {
 
 					// Save the Order entity
 					repository.save(order);
+					notifyRepository.save(new Notify(order, account, "pending"));
 				} else if (sectionRequest.getItem_id().size() < accessibilityItems.size()) {
 					// Create a new section
 					Section newSection = new Section();
 					newSection.setShop(shop);
 					newSection.setCart(section.getCart());
 					newSection.setStatus(processStatus.get());
-					newSection.setTotal(section.getTotal());
+					newSection.setTotal(calculateOrderTotal(sectionRequest.getItem_id()));
 
 					// Save the new section
 					Section savedSection = sectionRepository.save(newSection);
@@ -217,11 +223,14 @@ public class OrderService {
 
 					// Save the Order entity
 					repository.save(order);
+					notifyRepository.save(new Notify(order, account, "pending"));
+
 				} else {
 					return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 							.body(new ResponseObject(false, HttpStatus.BAD_REQUEST.toString().split(" ")[0],
 									"Invalid number of items in section request", null));
 				}
+
 			}
 			return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
 					HttpStatus.OK.toString().split(" ")[0], "Order created successfully", null));
@@ -251,7 +260,7 @@ public class OrderService {
 		if (!order.isEmpty()) {
 			Optional<Status> newStat = statusRepository.findByValue(status.getValue());
 			if (!newStat.isEmpty()) {
-				if (newStat.get().getValue() == "completed") {
+				if (newStat.get().getValue().equalsIgnoreCase("completed")) {
 
 					order.get().setTimeComplete(new Date());
 					order.get().setStatus(newStat.get());
@@ -261,12 +270,16 @@ public class OrderService {
 						item.setStatus(newStat.get());
 						itemRepository.save(item);
 					}
+					repository.save(order.get());
+
 					Transaction trans = new Transaction(order.get());
 
-					repository.save(order.get());
 					transactionRepository.save(trans);
+
+					notifyRepository.save(new Notify(order.get(), order.get().getAccount(), "completed"));
 					return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
 							HttpStatus.OK.toString().split(" ")[0], "Create transaction successfully", trans));
+
 				} else {
 					order.get().setStatus(newStat.get());
 					order.get().getSection().setStatus(newStat.get());
@@ -275,6 +288,8 @@ public class OrderService {
 						item.setStatus(newStat.get());
 						itemRepository.save(item);
 					}
+					notifyRepository.save(new Notify(order.get(), order.get().getAccount(), status.getValue()));
+
 					return ResponseEntity.status(HttpStatus.OK)
 							.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
 									"Update order sucessfully", repository.save(order.get())));

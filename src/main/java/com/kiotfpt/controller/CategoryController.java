@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kiotfpt.model.ResponseObject;
@@ -29,12 +30,12 @@ public class CategoryController {
 	public ResponseEntity<ResponseObject> getAllCategory() {
 		return service.getAllCategory();
 	}
-	
+
 	@GetMapping("/popular")
 	public ResponseEntity<ResponseObject> getPopularCategory() {
 		return service.getPopularCategory();
 	}
-	
+
 	@GetMapping("/{id}")
 	public ResponseEntity<ResponseObject> getCategoryByID(@PathVariable int id) {
 		return service.getCategoryById(id);
@@ -50,9 +51,14 @@ public class CategoryController {
 	public ResponseEntity<ResponseObject> updateCategory(@PathVariable int id, @RequestBody CategoryRequest category) {
 		return service.updateCategory(id, category);
 	}
-	
+
 	@DeleteMapping("/delete/{id}")
 	public ResponseEntity<ResponseObject> deleteCategory(@PathVariable int id) {
 		return service.deleteCategory(id);
+	}
+
+	@GetMapping("/category/get-by-shop")
+	public ResponseEntity<ResponseObject> getCategoriesByShop(@RequestParam int shopId) {
+		return service.getCategoriesByShop(shopId);
 	}
 }

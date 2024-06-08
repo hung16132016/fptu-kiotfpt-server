@@ -35,4 +35,20 @@ public class Notify {
 	@JoinColumn(name = "account_id", nullable = false)
 	private Account account;
 
+	public Notify(Order order, Account account, String string) {
+		super();
+		if (string == "pending") {
+			this.title = "Order pending";
+			this.description = "Your order with id " + order.getId() + " is processing, please wait.";
+		} else if (string == "completed") {
+			this.title = "Order completed";
+			this.description = "Your order with id " + order.getId() + " has been delivered.";
+		} else {
+
+			this.title = "Order " + string;
+			this.description = "Your order with id " + order.getId() + " has been " + string + ".";
+		}
+		this.account = account;
+	}
+
 }

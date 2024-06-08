@@ -38,7 +38,7 @@ public class Transaction {
 	@Column(name = "transaction_time_complete")
 	private Date timeComplete;
 
-	@Column(name = "transaction_desc", nullable = false, length = 1000)
+	@Column(name = "transaction_desc", nullable = false, length = 10000)
 	private String desc;
 
 	@Column(name = "transaction_total", nullable = false)
