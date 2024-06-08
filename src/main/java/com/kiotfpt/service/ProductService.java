@@ -176,21 +176,7 @@ public class ProductService {
 					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Input cannot be empty!", null));
 		}
 
-		// Validate minPrice, maxPrice, and discount
-		float minPrice = productRequest.getMinPrice();
-		float maxPrice = productRequest.getMaxPrice();
 		int discount = productRequest.getDiscount();
-
-		if (minPrice < 0 || maxPrice < 0) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
-					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Price values must be non-negative!", null));
-		}
-
-		if (minPrice > maxPrice) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body(new ResponseObject(false, HttpStatus.BAD_REQUEST.toString().split(" ")[0],
-							"minPrice must be less than or equal to maxPrice!", null));
-		}
 
 		if (discount < 0 || discount > 100) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
@@ -200,8 +186,6 @@ public class ProductService {
 		// Update product details
 		product.setName(productRequest.getName());
 		product.setDescription(productRequest.getDescription());
-		product.setMinPrice(productRequest.getMinPrice());
-		product.setMaxPrice(productRequest.getMaxPrice());
 		product.setDiscount(discount);
 
 		// Set product relationships
@@ -214,7 +198,6 @@ public class ProductService {
 					.orElseThrow(() -> new ResourceNotFoundException("Category not found")));
 			product.setShop(shopRepository.findById(productRequest.getShop_id())
 					.orElseThrow(() -> new ResourceNotFoundException("Shop not found")));
-
 		} catch (ResourceNotFoundException e) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
 					new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0], e.getMessage(), null));
@@ -223,6 +206,9 @@ public class ProductService {
 		// Update variants
 		List<VariantRequest> variantRequests = (List<VariantRequest>) productRequest.getVariants();
 		List<Variant> variants = new ArrayList<>();
+
+		float minPrice = Float.MAX_VALUE;
+		float maxPrice = Float.MIN_VALUE;
 
 		for (VariantRequest variantRequest : variantRequests) {
 			Variant variant = new Variant();
@@ -233,10 +219,17 @@ public class ProductService {
 			variant.setSize(sizeRepository.findById(variantRequest.getSizeId())
 					.orElseThrow(() -> new ResourceNotFoundException("Size not found")));
 			variant.setProduct(product);
+
+			float variantPrice = variantRequest.getPrice();
+			minPrice = Math.min(minPrice, variantPrice);
+			maxPrice = Math.max(maxPrice, variantPrice);
+
 			variants.add(variant);
 		}
 
 		product.setVariants(variants);
+		product.setMinPrice(minPrice);
+		product.setMaxPrice(maxPrice);
 
 		// Update thumbnails
 		List<String> thumbnailUrls = productRequest.getThumbnails();
@@ -277,8 +270,6 @@ public class ProductService {
 		// Retrieve values from the ProductRequest object
 		String name = productRequest.getName();
 		String description = productRequest.getDescription();
-		float minPrice = productRequest.getMinPrice();
-		float maxPrice = productRequest.getMaxPrice();
 		int discount = productRequest.getDiscount();
 		int conditionId = productRequest.getCondition_id();
 		int brandId = productRequest.getBrand_id();
@@ -298,18 +289,7 @@ public class ProductService {
 					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Input cannot be empty!", null));
 		}
 
-		// Validate minPrice, maxPrice, and discount
-		if (minPrice < 0 || maxPrice < 0) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
-					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Price values must be non-negative!", null));
-		}
-
-		if (minPrice > maxPrice) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body(new ResponseObject(false, HttpStatus.BAD_REQUEST.toString().split(" ")[0],
-							"minPrice must be less than or equal to maxPrice!", null));
-		}
-
+		// Validate discount
 		if (discount < 0 || discount > 100) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
 					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Discount must be between 0 and 100!", null));
@@ -359,6 +339,9 @@ public class ProductService {
 
 		// Set and save variants
 		List<Variant> variants = new ArrayList<>();
+		float minPrice = Float.MAX_VALUE;
+		float maxPrice = Float.MIN_VALUE;
+
 		for (VariantRequest variantRequest : variantRequests) {
 			// Fetch color entity from repository
 			Optional<Color> colorOptional = colorRepository.findById(variantRequest.getColorId());
@@ -374,7 +357,11 @@ public class ProductService {
 						HttpStatus.NOT_FOUND.toString().split(" ")[0], "Size not found!", null));
 			}
 
-			Variant variant = new Variant(variantRequest.getPrice(), variantRequest.getQuantity(), colorOptional.get(),
+			float variantPrice = variantRequest.getPrice();
+			minPrice = Math.min(minPrice, variantPrice);
+			maxPrice = Math.max(maxPrice, variantPrice);
+
+			Variant variant = new Variant(variantPrice, variantRequest.getQuantity(), colorOptional.get(),
 					sizeOptional.get(), product);
 
 			// Save the variant
@@ -386,6 +373,8 @@ public class ProductService {
 
 		// Update the product with the saved variants
 		product.setVariants(variants);
+		product.setMinPrice(minPrice);
+		product.setMaxPrice(maxPrice);
 
 		// Set and save thumbnails
 		List<ProductThumbnail> thumbnails = new ArrayList<>();
@@ -636,14 +625,13 @@ public class ProductService {
 						.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
 								"Data has not found with this range", new int[0]));
 	}
-	
+
 	public ResponseEntity<ResponseObject> getTotalPage(int amount) {
 		List<Product> products = repository.findAllActiveProduct();
 		int number_of_page = (int) Math.ceil((double) products.size() / 10);
 
-		return ResponseEntity.status(HttpStatus.OK)
-						.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
-								"Data has found successfully", number_of_page ));
+		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
+				HttpStatus.OK.toString().split(" ")[0], "Data has found successfully", number_of_page));
 	}
 
 }

@@ -12,12 +12,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ProductRequest {
 
-	private int  id;
 	private int  discount;
 	private String  name;
 	private String  description;
-	private float  minPrice;
-	private float  maxPrice;
 	private int  condition_id;
 	private int brand_id;
 	private int category_id;

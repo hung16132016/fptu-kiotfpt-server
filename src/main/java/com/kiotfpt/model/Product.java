@@ -108,8 +108,6 @@ public class Product {
 		this.discount = product.getDiscount();
 		this.name = product.getName();
 		this.description = product.getDescription();
-		this.minPrice = product.getMinPrice();
-		this.maxPrice = product.getMaxPrice();
 		this.rate = 0;
 		this.bestSeller = false;
 		this.popular = false;

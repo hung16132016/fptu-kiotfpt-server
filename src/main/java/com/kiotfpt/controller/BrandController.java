@@ -30,4 +30,9 @@ public class BrandController {
 	public ResponseEntity<ResponseObject> getPopularBrands() {
 		return service.getPopularBrands();
 	}
+	
+	@GetMapping("/get-all")
+	public ResponseEntity<ResponseObject> getAllBrands() {
+		return service.getAllBrands();
+	}
 }
