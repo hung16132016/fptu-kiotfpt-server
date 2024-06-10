@@ -43,6 +43,12 @@ public class Notify {
 		} else if (string == "completed") {
 			this.title = "Order completed";
 			this.description = "Your order with id " + order.getId() + " has been delivered.";
+		} else if (string == "account welcome") {
+			this.title = "Welcome to KiotFPT";
+			this.description = "Add to cart the products you love, and checkout your first order.";
+		} else if (string == "seller welcome") {
+			this.title = "Welcome to KiotFPT";
+			this.description = "Welcome to KiotFPT, post your products, we will create orders together.";
 		} else {
 
 			this.title = "Order " + string;

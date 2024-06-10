@@ -22,13 +22,16 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.kiotfpt.model.Account;
 import com.kiotfpt.model.AccountProfile;
 import com.kiotfpt.model.Cart;
+import com.kiotfpt.model.Order;
 import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.model.Role;
 import com.kiotfpt.model.Shop;
+import com.kiotfpt.model.Notify;
 import com.kiotfpt.model.Status;
 import com.kiotfpt.repository.AccountProfileRepository;
 import com.kiotfpt.repository.AccountRepository;
 import com.kiotfpt.repository.CartRepository;
+import com.kiotfpt.repository.NotifyRepository;
 import com.kiotfpt.repository.RoleRepository;
 import com.kiotfpt.repository.ShopRepository;
 import com.kiotfpt.repository.StatusRepository;
@@ -53,6 +56,9 @@ public class AuthService {
 
 	@Autowired
 	private CartRepository cartRepository;
+	
+	@Autowired
+	private NotifyRepository notifyRepository;
 
 	@Autowired
 	private AccountProfileRepository profileRepository;
@@ -178,7 +184,17 @@ public class AuthService {
 			if (activeAccount.getStatus().getId() == 15) {
 				Optional<Status> status = statusRepository.findById(11);
 				activeAccount.setStatus(status.get());
-				repository.save(activeAccount);
+				activeAccount = repository.save(activeAccount);
+				
+				Order fakeOrder = new Order();
+				if (activeAccount.getRole().getId() == 2) {
+					Notify welcomeNotify = new Notify(fakeOrder, activeAccount, "account welcome");
+					notifyRepository.save(welcomeNotify);
+				} else if (activeAccount.getRole().getId() == 3) {
+					Notify welcomeNotify = new Notify(fakeOrder, activeAccount, "seller welcome");
+					notifyRepository.save(welcomeNotify);
+				}
+				
 				return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
 						HttpStatus.OK.toString().split(" ")[0], "Active account successfull", ""));
 			}
