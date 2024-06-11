@@ -68,8 +68,8 @@ public class ProductController {
 	}
 
 	@DeleteMapping("/delete/{id}")
-	public ResponseEntity<ResponseObject> deleteProduct(@PathVariable int id) {
-		return service.deleteProduct(id);
+	public ResponseEntity<ResponseObject> deleteProduct(@PathVariable int id, @RequestBody List<Integer> variantIds) {
+		return service.deleteProduct(id, variantIds);
 	}
 
 	@PutMapping("/update/{id}")

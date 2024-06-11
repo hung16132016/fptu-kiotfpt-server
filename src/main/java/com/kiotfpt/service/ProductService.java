@@ -205,29 +205,40 @@ public class ProductService {
 
 		// Update variants
 		List<VariantRequest> variantRequests = (List<VariantRequest>) productRequest.getVariants();
-		List<Variant> variants = new ArrayList<>();
-
+		List<Variant> updatedVariants = new ArrayList<>();
 		float minPrice = Float.MAX_VALUE;
 		float maxPrice = Float.MIN_VALUE;
 
 		for (VariantRequest variantRequest : variantRequests) {
-			Variant variant = new Variant();
-			variant.setPrice(variantRequest.getPrice());
-			variant.setQuantity(variantRequest.getQuantity());
-			variant.setColor(colorRepository.findById(variantRequest.getColorId())
-					.orElseThrow(() -> new ResourceNotFoundException("Color not found")));
-			variant.setSize(sizeRepository.findById(variantRequest.getSizeId())
-					.orElseThrow(() -> new ResourceNotFoundException("Size not found")));
-			variant.setProduct(product);
+			Optional<Variant> existingVariantOpt = variantRepository.findByProductIdAndColorIdAndSizeId(product.getId(),
+					variantRequest.getColorId(), variantRequest.getSizeId());
+
+			Variant variant;
+			if (existingVariantOpt.isPresent()) {
+				// Update existing variant
+				variant = existingVariantOpt.get();
+				variant.setPrice(variantRequest.getPrice());
+				variant.setQuantity(variantRequest.getQuantity());
+			} else {
+				// Add new variant
+				variant = new Variant();
+				variant.setPrice(variantRequest.getPrice());
+				variant.setQuantity(variantRequest.getQuantity());
+				variant.setColor(colorRepository.findById(variantRequest.getColorId())
+						.orElseThrow(() -> new ResourceNotFoundException("Color not found")));
+				variant.setSize(sizeRepository.findById(variantRequest.getSizeId())
+						.orElseThrow(() -> new ResourceNotFoundException("Size not found")));
+				variant.setProduct(product);
+			}
 
 			float variantPrice = variantRequest.getPrice();
 			minPrice = Math.min(minPrice, variantPrice);
 			maxPrice = Math.max(maxPrice, variantPrice);
 
-			variants.add(variant);
+			updatedVariants.add(variant);
 		}
 
-		product.setVariants(variants);
+		product.setVariants(updatedVariants);
 		product.setMinPrice(minPrice);
 		product.setMaxPrice(maxPrice);
 
@@ -251,18 +262,34 @@ public class ProductService {
 				HttpStatus.OK.toString().split(" ")[0], "Product updated successfully", response));
 	}
 
-	public ResponseEntity<ResponseObject> deleteProduct(int id) {
-		Optional<Product> pro = repository.findById(id);
+	public ResponseEntity<ResponseObject> deleteProduct(int productId, List<Integer> variantIds) {
+		Optional<Product> pro = repository.findById(productId);
 
 		if (!pro.isPresent()) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-					HttpStatus.NOT_FOUND.toString().split(" ")[0], "product not exist", new int[0]));
+					HttpStatus.NOT_FOUND.toString().split(" ")[0], "Product not found", new int[0]));
 		}
-		Optional<Status> statusDeleted = statusRepository.findByValue("Inactive");
+
 		Product product = pro.get();
-		product.setStatus(statusDeleted.get());
-		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
-				HttpStatus.OK.toString().split(" ")[0], "Product is deleted successfully", repository.save(product)));
+		Collection<Variant> productVariants = product.getVariants();
+
+		// Check if all variants are selected for deletion
+		if (variantIds.size() == productVariants.size()) {
+			Optional<Status> statusDeleted = statusRepository.findByValue("Inactive");
+			if (!statusDeleted.isPresent()) {
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+						HttpStatus.NOT_FOUND.toString().split(" ")[0], "Inactive status not found", new int[0]));
+			}
+			product.setStatus(statusDeleted.get());
+			repository.save(product);
+		} else
+			for (Integer variantId : variantIds) {
+				variantRepository.deleteById(variantId);
+			}
+
+		return ResponseEntity.status(HttpStatus.OK)
+				.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
+						"Product or selected variants deleted successfully", null));
 	}
 
 	// Fixing

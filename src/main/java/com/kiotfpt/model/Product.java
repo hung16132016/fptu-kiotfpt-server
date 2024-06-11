@@ -98,7 +98,7 @@ public class Product {
 	@JsonIgnore
 	private Collection<ProductFavourite> favourite;
 
-	@OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "product")
 	private Collection<Variant> variants;
 
 	public Product(ProductRequest product, ProductCondition condition, Brand brand, Status status, Category category,
