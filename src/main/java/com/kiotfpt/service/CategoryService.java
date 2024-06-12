@@ -22,6 +22,8 @@ import com.kiotfpt.repository.ShopCateRepository;
 import com.kiotfpt.repository.ShopRepository;
 import com.kiotfpt.repository.StatusRepository;
 import com.kiotfpt.request.CategoryRequest;
+import com.kiotfpt.response.GetAllCategoryResponse;
+import com.kiotfpt.response.StatusResponse;
 import com.kiotfpt.utils.JsonReader;
 
 @Service
@@ -37,21 +39,25 @@ public class CategoryService {
 
 	@Autowired
 	private ShopCateRepository shopCategoryRepository;
-	
-    @Autowired
-    private ShopRepository shopRepository;
+
+	@Autowired
+	private ShopRepository shopRepository;
 
 	HashMap<String, String> responseMessage = new JsonReader().readJsonFile();
 
 	public ResponseEntity<ResponseObject> getAllCategory() {
 		List<Category> categories = repository.findAll();
-
-		return !categories.isEmpty()
-				? ResponseEntity.status(HttpStatus.OK)
-						.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
-								responseMessage.get("categoryFound"), categories))
-				: ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-						HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("categoryNotFound"), ""));
+		List<GetAllCategoryResponse> list = categories.stream()
+				.map(category -> new GetAllCategoryResponse(category.getId(), category.getName(),
+						category.getThumbnail(), new StatusResponse(category.getStatus()),
+						category.getProducts().size()))
+				.collect(Collectors.toList());
+		if (categories.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+					HttpStatus.NOT_FOUND.toString().split(" ")[0], "No categories found", ""));
+		}
+		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
+				HttpStatus.OK.toString().split(" ")[0], "Categories fetched successfully", list));
 	}
 
 	public ResponseEntity<ResponseObject> getPopularCategory() {
@@ -88,17 +94,17 @@ public class CategoryService {
 		Category newCategory = new Category(request, statusRepository.findByValue("inactive").get());
 		repository.save(newCategory);
 
-        // Create new ShopCategory entry
-        Optional<Shop> foundShop = shopRepository.findById(request.getShop_id());
-        if (foundShop.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                    new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0], "Shop not found", ""));
-        }
+		// Create new ShopCategory entry
+		Optional<Shop> foundShop = shopRepository.findById(request.getShop_id());
+		if (foundShop.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+					new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0], "Shop not found", ""));
+		}
 
-        ShopCategory newShopCategory = new ShopCategory();
-        newShopCategory.setCategory(newCategory);
-        newShopCategory.setShop(foundShop.get());
-        shopCategoryRepository.save(newShopCategory);
+		ShopCategory newShopCategory = new ShopCategory();
+		newShopCategory.setCategory(newCategory);
+		newShopCategory.setShop(foundShop.get());
+		shopCategoryRepository.save(newShopCategory);
 
 		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
 				HttpStatus.OK.toString().split(" ")[0], responseMessage.get("createCategorySuccess"), newCategory));
@@ -143,9 +149,9 @@ public class CategoryService {
 	public ResponseEntity<ResponseObject> getCategoriesByShop(int shopId) {
 		List<Category> categories = shopCategoryRepository.findCategoriesByShopId(shopId);
 
-        List<Category> activeCategories = categories.stream()
-                .filter(category -> "active".equalsIgnoreCase(category.getStatus().getValue()))
-                .collect(Collectors.toList());
+		List<Category> activeCategories = categories.stream()
+				.filter(category -> "active".equalsIgnoreCase(category.getStatus().getValue()))
+				.collect(Collectors.toList());
 
 		if (categories.isEmpty()) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,

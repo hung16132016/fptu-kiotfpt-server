@@ -14,8 +14,6 @@ public class CategoryResponse {
 	private int category_id;
 	private String name;
 	private String category_thumbnail;
-
-
 	
 	public CategoryResponse(Category category) {
 		super();
