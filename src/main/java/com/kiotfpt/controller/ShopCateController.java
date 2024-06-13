@@ -14,7 +14,7 @@ import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.service.ShopCateService;
 
 @RestController
-@RequestMapping("/api/shopcate")
+@RequestMapping("/v1/shopcate")
 public class ShopCateController {
 
     @Autowired

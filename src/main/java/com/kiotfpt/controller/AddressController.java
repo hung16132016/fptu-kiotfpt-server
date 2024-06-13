@@ -19,28 +19,28 @@ import com.kiotfpt.service.AddressService;
 
 @CrossOrigin(origins = "http://localhost:8888")
 @RestController
-@RequestMapping(path = "/v1")
+@RequestMapping(path = "/v1/address")
 public class AddressController {
 
 	@Autowired
 	private AddressService service;
 
-	@GetMapping("/address/get-all")
+	@GetMapping("/get-all")
 	public ResponseEntity<ResponseObject> getAllAddressByAccountID(@RequestParam(name = "accountID") int id) {
 		return service.getAddressByAccountID(id);
 	}
 	
-	@GetMapping("/address/get/{id}")
+	@GetMapping("/get/{id}")
 	public ResponseEntity<ResponseObject> getAddressByID(@PathVariable int id) {
 		return service.getAddressByID(id);
 	}
 	
-	@PostMapping("/address/create")
+	@PostMapping("/create")
 	public ResponseEntity<ResponseObject> createAddress(@RequestBody AddressRequest request) {
 		return service.createAddress(request);
 	}
 	
-	@PutMapping("/address/update")
+	@PutMapping("/update")
 	public ResponseEntity<ResponseObject> updateAddress(@RequestBody AddressRequest request) {
 		return service.updateAddress(request);
 	}

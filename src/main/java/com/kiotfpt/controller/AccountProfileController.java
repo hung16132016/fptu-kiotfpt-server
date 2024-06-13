@@ -17,22 +17,22 @@ import com.kiotfpt.service.AccountProfileService;
 
 @CrossOrigin(origins = "http://localhost:8080")
 @RestController
-@RequestMapping("/v1")
+@RequestMapping("/v1/profile")
 public class AccountProfileController {
 	@Autowired
 	private AccountProfileService service;
 
-	@GetMapping("/profile/{id}")
+	@GetMapping("/{id}")
 	public ResponseEntity<ResponseObject> getProfileByAccountID(@PathVariable int id) {
 		return service.getProfileByAccountID(id);
 	}
 	
-	@PutMapping("/profile/update-profile")
+	@PutMapping("/update-profile")
 	public ResponseEntity<ResponseObject> updateProfile(@RequestBody AccountProfile request) {
 		return service.updateProfile(request);
 	}
 	
-	@PutMapping("/profile/update-password")
+	@PutMapping("/update-password")
 	public ResponseEntity<ResponseObject> updatePassword(@RequestBody UpdatePasswordRequest request) {
 		return service.updatePassword(request);
 	}
