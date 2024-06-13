@@ -59,4 +59,8 @@ public class Status {
 	@OneToMany(mappedBy = "status", cascade = CascadeType.ALL)
 	@JsonIgnore
 	private Collection<Voucher> vouchers;
+	
+	@OneToMany(mappedBy = "status", cascade = CascadeType.ALL)
+	@JsonIgnore
+	private Collection<Brand> brands;
 }

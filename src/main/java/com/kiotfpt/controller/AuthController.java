@@ -1,7 +1,5 @@
 package com.kiotfpt.controller;
 
-import java.util.Map;
-
 import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
 
