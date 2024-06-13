@@ -18,31 +18,31 @@ import com.kiotfpt.request.CreateOrderRequest;
 import com.kiotfpt.request.StatusRequest;
 import com.kiotfpt.service.OrderService;
 
-@CrossOrigin(origins = "http://localhost:8080")
+@CrossOrigin(origins = "http://localhost:8888")
 @RestController
-@RequestMapping(path = "/v1")
+@RequestMapping(path = "/v1/order")
 public class OrderController {
 
 	@Autowired
 	private OrderService service;
 
-	@GetMapping("/order/get-all")
+	@GetMapping("/get-all")
 	public ResponseEntity<ResponseObject> getAllOrderByAccountID(@RequestParam(name = "accountID") int id) {
 		return service.getOrderByAccountID(id);
 	}
 
-	@GetMapping("/order/get-by-shop")
+	@GetMapping("/get-by-shop")
 	public ResponseEntity<ResponseObject> getOrderByShop(@RequestParam(name = "shop_id") Integer shopID,
 			@RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "10") int amount) {
 		return service.getOrderByShopID(shopID, page, amount);
 	}
 
-	@PutMapping("/order/update/{id}")
+	@PutMapping("/update/{id}")
 	public ResponseEntity<ResponseObject> updateOrder(@PathVariable int id, @RequestBody StatusRequest status) throws JsonProcessingException {
 		return service.updateOrderStatus(id, status);
 	}
 
-	@PutMapping("/order/delete/{id}")
+	@PutMapping("/delete/{id}")
 	public ResponseEntity<ResponseObject> deleteOrder(@PathVariable int id) throws JsonProcessingException {
 		return service.updateOrderStatus(id, new StatusRequest(1, "Inactive"));
 	}
@@ -52,7 +52,7 @@ public class OrderController {
 		return service.createOrder(map);
 	}
 
-	@GetMapping("/order/get-current")
+	@GetMapping("/get-current")
 	public ResponseEntity<ResponseObject> getCurrentOrders(
 			@RequestParam(name = "account_id", required = true) Integer id) {
 		return service.getCurrentOrders(id);

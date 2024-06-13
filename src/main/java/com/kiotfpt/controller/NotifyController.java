@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.service.NotifyService;
 
-@CrossOrigin(origins = "http://localhost:8080")
+@CrossOrigin(origins = "http://localhost:8888")
 @RestController
 @RequestMapping(path = "/v1/notify")
 public class NotifyController {

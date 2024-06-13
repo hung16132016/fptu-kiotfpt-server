@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.service.AccountService;
 
-@CrossOrigin(origins = "http://localhost:8080")
+@CrossOrigin(origins = "http://localhost:8888")
 @RestController
 @RequestMapping("/v1")
 public class AccountController {

@@ -17,7 +17,7 @@ import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.request.VoucherRequest;
 import com.kiotfpt.service.VoucherService;
 
-@CrossOrigin(origins = "http://localhost:8080")
+@CrossOrigin(origins = "http://localhost:8888")
 @RestController
 @RequestMapping(path = "/v1/voucher")
 public class VoucherController {

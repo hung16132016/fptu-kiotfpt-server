@@ -18,10 +18,9 @@ import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.request.BrandRequest;
 import com.kiotfpt.service.BrandService;
 
-@CrossOrigin(origins = "http://localhost:8080")
+@CrossOrigin(origins = "http://localhost:8888")
 @RestController
 @RequestMapping("/v1/brand")
-@Service
 public class BrandController {
 
 	@Autowired

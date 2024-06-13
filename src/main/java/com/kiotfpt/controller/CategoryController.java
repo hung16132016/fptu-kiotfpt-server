@@ -2,7 +2,6 @@ package com.kiotfpt.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,7 +20,6 @@ import com.kiotfpt.service.CategoryService;
 @CrossOrigin(origins = "http://localhost:8888")
 @RestController
 @RequestMapping("/v1/category")
-@Service
 public class CategoryController {
 	@Autowired
 	private CategoryService service;

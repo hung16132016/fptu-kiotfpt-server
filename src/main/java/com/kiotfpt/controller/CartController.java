@@ -14,10 +14,9 @@ import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.service.CartService;
 
 
-@CrossOrigin(origins = "http://localhost:8080")
+@CrossOrigin(origins = "http://localhost:8888")
 @RestController
 @RequestMapping("/v1/cart")
-@Service
 public class CartController {
 
 	@Autowired

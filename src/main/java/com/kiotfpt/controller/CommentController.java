@@ -12,7 +12,7 @@ import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.request.CommentRequest;
 import com.kiotfpt.service.CommentService;
 
-@CrossOrigin(origins = "http://localhost:8080")
+@CrossOrigin(origins = "http://localhost:8888")
 @RestController
 @RequestMapping(path = "/v1/comment")
 public class CommentController {

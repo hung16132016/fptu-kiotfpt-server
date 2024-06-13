@@ -15,7 +15,7 @@ import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.request.UpdatePasswordRequest;
 import com.kiotfpt.service.AccountProfileService;
 
-@CrossOrigin(origins = "http://localhost:8080")
+@CrossOrigin(origins = "http://localhost:8888")
 @RestController
 @RequestMapping("/v1/profile")
 public class AccountProfileController {

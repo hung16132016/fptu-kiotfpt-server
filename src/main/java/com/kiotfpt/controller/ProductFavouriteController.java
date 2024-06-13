@@ -16,7 +16,7 @@ import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.request.ProductFavouriteRequest;
 import com.kiotfpt.service.ProductFavouriteService;
 
-@CrossOrigin(origins = "http://localhost:8080")
+@CrossOrigin(origins = "http://localhost:8888")
 @RestController
 @RequestMapping("/v1/favourite")
 public class ProductFavouriteController {

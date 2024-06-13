@@ -17,7 +17,7 @@ import com.kiotfpt.request.ShopRequest;
 import com.kiotfpt.request.StatusRequest;
 import com.kiotfpt.service.ShopService;
 
-@CrossOrigin(origins = "http://localhost:8080")
+@CrossOrigin(origins = "http://localhost:8888")
 @RestController
 @RequestMapping("/v1/shop")
 public class ShopController {
