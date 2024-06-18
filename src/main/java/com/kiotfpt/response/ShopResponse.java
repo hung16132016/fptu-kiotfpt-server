@@ -25,6 +25,7 @@ public class ShopResponse {
 	private int follower;
 	private AddressResponse address;
 	private List<ProductMiniResponse> product;
+	private StatusResponse status;
 
 	public ShopResponse(Shop shop) {
 		super();
@@ -34,6 +35,7 @@ public class ShopResponse {
 		this.phone = shop.getPhone();
 		this.thumbnail = shop.getThumbnail();
 		this.address = new AddressResponse(shop.getAddress());
+		this.status = new StatusResponse(shop.getAccount().getStatus());
 	}
 
 	public ShopResponse(Shop shop, List<Product> products) {

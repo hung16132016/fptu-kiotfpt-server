@@ -1,5 +1,6 @@
 package com.kiotfpt.response;
 
+import com.kiotfpt.model.AccessibilityItem;
 import com.kiotfpt.model.Variant;
 
 import lombok.AllArgsConstructor;
@@ -26,4 +27,11 @@ public class VariantResponse {
 		this.size = new SizeResponse(repo.getSize());
 	}
 
+	public VariantResponse(Variant repo, AccessibilityItem item) {
+		super();
+		this.id = repo.getId();
+		this.price = repo.getPrice();
+		this.color = new ColorResponse(repo.getColor());
+		this.size = new SizeResponse(repo.getSize());
+	}
 }
