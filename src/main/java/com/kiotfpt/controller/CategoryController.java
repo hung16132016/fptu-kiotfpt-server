@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.request.CategoryRequest;
+import com.kiotfpt.request.StatusRequest;
 import com.kiotfpt.service.CategoryService;
 
 @CrossOrigin(origins = "http://localhost:8888")
@@ -55,8 +56,13 @@ public class CategoryController {
 		return service.deleteCategory(id);
 	}
 
-	@GetMapping("/category/get-by-shop")
+	@GetMapping("/get-by-shop")
 	public ResponseEntity<ResponseObject> getCategoriesByShop(@RequestParam int shopId) {
 		return service.getCategoriesByShop(shopId);
 	}
+	
+    @PutMapping("/update-status/{id}")
+    public ResponseEntity<ResponseObject> changeCategoryStatus(@PathVariable int id, @RequestBody StatusRequest request) {
+        return service.changeCategoryStatus(id, request.getValue());
+    }
 }

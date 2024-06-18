@@ -120,9 +120,6 @@ public class CategoryService {
 		Category category = optionalCategory.get();
 		category.setName(request.getName());
 		category.setThumbnail(request.getThumbnail());
-		// Assuming status remains the same and not updated via request
-		// If status needs to be updated, fetch the status from statusRepository and set
-		// it.
 
 		repository.save(category);
 
@@ -161,5 +158,27 @@ public class CategoryService {
 				HttpStatus.OK.toString().split(" ")[0], "Categories fetched successfully", activeCategories));
 
 	}
+	
+	 public ResponseEntity<ResponseObject> changeCategoryStatus(int categoryId, String stat) {
+	        Optional<Category> optionalCategory = repository.findById(categoryId);
+	        if (!optionalCategory.isPresent()) {
+	            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+	                    HttpStatus.NOT_FOUND.toString().split(" ")[0], "Category with id: " + categoryId + " not found", null));
+	        }
+
+	        Optional<Status> optionalStatus = statusRepository.findByValue(stat);
+	        if (!optionalStatus.isPresent()) {
+	            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+	                    HttpStatus.NOT_FOUND.toString().split(" ")[0], "Status with id: " + stat + " not found", null));
+	        }
+
+	        Category category = optionalCategory.get();
+	        category.setStatus(optionalStatus.get());
+
+	        repository.save(category);
+
+	        return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
+	                HttpStatus.OK.toString().split(" ")[0], "Category status updated successfully", category));
+	    }
 
 }

@@ -16,6 +16,7 @@ import com.kiotfpt.repository.BrandRepository;
 import com.kiotfpt.repository.ProductRepository;
 import com.kiotfpt.repository.StatusRepository;
 import com.kiotfpt.request.BrandRequest;
+import com.kiotfpt.response.BrandResponse;
 
 @Service
 public class BrandService {
@@ -60,16 +61,20 @@ public class BrandService {
 	}
 
 	public ResponseEntity<ResponseObject> getAllBrands() {
-
 		List<Brand> brands = repository.findAll();
+		List<BrandResponse> brandResponses = new ArrayList<>();
 
-		return !brands.isEmpty()
+		for (Brand brand : brands) {
+			BrandResponse brandResponse = new BrandResponse(brand);
+			brandResponses.add(brandResponse);
+		}
+
+		return !brandResponses.isEmpty()
 				? ResponseEntity.status(HttpStatus.OK)
 						.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
-								"Data has found successfully", brands))
+								"Data has been found successfully", brandResponses))
 				: ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-						HttpStatus.NOT_FOUND.toString().split(" ")[0], "Data has not found", new int[0]));
-
+						HttpStatus.NOT_FOUND.toString().split(" ")[0], "Data has not been found", new int[0]));
 	}
 
 	public ResponseEntity<ResponseObject> getBrandById(int id) {

@@ -19,12 +19,16 @@ public class BrandResponse {
 	private int brand_id;
 	private String brand_name;
 	private String brand_thumbnail;
+	private int total_product;
+	private StatusResponse status;
 	private Collection<ProductResponse> products;
 
 	public BrandResponse(Brand brand) {
 		this.brand_id = brand.getId();
 		this.brand_name = brand.getName();
 		this.brand_thumbnail = brand.getThumbnail();
+		this.status = new StatusResponse(brand.getStatus());
+		this.total_product = brand.getProducts().size();
 	}
 
 	public BrandResponse(Brand brand, Collection<Product> products) {
@@ -37,6 +41,7 @@ public class BrandResponse {
 			ProductResponse productResponse = new ProductResponse(product);
 			productList.add(productResponse);
 		}
+		this.total_product = products.size();
 		this.products = productList;
 	}
 
