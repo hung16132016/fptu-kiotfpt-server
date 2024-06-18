@@ -69,20 +69,24 @@ public class OrderService {
 
 	HashMap<String, String> responseMessage = new JsonReader().readJsonFile();
 
-	public ResponseEntity<ResponseObject> getOrderByAccountID(int account_id) {
-		Optional<Account> acc = accountRepository.findById(account_id);
-		if (!acc.isEmpty()) {
-			List<Order> orders = repository.findAllByAccount(acc.get());
-			if (!orders.isEmpty()) {
-				return ResponseEntity.status(HttpStatus.OK)
-						.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Orders found", orders));
-			}
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-					HttpStatus.NOT_FOUND.toString().split(" ")[0], "Orders do not exist", new int[0]));
-		}
-		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-				HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("accountNotFound"), ""));
-	}
+    public ResponseEntity<ResponseObject> getOrderByAccountID(int account_id) {
+        Optional<Account> acc = accountRepository.findById(account_id);
+        if (!acc.isEmpty()) {
+            List<Order> orders = repository.findAllByAccount(acc.get());
+            if (!orders.isEmpty()) {
+                List<OrderResponse> orderResponses = new ArrayList<>();
+                for (Order order : orders) {
+                    orderResponses.add(new OrderResponse(order));
+                }
+                return ResponseEntity.status(HttpStatus.OK)
+                        .body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Orders found", orderResponses));
+            }
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+                    HttpStatus.NOT_FOUND.toString().split(" ")[0], "Orders do not exist", new int[0]));
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+                HttpStatus.NOT_FOUND.toString().split(" ")[0], "Account not found", ""));
+    }
 
 	public ResponseEntity<ResponseObject> getOrderByShopID(int shop_id, int page, int amount) {
 		Optional<Shop> shopOptional = shopRepository.findById(shop_id);

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -28,7 +29,7 @@ import com.kiotfpt.repository.CartRepository;
 import com.kiotfpt.repository.SectionRepository;
 import com.kiotfpt.response.Accessibility_itemResponse;
 import com.kiotfpt.response.SectionResponse;
-import com.kiotfpt.response.ShopResponse;
+import com.kiotfpt.response.ShopMiniResponse;
 import com.kiotfpt.response.StatusResponse;
 import com.kiotfpt.utils.JsonReader;
 
@@ -79,90 +80,90 @@ public class CartService {
 
 	public ResponseEntity<ResponseObject> getCartByID(int cart_id) {
 		Optional<Cart> cart = repository.findById(cart_id);
-		if (!cart.isEmpty()) {
-			List<Section> sections = sectionRepository.findByCart(cart.get());
-			if (!sections.isEmpty()) {
+		if (!cart.isPresent()) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+					HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("cartNotFound"), ""));
+		}
 
-				List<SectionResponse> list = new ArrayList<SectionResponse>();
-				for (Section section : sections) {
-
-					List<AccessibilityItem> list_item = itemRepository.findBySection(section);
-					if (!list_item.isEmpty()) {
-						List<Accessibility_itemResponse> items = new ArrayList<Accessibility_itemResponse>();
-						for (AccessibilityItem item : list_item) {
-
-							Variant var = item.getVariant();
-
-							if (var == null) {
-								return ResponseEntity.status(HttpStatus.NOT_FOUND)
-										.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
-												"Variant of item: " + item.getId() + " not found", ""));
-							}
-
-							Product product = var.getProduct();
-
-							if (product == null) {
-								return ResponseEntity.status(HttpStatus.NOT_FOUND)
-										.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
-												"Product of item: " + item.getId() + " not found", ""));
-							}
-							ProductCondition condition = product.getCondition();
-
-							if (condition == null) {
-								return ResponseEntity.status(HttpStatus.NOT_FOUND)
-										.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
-												"Condition of product id: " + product.getId() + " not found", ""));
-							}
-							Brand brand = product.getBrand();
-
-							if (brand == null) {
-								return ResponseEntity.status(HttpStatus.NOT_FOUND)
-										.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
-												"Brand of product id: " + product.getId() + "not found", ""));
-							}
-							Status status = product.getStatus();
-
-							if (status == null) {
-								return ResponseEntity.status(HttpStatus.NOT_FOUND)
-										.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
-												"Status of product id: " + product.getId() + "not found", ""));
-							}
-							Category category = product.getCategory();
-
-							if (category == null) {
-								return ResponseEntity.status(HttpStatus.NOT_FOUND)
-										.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
-												"Category of product id: " + product.getId() + "not found", ""));
-							}
-
-							Accessibility_itemResponse item_res = new Accessibility_itemResponse(item, product);
-							items.add(item_res);
-						}
-
-						Shop get_shop = section.getShop();
-
-						ShopResponse shop = new ShopResponse(get_shop);
-
-						StatusResponse status = new StatusResponse(section.getStatus());
-
-						SectionResponse response = new SectionResponse(section.getId(), section.getTotal(), shop,
-								status, items);
-						list.add(response);
-					} else {
-						return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-								HttpStatus.NOT_FOUND.toString().split(" ")[0], "Items do not exist", ""));
-					}
-				}
-				return ResponseEntity.status(HttpStatus.OK)
-						.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Section found", list));
-			}
-
+		List<Section> sections = sectionRepository.findByCart(cart.get());
+		if (sections.isEmpty()) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
 					HttpStatus.NOT_FOUND.toString().split(" ")[0], "Sections do not exist", ""));
 		}
 
-		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-				HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("cartNotFound"), ""));
+		// Filter sections with status ID 31
+		sections = sections.stream().filter(section -> section.getStatus().getId() == 31).collect(Collectors.toList());
+
+		if (sections.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+					HttpStatus.NOT_FOUND.toString().split(" ")[0], "Sections with status ID 31 do not exist", ""));
+		}
+
+		List<SectionResponse> list = new ArrayList<>();
+		for (Section section : sections) {
+			List<AccessibilityItem> list_item = itemRepository.findBySection(section);
+			if (list_item.isEmpty()) {
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+						HttpStatus.NOT_FOUND.toString().split(" ")[0], "Items do not exist", ""));
+			}
+
+			List<Accessibility_itemResponse> items = new ArrayList<>();
+			for (AccessibilityItem item : list_item) {
+				Variant var = item.getVariant();
+				if (var == null) {
+					return ResponseEntity.status(HttpStatus.NOT_FOUND)
+							.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
+									"Variant of item: " + item.getId() + " not found", ""));
+				}
+
+				Product product = var.getProduct();
+				if (product == null) {
+					return ResponseEntity.status(HttpStatus.NOT_FOUND)
+							.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
+									"Product of item: " + item.getId() + " not found", ""));
+				}
+
+				ProductCondition condition = product.getCondition();
+				if (condition == null) {
+					return ResponseEntity.status(HttpStatus.NOT_FOUND)
+							.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
+									"Condition of product id: " + product.getId() + " not found", ""));
+				}
+
+				Brand brand = product.getBrand();
+				if (brand == null) {
+					return ResponseEntity.status(HttpStatus.NOT_FOUND)
+							.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
+									"Brand of product id: " + product.getId() + "not found", ""));
+				}
+
+				Status status = product.getStatus();
+				if (status == null) {
+					return ResponseEntity.status(HttpStatus.NOT_FOUND)
+							.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
+									"Status of product id: " + product.getId() + "not found", ""));
+				}
+
+				Category category = product.getCategory();
+				if (category == null) {
+					return ResponseEntity.status(HttpStatus.NOT_FOUND)
+							.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
+									"Category of product id: " + product.getId() + "not found", ""));
+				}
+
+				Accessibility_itemResponse item_res = new Accessibility_itemResponse(item, product);
+				items.add(item_res);
+			}
+
+			Shop get_shop = section.getShop();
+			ShopMiniResponse shop = new ShopMiniResponse(get_shop);
+			StatusResponse status = new StatusResponse(section.getStatus());
+
+			SectionResponse response = new SectionResponse(section.getId(), section.getTotal(), shop, status, items);
+			list.add(response);
+		}
+		return ResponseEntity.status(HttpStatus.OK)
+				.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Section found", list));
 	}
 
 //	public ResponseEntity<ResponseObject> createCart(Map<String, String> map) {

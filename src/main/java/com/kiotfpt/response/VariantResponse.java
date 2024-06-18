@@ -16,7 +16,6 @@ public class VariantResponse {
 	private int quantity;
 	private ColorResponse color;
 	private SizeResponse size;
-	private ProductResponse product;
 
 	public VariantResponse(Variant repo) {
 		super();

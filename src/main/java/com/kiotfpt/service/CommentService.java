@@ -1,5 +1,6 @@
 package com.kiotfpt.service;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,4 +63,19 @@ public class CommentService {
 		return ResponseEntity.status(HttpStatus.CREATED).body(new ResponseObject(true,
 				String.valueOf(HttpStatus.CREATED.value()), "Comment created successfully", savedComment));
 	}
+	
+	public ResponseEntity<ResponseObject> getAllCommentsByAccountId(int accountId) {
+        Optional<Account> optionalAccount = accountRepository.findById(accountId);
+
+        if (!optionalAccount.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+                    String.valueOf(HttpStatus.NOT_FOUND.value()), "Account not found", null));
+        }
+
+        List<Comment> comments = repository.findAllByAccount(optionalAccount.get());
+
+        return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
+                String.valueOf(HttpStatus.OK.value()), "Comments retrieved successfully", comments));
+    }
+	
 }

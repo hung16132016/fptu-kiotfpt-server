@@ -16,7 +16,7 @@ public class Accessibility_itemResponse {
 	private int quantity;
 	private double total;
 	private String note;
-	private VariantResponse repo;
+	private VariantResponse variant;
 	private StatusResponse status;
 	private ProductMiniResponse product;
 
@@ -26,7 +26,7 @@ public class Accessibility_itemResponse {
 		this.quantity = item.getQuantity();
 		this.total = item.getTotal();
 		this.note = item.getNote();
-		this.repo = new VariantResponse(item.getVariant());
+		this.variant = new VariantResponse(item.getVariant());
 		this.status = new StatusResponse(item.getStatus());
 	}
 	
@@ -36,7 +36,7 @@ public class Accessibility_itemResponse {
 		this.quantity = item.getQuantity();
 		this.total = item.getTotal();
 		this.note = item.getNote();
-		this.repo = new VariantResponse(item.getVariant());
+		this.variant = new VariantResponse(item.getVariant());
 		this.status = new StatusResponse(item.getStatus());
 		this.product = new ProductMiniResponse(product, item);
 	}

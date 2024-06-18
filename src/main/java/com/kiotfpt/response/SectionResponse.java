@@ -13,7 +13,7 @@ public class SectionResponse {
 
 	private int section_id;
 	private float section_total;
-	private ShopResponse shop;
+	private ShopMiniResponse shop;
 	private StatusResponse status;
 	private List<Accessibility_itemResponse> items;
 

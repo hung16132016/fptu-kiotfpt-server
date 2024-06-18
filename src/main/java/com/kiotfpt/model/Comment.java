@@ -52,7 +52,7 @@ public class Comment {
 	public Comment(CommentRequest request, Account acc, Product product) {
 		super();
 		this.content = request.getContent();
-		this.rate = 0;
+		this.rate = request.getRate();
 		this.date = new Date();
 		this.account = acc;
 		this.product = product;

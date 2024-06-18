@@ -1,5 +1,7 @@
 package com.kiotfpt.model;
 
+import java.time.LocalDateTime;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -8,6 +10,9 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -31,8 +36,13 @@ public class Notify {
 	@Column(name = "notify_description", nullable = false)
 	private String description;
 
+	@Column(name = "notify_time", nullable = false)
+	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+	private LocalDateTime time;
+
 	@ManyToOne()
 	@JoinColumn(name = "account_id", nullable = false)
+	@JsonIgnore
 	private Account account;
 
 	public Notify(Order order, Account account, String string) {
@@ -55,6 +65,7 @@ public class Notify {
 			this.description = "Your order with id " + order.getId() + " has been " + string + ".";
 		}
 		this.account = account;
+		this.time = LocalDateTime.now();
 	}
 
 }

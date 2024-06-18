@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 public class CommentRequest {
 
 	private String content;
+	private int rate;
 	private int account_id;
 	private int product_id;
 
