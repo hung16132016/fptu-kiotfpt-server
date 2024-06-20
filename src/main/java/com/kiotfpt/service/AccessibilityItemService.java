@@ -70,14 +70,19 @@ public class AccessibilityItemService {
 		Status inCartStatus = statusRepository.findByValue("in cart")
 				.orElseThrow(() -> new IllegalStateException("Status 'in cart' not found"));
 
-	    // Fetch "completed" status
-	    Status completedStatus = statusRepository.findByValue("completed")
-	            .orElseThrow(() -> new IllegalStateException("Status 'completed' not found"));
+		// Fetch "completed" status
+		Status completedStatus = statusRepository.findByValue("completed")
+				.orElseThrow(() -> new IllegalStateException("Status 'completed' not found"));
 
 		// Find existing section for the shop
-	    Section section = sectionRepository.findByShopIdAndCartId(variant.getProduct().getShop().getId(), cart.getId())
-	            .filter(s -> !s.getStatus().equals(completedStatus))
-	            .orElse(null);
+		Section section = sectionRepository.findByShopIdAndCartId(variant.getProduct().getShop().getId(), cart.getId())
+				.filter(s -> !s.getStatus().equals(completedStatus)).orElse(null);
+
+		// Validate amount
+		if (itemRequest.getAmount() <= 0) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
+					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Amount must greater than 0", null));
+		}
 
 		// If section does not exist, create a new section
 		if (section == null) {
