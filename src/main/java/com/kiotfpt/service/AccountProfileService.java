@@ -81,8 +81,8 @@ public class AccountProfileService {
 	}
 	
 	public ResponseEntity<ResponseObject> updatePassword(UpdatePasswordRequest request) {
-		Optional<AccountProfile> accountProfile = repository.findById(request.getProfile_id());
-		if (accountProfile.isPresent()) {
+		Optional<Account> accountFound = accountRepository.findById(request.getAccount_id());
+		if (accountFound.isPresent()) {
 			if (request.getOldPassword().strip().equals("") || request.getNewPassword().strip().equals("") || request.getRetypePassword().strip().equals("")) 
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
 						HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Input can not be empty!", new int[0]));
@@ -92,7 +92,7 @@ public class AccountProfileService {
 			if (!request.getNewPassword().equals(request.getRetypePassword()))
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
 							HttpStatus.BAD_REQUEST.toString().split(" ")[0], "New password and retype password is not the same!", new int[0]));
-			Account account = accountProfile.get().getAccount();
+			Account account = accountFound.get();
 			account.setPassword(MD5.generateMD5Hash(request.getNewPassword()));
 			accountRepository.save(account);
 			return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
