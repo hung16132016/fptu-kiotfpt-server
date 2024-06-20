@@ -92,8 +92,12 @@ public class AccountProfileService {
 			if (!request.getNewPassword().equals(request.getRetypePassword()))
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
 							HttpStatus.BAD_REQUEST.toString().split(" ")[0], "New password and retype password is not the same!", new int[0]));
+			String newPassword = MD5.generateMD5Hash(request.getOldPassword());
+			if (!newPassword.equals(accountFound.get().getPassword())) 
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
+						HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Old password is wrong!", new int[0]));
 			Account account = accountFound.get();
-			account.setPassword(MD5.generateMD5Hash(request.getNewPassword()));
+			account.setPassword(newPassword);
 			accountRepository.save(account);
 			return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
 					HttpStatus.OK.toString().split(" ")[0], "Update password seccessfull", new int[0]));
