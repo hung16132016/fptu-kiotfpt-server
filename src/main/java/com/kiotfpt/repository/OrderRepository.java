@@ -1,5 +1,6 @@
 package com.kiotfpt.repository;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,4 +32,8 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
 			+ "AND o.status.value = :status")
 	boolean existsByAccountAndProductAndStatus(@Param("account") Account account, @Param("product") Product product,
 			@Param("status") String status);
+	
+    List<Order> findByTimeCompleteBetweenAndShopIdAndStatusValue(Date startDate, Date endDate, int shopId, String status);
+
+    List<Order> findByTimeCompleteBetweenAndStatusValue(Date startDate, Date endDate, String status);
 }

@@ -84,14 +84,12 @@ public class Product {
 
 	@ManyToOne
 	@JoinColumn(name = "shop_id")
-	@JsonIgnore
 	private Shop shop;
 
 	@OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
 	private List<ProductThumbnail> thumbnail;
 
 	@OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
-	@JsonIgnore
 	private Collection<Comment> comments;
 
 	@OneToMany(mappedBy = "product", cascade = CascadeType.ALL)

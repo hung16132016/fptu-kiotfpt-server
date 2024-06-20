@@ -2,6 +2,7 @@ package com.kiotfpt.service;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
@@ -17,9 +18,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 
 import com.kiotfpt.exception.ResourceNotFoundException;
+import com.kiotfpt.model.AccessibilityItem;
+import com.kiotfpt.model.Account;
+import com.kiotfpt.model.AccountProfile;
 import com.kiotfpt.model.Brand;
 import com.kiotfpt.model.Category;
 import com.kiotfpt.model.Color;
+import com.kiotfpt.model.Comment;
+import com.kiotfpt.model.Order;
 import com.kiotfpt.model.Product;
 import com.kiotfpt.model.ProductCondition;
 import com.kiotfpt.model.ProductThumbnail;
@@ -28,21 +34,32 @@ import com.kiotfpt.model.Shop;
 import com.kiotfpt.model.Size;
 import com.kiotfpt.model.Status;
 import com.kiotfpt.model.Variant;
+import com.kiotfpt.repository.AccountProfileRepository;
 import com.kiotfpt.repository.BrandRepository;
 import com.kiotfpt.repository.CategoryRepository;
 import com.kiotfpt.repository.ColorRepository;
+import com.kiotfpt.repository.CommentRepository;
 import com.kiotfpt.repository.ConditionRepository;
+import com.kiotfpt.repository.OrderRepository;
 import com.kiotfpt.repository.ProductRepository;
 import com.kiotfpt.repository.ProductThumbnailRepository;
 import com.kiotfpt.repository.ShopRepository;
 import com.kiotfpt.repository.SizeRepository;
 import com.kiotfpt.repository.StatusRepository;
 import com.kiotfpt.repository.VariantRepository;
+import com.kiotfpt.request.DateRequest;
 import com.kiotfpt.request.ProductRequest;
 import com.kiotfpt.request.VariantRequest;
 import com.kiotfpt.response.ProductResponse;
+import com.kiotfpt.response.ProductStatisResponse;
+import com.kiotfpt.response.ProfileMiniResponse;
 import com.kiotfpt.response.VariantResponse;
+import com.kiotfpt.utils.DateUtil;
 import com.kiotfpt.utils.JsonReader;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Service
 public class ProductService {
@@ -77,6 +94,15 @@ public class ProductService {
 	@Autowired
 	private ProductThumbnailRepository thumbnailRepository;
 
+	@Autowired
+	private CommentRepository commentRepository;
+
+	@Autowired
+	private AccountProfileRepository accountProfileRepository;
+
+	@Autowired
+	private OrderRepository orderRepository;
+
 //	@Value("${path_image}")
 //	private String imageLink;
 
@@ -97,15 +123,33 @@ public class ProductService {
 						HttpStatus.NOT_FOUND.toString().split(" ")[0], "Data has not found", new int[0]));
 	}
 
-	public ResponseEntity<ResponseObject> getProductById(int id) {
-		Optional<Product> product = repository.findById(id);
-		if (product.isPresent() && product.get().getStatus().getValue().equals("active")) {
-			return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
-					HttpStatus.OK.toString().split(" ")[0], responseMessage.get("getProducyByIdSuccess"), product));
-		}
-		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(true,
-				HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("getProducyByIdFail"), ""));
+	public ResponseEntity<ResponseObject> getProductById(int productId) {
+		Optional<Product> productOpt = repository.findById(productId);
 
+		if (!productOpt.isPresent()) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+					HttpStatus.NOT_FOUND.toString().split(" ")[0], "Product not found", null));
+		}
+
+		Product product = productOpt.get();
+		List<Comment> comments = commentRepository.findAllByProduct(product);
+
+		// Populate ProfileMiniResponse for each comment
+		comments.forEach(comment -> {
+			ProfileMiniResponse profile = fetchProfileForComment(comment.getAccount());
+			comment.setProfile(profile);
+		});
+
+		// Set comments back to product
+		product.setComments(comments);
+
+		return ResponseEntity.status(HttpStatus.OK)
+				.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Product found", product));
+	}
+
+	private ProfileMiniResponse fetchProfileForComment(Account account) {
+		Optional<AccountProfile> profile = accountProfileRepository.findByAccount(account);
+		return new ProfileMiniResponse(profile.get());
 	}
 
 	// fix
@@ -287,9 +331,8 @@ public class ProductService {
 				variantRepository.deleteById(variantId);
 			}
 
-		return ResponseEntity.status(HttpStatus.OK)
-				.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
-						"Product or selected variants deleted successfully", null));
+		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
+				HttpStatus.OK.toString().split(" ")[0], "Product or selected variants deleted successfully", null));
 	}
 
 	// Fixing
@@ -661,4 +704,88 @@ public class ProductService {
 				HttpStatus.OK.toString().split(" ")[0], "Data has found successfully", number_of_page));
 	}
 
+	public ResponseEntity<ResponseObject> filterProductsByTime(DateRequest filterRequest) {
+		try {
+
+			Date startDate = DateUtil.calculateStartDate(filterRequest),
+					endDate = DateUtil.calculateEndDate(filterRequest);
+
+			List<Order> orders = orderRepository.findByTimeCompleteBetweenAndStatusValue(startDate, endDate,
+					"completed");
+
+			if (orders.isEmpty()) {
+				return ResponseEntity.status(HttpStatus.NOT_FOUND)
+						.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
+								"No orders found for the given date range", null));
+			}
+
+			List<ProductStatisResponse> responseList = new ArrayList<>();
+			ProductFilterResult result = new ProductFilterResult(responseList, 0, 0);
+
+			for (Order order : orders) {
+				for (AccessibilityItem item : order.getSection().getItems()) {
+					responseList.add(new ProductStatisResponse(order.getId(), item.getVariant().getProduct().getName(),
+							item.getQuantity(), order.getTotal(), order.getTimeComplete(),
+							new VariantResponse(item.getVariant())));
+					result.setTotalMoney(result.getTotalMoney() + item.getTotal());
+					result.setTotalQuantity(result.getTotalQuantity() + item.getQuantity());
+				}
+			}
+			result.setProducts(responseList);
+
+			return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
+					HttpStatus.OK.toString().split(" ")[0], "Products filtered successfully", result));
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(new ResponseObject(false, HttpStatus.INTERNAL_SERVER_ERROR.toString().split(" ")[0],
+							"An error occurred while filtering products", null));
+		}
+	}
+
+	public ResponseEntity<ResponseObject> filterProductsByTimeAndShop(DateRequest filterRequest, int shopId) {
+		try {
+
+			Date startDate = DateUtil.calculateStartDate(filterRequest),
+					endDate = DateUtil.calculateEndDate(filterRequest);
+
+			List<Order> orders = orderRepository.findByTimeCompleteBetweenAndShopIdAndStatusValue(startDate, endDate,
+					shopId, "completed");
+
+			if (orders.isEmpty()) {
+				return ResponseEntity.status(HttpStatus.NOT_FOUND)
+						.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
+								"No orders found for the given date range", null));
+			}
+
+			List<ProductStatisResponse> responseList = new ArrayList<>();
+			ProductFilterResult result = new ProductFilterResult(responseList, 0, 0);
+
+			for (Order order : orders) {
+				for (AccessibilityItem item : order.getSection().getItems()) {
+					responseList.add(new ProductStatisResponse(order.getId(), item.getVariant().getProduct().getName(),
+							item.getQuantity(), order.getTotal(), order.getTimeComplete(),
+							new VariantResponse(item.getVariant())));
+					result.setTotalMoney(result.getTotalMoney() + item.getTotal());
+					result.setTotalQuantity(result.getTotalQuantity() + item.getQuantity());
+				}
+			}
+			result.setProducts(responseList);
+
+			return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
+					HttpStatus.OK.toString().split(" ")[0], "Products filtered successfully", result));
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(new ResponseObject(false, HttpStatus.INTERNAL_SERVER_ERROR.toString().split(" ")[0],
+							"An error occurred while filtering products", null));
+		}
+	}
+
+	@Data
+	@AllArgsConstructor
+	@NoArgsConstructor
+	public class ProductFilterResult {
+		private List<ProductStatisResponse> products;
+		private double totalMoney;
+		private int totalQuantity;
+	}
 }

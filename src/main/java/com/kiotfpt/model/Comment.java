@@ -10,9 +10,11 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.kiotfpt.request.CommentRequest;
+import com.kiotfpt.response.ProfileMiniResponse;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -48,7 +50,10 @@ public class Comment {
 	@JsonIgnore
 	@JoinColumn(name = "product_id")
 	private Product product;
-
+	
+	@Transient
+	private ProfileMiniResponse profile;
+	
 	public Comment(CommentRequest request, Account acc, Product product) {
 		super();
 		this.content = request.getContent();
@@ -57,5 +62,15 @@ public class Comment {
 		this.account = acc;
 		this.product = product;
 	}
+
+	public Comment(Comment comment, AccountProfile profile) {
+		super();
+		this.id = comment.getId();
+		this.content = comment.getContent();
+		this.rate = comment.getRate();
+		this.date = comment.getDate();
+		this.profile = new ProfileMiniResponse(profile);
+	}
+	
 
 }

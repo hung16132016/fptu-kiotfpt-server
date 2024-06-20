@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -25,6 +26,7 @@ import com.kiotfpt.model.Section;
 import com.kiotfpt.model.Shop;
 import com.kiotfpt.model.Status;
 import com.kiotfpt.model.Transaction;
+import com.kiotfpt.model.Voucher;
 import com.kiotfpt.repository.AccessibilityItemRepository;
 import com.kiotfpt.repository.AccountProfileRepository;
 import com.kiotfpt.repository.AccountRepository;
@@ -34,11 +36,19 @@ import com.kiotfpt.repository.SectionRepository;
 import com.kiotfpt.repository.ShopRepository;
 import com.kiotfpt.repository.StatusRepository;
 import com.kiotfpt.repository.TransactionRepository;
+import com.kiotfpt.repository.VoucherRepository;
 import com.kiotfpt.request.CreateOrderRequest;
+import com.kiotfpt.request.DateRequest;
 import com.kiotfpt.request.SectionRequest;
 import com.kiotfpt.request.StatusRequest;
+import com.kiotfpt.response.OrderStatisResponse;
 import com.kiotfpt.response.OrderResponse;
+import com.kiotfpt.utils.DateUtil;
 import com.kiotfpt.utils.JsonReader;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Service
 public class OrderService {
@@ -66,6 +76,9 @@ public class OrderService {
 
 	@Autowired
 	private NotifyRepository notifyRepository;
+
+	@Autowired
+	private VoucherRepository voucherRepository;
 
 	@Autowired
 	private AccountProfileRepository profileRepository;
@@ -108,7 +121,7 @@ public class OrderService {
 								.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
 										"No profile found for order with ID " + order.getId(), ""));
 					}
-					
+
 					OrderResponse response = new OrderResponse(order, profile.get());
 					list.add(response);
 				}
@@ -158,8 +171,35 @@ public class OrderService {
 
 	public ResponseEntity<ResponseObject> createOrder(CreateOrderRequest input) {
 		try {
-			for (SectionRequest sectionRequest : input.getSections()) {
+			// Validate Account existence
+			Optional<Account> optionalAccount = accountRepository.findById(input.getAccountId());
+			if (optionalAccount.isEmpty()) {
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+						HttpStatus.NOT_FOUND.toString().split(" ")[0], "Account not found", null));
+			}
+			Account account = optionalAccount.get();
 
+			// Fetch the 'Pending' and 'Processing' Status
+			Optional<Status> optionalStatus = statusRepository.findByValue("pending");
+			Optional<Status> processStatus = statusRepository.findByValue("processing");
+			if (optionalStatus.isEmpty() || processStatus.isEmpty()) {
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+						HttpStatus.NOT_FOUND.toString().split(" ")[0], "Status not found", null));
+			}
+			Status status = optionalStatus.get();
+
+			// Validate Voucher
+			Optional<Voucher> optionalVoucher = voucherRepository.findById(input.getVoucherId());
+			Voucher voucher = null;
+			if (!optionalVoucher.isEmpty()) {
+				voucher = optionalVoucher.get();
+				if (voucher.getStatus().getId() != 11) {
+					return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
+							HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Invalid voucher", null));
+				}
+			}
+
+			for (SectionRequest sectionRequest : input.getSections()) {
 				// Validate Section existence
 				Optional<Section> optionalSection = sectionRepository.findById(sectionRequest.getSection_id());
 				if (optionalSection.isEmpty()) {
@@ -175,30 +215,25 @@ public class OrderService {
 							HttpStatus.NOT_FOUND.toString().split(" ")[0], "Shop not found", null));
 				}
 
-				// Validate Account existence
-				Optional<Account> optionalAccount = accountRepository.findById(input.getAccountId());
-				if (optionalAccount.isEmpty()) {
-					return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-							HttpStatus.NOT_FOUND.toString().split(" ")[0], "Account not found", null));
+				if (voucher != null && voucher.getShop().getId() != shop.getId()) {
+					return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+							.body(new ResponseObject(false, HttpStatus.BAD_REQUEST.toString().split(" ")[0],
+									"Voucher does not belong to the shop", null));
 				}
-				Account account = optionalAccount.get();
-
-				// Fetch the 'Pending' Status
-				Optional<Status> optionalStatus = statusRepository.findByValue("pending");
-				Optional<Status> processStatus = statusRepository.findByValue("processing");
-				if (optionalStatus.isEmpty() || processStatus.isEmpty()) {
-					return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-							HttpStatus.NOT_FOUND.toString().split(" ")[0], "Status not found", null));
-				}
-				Status status = optionalStatus.get();
 
 				// Fetch the accessibility items of the section
 				List<AccessibilityItem> accessibilityItems = itemRepository.findBySection(section);
 
+				float orderTotal = calculateOrderTotal(sectionRequest.getItem_id());
+
+				// Apply voucher discount if available
+				if (voucher != null) {
+					orderTotal = orderTotal - (orderTotal * voucher.getValue() / 100);
+				}
+
 				if (sectionRequest.getItem_id().size() == accessibilityItems.size()) {
 					// Create and populate Order entity
-					Order order = new Order(sectionRequest, calculateOrderTotal(sectionRequest.getItem_id()), section,
-							shop, account, status);
+					Order order = new Order(sectionRequest, orderTotal, section, shop, account, status);
 
 					section.setStatus(processStatus.get());
 					for (Integer itemId : sectionRequest.getItem_id()) {
@@ -218,7 +253,7 @@ public class OrderService {
 					newSection.setShop(shop);
 					newSection.setCart(section.getCart());
 					newSection.setStatus(processStatus.get());
-					newSection.setTotal(calculateOrderTotal(sectionRequest.getItem_id()));
+					newSection.setTotal(orderTotal);
 
 					// Save the new section
 					Section savedSection = sectionRepository.save(newSection);
@@ -234,8 +269,7 @@ public class OrderService {
 					}
 
 					// Create and populate Order entity for the new section
-					Order order = new Order(sectionRequest, calculateOrderTotal(sectionRequest.getItem_id()),
-							savedSection, shop, account, status);
+					Order order = new Order(sectionRequest, orderTotal, savedSection, shop, account, status);
 
 					// Save the Order entity
 					repository.save(order);
@@ -318,4 +352,73 @@ public class OrderService {
 				new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0], "Order does not exist", ""));
 	}
 
+	public ResponseEntity<ResponseObject> filterOrdersByTimeAndShop(DateRequest filterRequest, int shopId) {
+		try {
+
+			Date startDate = DateUtil.calculateStartDate(filterRequest),
+					endDate = DateUtil.calculateEndDate(filterRequest);
+
+			List<Order> orders = repository.findByTimeCompleteBetweenAndShopIdAndStatusValue(startDate, endDate, shopId,
+					"completed");
+
+			if (orders.isEmpty()) {
+				return ResponseEntity.status(HttpStatus.NOT_FOUND)
+						.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
+								"No completed orders found for the given date and shop", null));
+			}
+
+			List<OrderStatisResponse> responseList = orders.stream()
+					.map(order -> new OrderStatisResponse(order.getId(), order.getTotal(), order.getTimeComplete()))
+					.collect(Collectors.toList());
+
+			float totalOfAllOrders = orders.stream().map(Order::getTotal).reduce(0.0f, Float::sum);
+
+			return ResponseEntity.status(HttpStatus.OK)
+					.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Completed orders found",
+							new OrderFilterResult(responseList, totalOfAllOrders, responseList.size())));
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(new ResponseObject(false, HttpStatus.INTERNAL_SERVER_ERROR.toString().split(" ")[0],
+							"An error occurred while filtering completed orders", null));
+		}
+	}
+
+	public ResponseEntity<ResponseObject> filterOrdersByTime(DateRequest filterRequest) {
+		try {
+
+			Date startDate = DateUtil.calculateStartDate(filterRequest),
+					endDate = DateUtil.calculateEndDate(filterRequest);
+
+			List<Order> orders = repository.findByTimeCompleteBetweenAndStatusValue(startDate, endDate, "completed");
+
+			if (orders.isEmpty()) {
+				return ResponseEntity.status(HttpStatus.NOT_FOUND)
+						.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
+								"No completed orders found for the given date", null));
+			}
+
+			List<OrderStatisResponse> responseList = orders.stream()
+					.map(order -> new OrderStatisResponse(order.getId(), order.getTotal(), order.getTimeComplete()))
+					.collect(Collectors.toList());
+
+			float totalOfAllOrders = orders.stream().map(Order::getTotal).reduce(0.0f, Float::sum);
+
+			return ResponseEntity.status(HttpStatus.OK)
+					.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Completed orders found",
+							new OrderFilterResult(responseList, totalOfAllOrders, responseList.size())));
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(new ResponseObject(false, HttpStatus.INTERNAL_SERVER_ERROR.toString().split(" ")[0],
+							"An error occurred while filtering completed orders", null));
+		}
+	}
+
+	@Data
+	@AllArgsConstructor
+	@NoArgsConstructor
+	public static class OrderFilterResult {
+		private List<OrderStatisResponse> orders;
+		private float totalMoneyOfAllOrders;
+		private int totalOrder;
+	}
 }
