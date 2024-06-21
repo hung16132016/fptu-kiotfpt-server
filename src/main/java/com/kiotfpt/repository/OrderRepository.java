@@ -32,8 +32,12 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
 			+ "AND o.status.value = :status")
 	boolean existsByAccountAndProductAndStatus(@Param("account") Account account, @Param("product") Product product,
 			@Param("status") String status);
-	
-    List<Order> findByTimeCompleteBetweenAndShopIdAndStatusValue(Date startDate, Date endDate, int shopId, String status);
 
-    List<Order> findByTimeCompleteBetweenAndStatusValue(Date startDate, Date endDate, String status);
+	List<Order> findByTimeCompleteBetweenAndShopIdAndStatusValue(Date startDate, Date endDate, int shopId,
+			String status);
+
+	List<Order> findByTimeCompleteBetweenAndStatusValue(Date startDate, Date endDate, String status);
+
+	@Query("SELECT o FROM Order o WHERE o.status.id = :statusId")
+	List<Order> findByStatusId(int statusId);
 }

@@ -3,6 +3,7 @@ package com.kiotfpt.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.request.DateRequest;
+import com.kiotfpt.service.AccountProfileService;
 import com.kiotfpt.service.OrderService;
 import com.kiotfpt.service.ProductService;
 
@@ -22,6 +24,8 @@ public class StatisController {
 	@Autowired
 	private OrderService orderService;
 	
+	@Autowired
+	private AccountProfileService profileService;
 
 	@Autowired
 	private ProductService productService;
@@ -50,6 +54,12 @@ public class StatisController {
 			@RequestParam int shopId) {
 
 		return productService.filterProductsByTimeAndShop(filterRequest, shopId);
+	}
+	
+	@GetMapping("/account")
+	public ResponseEntity<ResponseObject> sortAccountByTotalSpent() {
+
+		return profileService.getProfilesOrderedByTotalSpent();
 	}
 
 }

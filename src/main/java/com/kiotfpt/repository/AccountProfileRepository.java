@@ -9,8 +9,10 @@ import com.kiotfpt.model.Account;
 import com.kiotfpt.model.AccountProfile;
 
 @Repository
-public interface AccountProfileRepository extends JpaRepository<AccountProfile, Integer>{
+public interface AccountProfileRepository extends JpaRepository<AccountProfile, Integer> {
 
 	Optional<AccountProfile> findByAccount(Account account);
+
+	Optional<AccountProfile> findByAccountId(int accountId);
 
 }
