@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProductResponse {
+public class ProductShopResponse {
 
 	private int id;
 	private int sold;
@@ -30,10 +30,9 @@ public class ProductResponse {
 	private BrandResponse brand;
 	private StatusResponse status;
 	private CategoryResponse category;
-	private ShopResponse shop;
 	private Collection<ProductThumbnail> thumbnail;
 
-	public ProductResponse(Product product) {
+	public ProductShopResponse(Product product) {
 		super();
 		this.id = product.getId();
 		this.sold = product.getSold();
@@ -51,7 +50,6 @@ public class ProductResponse {
 		this.brand = new BrandResponse(product.getBrand());
 		this.status = new StatusResponse(product.getStatus());
 		this.category = new CategoryResponse(product.getCategory());
-		this.shop = new ShopResponse(product.getShop());
 		this.thumbnail = product.getThumbnail();
 	}
 

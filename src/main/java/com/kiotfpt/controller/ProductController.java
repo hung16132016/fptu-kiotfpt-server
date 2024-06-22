@@ -113,7 +113,7 @@ public class ProductController {
 	
 	@GetMapping("/total-page")
 	public ResponseEntity<ResponseObject> getTotalPage(@RequestParam(name = "amount") int amount) {
-		return service.getTotalPage(amount);
+		return service.getTotalPage();
 	}
 
 }

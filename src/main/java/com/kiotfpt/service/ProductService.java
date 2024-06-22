@@ -51,6 +51,7 @@ import com.kiotfpt.request.DateRequest;
 import com.kiotfpt.request.ProductRequest;
 import com.kiotfpt.request.VariantRequest;
 import com.kiotfpt.response.ProductResponse;
+import com.kiotfpt.response.ProductShopResponse;
 import com.kiotfpt.response.ProductStatisResponse;
 import com.kiotfpt.response.ProfileMiniResponse;
 import com.kiotfpt.response.VariantResponse;
@@ -486,7 +487,7 @@ public class ProductService {
 		}
 
 		List<Product> products = productPage.getContent();
-		List<ProductResponse> returnListProduct = new ArrayList<>();
+		List<ProductShopResponse> returnListProduct = new ArrayList<>();
 
 		for (Product product : products) {
 			int statusId = product.getStatus().getId();
@@ -497,15 +498,17 @@ public class ProductService {
 					variantResponses.add(new VariantResponse(variant));
 				}
 
-				ProductResponse res = new ProductResponse(product);
+				ProductShopResponse res = new ProductShopResponse(product);
 				returnListProduct.add(res);
 			}
 		}
 
 		if (!returnListProduct.isEmpty()) {
-			return ResponseEntity.status(HttpStatus.OK)
-					.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
-							responseMessage.get("getProductByShopIdSuccess"), returnListProduct));
+			List<Product> lis = repository.findAllByShop(shopOptional.get());
+			ProductShopRes res = new ProductShopRes((int) Math.ceil((double)lis.size() / amount), returnListProduct);
+
+			return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
+					HttpStatus.OK.toString().split(" ")[0], responseMessage.get("getProductByShopIdSuccess"), res));
 		} else {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
 					new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0], "No products", null));
@@ -696,7 +699,7 @@ public class ProductService {
 								"Data has not found with this range", new int[0]));
 	}
 
-	public ResponseEntity<ResponseObject> getTotalPage(int amount) {
+	public ResponseEntity<ResponseObject> getTotalPage() {
 		List<Product> products = repository.findAllActiveProduct();
 		int number_of_page = (int) Math.ceil((double) products.size() / 10);
 
@@ -787,5 +790,13 @@ public class ProductService {
 		private List<ProductStatisResponse> products;
 		private double totalMoney;
 		private int totalQuantity;
+	}
+
+	@Data
+	@AllArgsConstructor
+	@NoArgsConstructor
+	public static class ProductShopRes {
+		private int totalPage;
+		private List<ProductShopResponse> products;
 	}
 }

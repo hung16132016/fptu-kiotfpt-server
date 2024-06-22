@@ -87,7 +87,6 @@ public class Shop {
 	private Collection<Voucher> voucher;
 	
 	@OneToMany(mappedBy = "shop", cascade = CascadeType.ALL)
-	@JsonIgnore
 	private Collection<ShopCategory> shopcategories;
 
 	public Shop(ShopRequest request, Account account, Address address) {
