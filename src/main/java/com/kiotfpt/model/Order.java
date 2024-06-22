@@ -58,9 +58,13 @@ public class Order {
 	@ManyToOne()
 	@JoinColumn(name = "status_id", nullable = false)
 	private Status status;
+	
+	@ManyToOne()
+	@JoinColumn(name = "address_id", nullable = false)
+	private Address address;
 
 	public Order(SectionRequest sectionRequest, float total, Section section, Shop shop, Account account,
-			Status status) {
+			Status status, Address address) {
 		super();
 		this.timeInit = new Date();
 		this.timeComplete = null;
@@ -72,6 +76,7 @@ public class Order {
 		this.shop = shop;
 		this.account = account;
 		this.status = status;
+		this.address = address;
 	}
 
 }

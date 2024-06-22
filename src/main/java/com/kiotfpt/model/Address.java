@@ -1,5 +1,8 @@
 package com.kiotfpt.model;
 
+import java.util.Collection;
+
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -7,7 +10,10 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -27,6 +33,9 @@ public class Address {
 
 	@Column(name = "address_value", nullable = false)
 	private String value;
+	
+	@Column(name = "address_default", nullable = false)
+	private boolean isdefault;
 
 	@ManyToOne()
 	@JoinColumn(name = "district_id")
@@ -40,5 +49,7 @@ public class Address {
 	@JoinColumn(name = "account_profile_id", nullable = false)
 	private AccountProfile profile;
 	
-	
+	@OneToMany(mappedBy = "address", cascade = CascadeType.ALL)
+	@JsonIgnore
+	private Collection<Order> orders;
 }

@@ -37,17 +37,17 @@ public class Section {
 	@ManyToOne()
 	@JoinColumn(name = "shop_id", nullable = false)
 	private Shop shop;
-	
+
 	@ManyToOne()
 	@JoinColumn(name = "status_id", nullable = false)
 	private Status status;
-	
+
 	@ManyToOne()
 	@JsonIgnore
 	@JoinColumn(name = "cart_id", nullable = false)
 	private Cart cart;
 
-	@OneToMany(mappedBy = "section", cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "section")
 	private Collection<AccessibilityItem> items;
 
 }

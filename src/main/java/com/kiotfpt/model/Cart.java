@@ -35,7 +35,7 @@ public class Cart {
 	@JsonIgnore
 	private Account account;
 
-	@OneToMany(mappedBy = "cart", cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "cart")
 	private Collection<Section> sections;
 
 }

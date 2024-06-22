@@ -12,6 +12,7 @@ import com.kiotfpt.model.Account;
 import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.repository.AccountRepository;
 import com.kiotfpt.utils.JsonReader;
+import com.kiotfpt.utils.ResponseObjectHelper;
 
 @Service
 public class AccountService {
@@ -25,11 +26,9 @@ public class AccountService {
 		List<Account> accounts = repository.findAll();
 
 		return !accounts.isEmpty()
-				? ResponseEntity.status(HttpStatus.OK)
-						.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
-								"Data has found successfully", accounts))
-				: ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-						HttpStatus.NOT_FOUND.toString().split(" ")[0], "Data has not found", new int[0]));
+				? ResponseObjectHelper.createTrueResponse(HttpStatus.OK, "Data has found successfully", accounts)
+
+				: ResponseObjectHelper.createFalseResponse(HttpStatus.NOT_FOUND, "No accounts");
 
 	}
 

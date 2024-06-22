@@ -14,5 +14,4 @@ public class SectionRequest {
 	private int section_id;
 	private String desc;
 	private List<Integer> item_id;
-
 }

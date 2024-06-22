@@ -19,6 +19,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.kiotfpt.model.AccessibilityItem;
 import com.kiotfpt.model.Account;
 import com.kiotfpt.model.AccountProfile;
+import com.kiotfpt.model.Address;
 import com.kiotfpt.model.Notify;
 import com.kiotfpt.model.Order;
 import com.kiotfpt.model.ResponseObject;
@@ -30,6 +31,7 @@ import com.kiotfpt.model.Voucher;
 import com.kiotfpt.repository.AccessibilityItemRepository;
 import com.kiotfpt.repository.AccountProfileRepository;
 import com.kiotfpt.repository.AccountRepository;
+import com.kiotfpt.repository.AddressRepository;
 import com.kiotfpt.repository.NotifyRepository;
 import com.kiotfpt.repository.OrderRepository;
 import com.kiotfpt.repository.SectionRepository;
@@ -41,8 +43,8 @@ import com.kiotfpt.request.CreateOrderRequest;
 import com.kiotfpt.request.DateRequest;
 import com.kiotfpt.request.SectionRequest;
 import com.kiotfpt.request.StatusRequest;
-import com.kiotfpt.response.OrderStatisResponse;
 import com.kiotfpt.response.OrderResponse;
+import com.kiotfpt.response.OrderStatisResponse;
 import com.kiotfpt.utils.DateUtil;
 import com.kiotfpt.utils.JsonReader;
 
@@ -82,6 +84,9 @@ public class OrderService {
 
 	@Autowired
 	private AccountProfileRepository profileRepository;
+
+	@Autowired
+	private AddressRepository addressRepository;
 
 	public String randomNumber;
 
@@ -179,6 +184,18 @@ public class OrderService {
 			}
 			Account account = optionalAccount.get();
 
+			// Validate Address existence
+			Optional<Address> optionalAddress = addressRepository.findById(input.getAddress_id());
+			if (optionalAddress.isEmpty()) {
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+						HttpStatus.NOT_FOUND.toString().split(" ")[0], "Address not found", null));
+			}
+			if (!optionalAddress.get().getProfile().getAccount().equals(account)) {
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
+						HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Address not from same account", null));
+			}
+			Address address = optionalAddress.get();
+
 			// Fetch the 'Pending' and 'Processing' Status
 			Optional<Status> optionalStatus = statusRepository.findByValue("pending");
 			Optional<Status> processStatus = statusRepository.findByValue("processing");
@@ -192,10 +209,10 @@ public class OrderService {
 			Optional<Voucher> optionalVoucher = voucherRepository.findById(input.getVoucherId());
 			Voucher voucher = null;
 			if (!optionalVoucher.isEmpty()) {
-				voucher = optionalVoucher.get();
-				if (voucher.getStatus().getId() != 11) {
-					return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
-							HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Invalid voucher", null));
+				if (optionalVoucher.get().getStatus().getId() != 11) {
+					voucher = new Voucher(0, 0, null, status);
+				} else {
+					voucher = optionalVoucher.get();
 				}
 			}
 
@@ -233,7 +250,7 @@ public class OrderService {
 
 				if (sectionRequest.getItem_id().size() == accessibilityItems.size()) {
 					// Create and populate Order entity
-					Order order = new Order(sectionRequest, orderTotal, section, shop, account, status);
+					Order order = new Order(sectionRequest, orderTotal, section, shop, account, status, address);
 
 					section.setStatus(processStatus.get());
 					for (Integer itemId : sectionRequest.getItem_id()) {
@@ -269,7 +286,7 @@ public class OrderService {
 					}
 
 					// Create and populate Order entity for the new section
-					Order order = new Order(sectionRequest, orderTotal, savedSection, shop, account, status);
+					Order order = new Order(sectionRequest, orderTotal, savedSection, shop, account, status, address);
 
 					// Save the Order entity
 					repository.save(order);

@@ -28,7 +28,7 @@ public class ProductFavouriteController {
 		return service.getAllProductFavouriteByAccountID(id);
 	}
 	
-	@DeleteMapping("/favourite/delete/{id}")
+	@DeleteMapping("/delete/{id}")
     public ResponseEntity<ResponseObject> deleteProductFavouriteById(@PathVariable int id) {
 		return service.deleteProductFavouriteById(id);
     }

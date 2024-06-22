@@ -27,6 +27,7 @@ import com.kiotfpt.repository.AccessibilityItemRepository;
 import com.kiotfpt.repository.AccountRepository;
 import com.kiotfpt.repository.CartRepository;
 import com.kiotfpt.repository.SectionRepository;
+import com.kiotfpt.repository.StatusRepository;
 import com.kiotfpt.response.Accessibility_itemResponse;
 import com.kiotfpt.response.SectionResponse;
 import com.kiotfpt.response.ShopMiniResponse;
@@ -47,6 +48,9 @@ public class CartService {
 
 	@Autowired
 	private AccessibilityItemRepository itemRepository;
+
+	@Autowired
+	private StatusRepository statusRepository;
 
 //	@Autowired
 //	private AddressDeliverRepository addRepository;
@@ -166,34 +170,23 @@ public class CartService {
 				.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Section found", list));
 	}
 
-//	public ResponseEntity<ResponseObject> createCart(Map<String, String> map) {
-//		Optional<Account> account = accountRepository.findById(Integer.parseInt(map.get("account_id")));
-//		Optional<AddressDeliver> address = addRepository.findById(Integer.parseInt(map.get("address_id")));
-//		Cart cart = new Cart();
-//		cart.setAddress(address.get());
-//		cart.setAccount(account.get());
-//		cart.setStatus(map.get("status"));
-//		cart.setTotal(Double.parseDouble(map.get("total")));
-//		return ResponseEntity.status(HttpStatus.CREATED)
-//				.body(new ResponseObject(true, HttpStatus.CREATED.toString().split(" ")[0],
-//						responseMessage.get("createCartSuccess"), repository.save(cart)));
-//	}
-//
-//	public ResponseEntity<ResponseObject> updateCart(Cart newCart) {
-//		Cart updateCart = repository.findById(newCart.getId()).map(Cart -> {
-//			Cart.setStatus(newCart.getStatus());
-//			Cart.setTotal(newCart.getTotal());
-//			return repository.save(Cart);
-//		}).orElseGet(() -> {
-//			return null;
-//		});
-//		if (updateCart == null) {
-//			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-//					HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("CartNotFound"), ""));
-//		} else {
-//			return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(false,
-//					HttpStatus.OK.toString().split(" ")[0], responseMessage.get("updateCartSuccess"), updateCart));
-//		}
-//	}
+    public ResponseEntity<ResponseObject> deleteSectionsByStatusInCart(int cartId) {
+        if (!repository.existsById(cartId)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0], "Cart not found with id " + cartId, null));
+        }
+
+        Optional<Status> status = statusRepository.findByValue("in cart");
+        // First, delete all AccessibilityItem entities associated with the sections
+        sectionRepository.findByCartIdAndStatusId(cartId, status.get().getId()).forEach(section -> {
+            itemRepository.deleteBySectionId(section.getId());
+        });
+
+        // Then delete the sections
+        sectionRepository.deleteByCartIdAndStatusId(cartId, status.get().getId());
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Sections with status " + status.get().getValue() + " deleted successfully", null));
+    }
 
 }

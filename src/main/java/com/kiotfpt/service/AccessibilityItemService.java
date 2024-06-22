@@ -125,5 +125,15 @@ public class AccessibilityItemService {
 		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
 				HttpStatus.OK.toString().split(" ")[0], "Item added to cart successfully", null));
 	}
+	
+    public ResponseEntity<ResponseObject> deleteItem(int id) {
+        if (!repository.existsById(id)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0], "AccessibilityItem not found with id " + id, null));
+        }
+        repository.deleteById(id);
+        return ResponseEntity.status(HttpStatus.OK).body(
+                new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "AccessibilityItem deleted successfully", null));
+    }
 
 }
