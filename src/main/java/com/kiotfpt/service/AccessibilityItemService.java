@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.kiotfpt.model.AccessibilityItem;
 import com.kiotfpt.model.Account;
@@ -21,6 +22,7 @@ import com.kiotfpt.repository.SectionRepository;
 import com.kiotfpt.repository.StatusRepository;
 import com.kiotfpt.repository.VariantRepository;
 import com.kiotfpt.request.ItemRequest;
+import com.kiotfpt.utils.ResponseObjectHelper;
 
 @Service
 public class AccessibilityItemService {
@@ -125,15 +127,67 @@ public class AccessibilityItemService {
 		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
 				HttpStatus.OK.toString().split(" ")[0], "Item added to cart successfully", null));
 	}
-	
-    public ResponseEntity<ResponseObject> deleteItem(int id) {
-        if (!repository.existsById(id)) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                    new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0], "AccessibilityItem not found with id " + id, null));
-        }
-        repository.deleteById(id);
-        return ResponseEntity.status(HttpStatus.OK).body(
-                new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "AccessibilityItem deleted successfully", null));
-    }
 
+	public ResponseEntity<ResponseObject> deleteItem(int id) {
+		if (!repository.existsById(id)) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+					HttpStatus.NOT_FOUND.toString().split(" ")[0], "AccessibilityItem not found with id " + id, null));
+		}
+		repository.deleteById(id);
+		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
+				HttpStatus.OK.toString().split(" ")[0], "AccessibilityItem deleted successfully", null));
+	}
+
+	@Transactional
+	public ResponseEntity<ResponseObject> updateItemAmount(int itemId, int newAmount) {
+		try {
+			if (newAmount < 0) {
+				return ResponseObjectHelper.createFalseResponse(HttpStatus.BAD_REQUEST,
+						"Quantity must be non-negative");
+			}
+
+			AccessibilityItem item = repository.findById(itemId)
+					.orElseThrow(() -> new IllegalArgumentException("Item not found"));
+
+			Variant variant = item.getVariant();
+			if (variant == null) {
+				throw new IllegalStateException("Item does not have an associated variant");
+			}
+
+			if (newAmount > variant.getQuantity()) {
+				return ResponseObjectHelper.createFalseResponse(HttpStatus.BAD_REQUEST,
+						"Requested quantity exceeds available stock");
+			}
+
+			item.setQuantity(newAmount);
+			item.setTotal(newAmount * variant.getPrice());
+
+			// Update section total
+			updateSectionTotal(item.getSection());
+
+			repository.save(item);
+
+			return ResponseObjectHelper.createTrueResponse(HttpStatus.OK, "Item updated successfully", item);
+		} catch (IllegalArgumentException e) {
+			return ResponseObjectHelper.createFalseResponse(HttpStatus.BAD_REQUEST, "Item updated successfully");
+		} catch (IllegalStateException e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(new ResponseObject(false, "INTERNAL_SERVER_ERROR", e.getMessage(), null));
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(new ResponseObject(false, "INTERNAL_SERVER_ERROR", "Failed to update item", null));
+		}
+	}
+
+	private void updateSectionTotal(Section section) {
+		if (section == null) {
+			throw new IllegalArgumentException("Item does not have an associated section");
+		}
+
+		float newTotal = (float) section.getItems().stream()
+				.mapToDouble(item -> item.getQuantity() * item.getVariant().getPrice()).sum();
+
+		section.setTotal(newTotal);
+		sectionRepository.save(section); // Save the updated section total
+	}
 }
