@@ -754,7 +754,7 @@ public class ProductService {
 				}
 			}
 			if (!returnListProduct.isEmpty()) {
-				ProductShopRes res = new ProductShopRes((int) Math.ceil((double) returnListProduct.size() / amount), returnListProduct);
+				ProductShopRes res = new ProductShopRes(productPage.getTotalPages(), returnListProduct);
 
 				return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
 						HttpStatus.OK.toString().split(" ")[0], responseMessage.get("Get product by shop category id successfull"), res));
@@ -803,7 +803,7 @@ public class ProductService {
 			}
 		}
 		if (!returnListProduct.isEmpty()) {
-			ProductShopRes res = new ProductShopRes((int) Math.ceil((double) returnListProduct.size() / amount), returnListProduct);
+			ProductShopRes res = new ProductShopRes(productPage.getTotalPages(), returnListProduct);
 
 			return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
 					HttpStatus.OK.toString().split(" ")[0], responseMessage.get("Get product by type successfull"), res));
@@ -853,7 +853,7 @@ public class ProductService {
 			}
 		}
 		if (!returnListProduct.isEmpty()) {
-			ProductShopRes res = new ProductShopRes((int) Math.ceil((double) returnListProduct.size() / amount), returnListProduct);
+			ProductShopRes res = new ProductShopRes(productPage.getTotalPages(), returnListProduct);
 
 			return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
 					HttpStatus.OK.toString().split(" ")[0], responseMessage.get("Get product by type successfull"), res));
