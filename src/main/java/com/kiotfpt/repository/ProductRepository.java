@@ -46,11 +46,8 @@ public interface ProductRepository extends JpaRepository<Product, Integer>{
 	@Query(value = "Select * from product where product.name = ?1", nativeQuery = true)
 	List<Product> findByname(String name);
 	
-    List<Product> findByOfficialTrue();
-    List<Product> findByShopIdAndOfficialTrue(int shopId);
-
-	List<Product> findByDiscountGreaterThan(int discount);
-	List<Product> findByShopIdAndDiscountGreaterThan(int shopId, int discount);
+    Page<Product> findByDiscountGreaterThan(int discount, Pageable pageable);
+    Page<Product> findByShopIdAndDiscountGreaterThan(int shopId, int discount, Pageable pageable);
 	
 	@Query(value = "Select kiotfpt_product.category_id, count(*) as product_count from kiotfpt_product group by kiotfpt_product.category_id order by product_count desc limit 4", nativeQuery = true)
 	List<Object[]> findTop4PopularCategory();
@@ -59,10 +56,28 @@ public interface ProductRepository extends JpaRepository<Product, Integer>{
 	List<Object[]> findTop4PopularBrand();
 	
 	@Query(value = "Select * from kiotfpt_product where kiotfpt_product.product_top_deal = 1", nativeQuery = true)
-	List<Product> findByTopDeal();
+	Page<Product> findByTopDeal(Pageable pageable);
 	
 	@Query(value = "Select * from kiotfpt_product where kiotfpt_product.product_top_deal = 1 and kiotfpt_product.shop_id = :shopId", nativeQuery = true)
-	List<Product> findByTopDealAndShopId(@Param("shopId") Integer shopId);
+	Page<Product> findByTopDealAndShopId(@Param("shopId") Integer shopId, Pageable pageable);
+	
+	@Query(value = "Select * from kiotfpt_product where kiotfpt_product.product_best_seller = 1", nativeQuery = true)
+	Page<Product> findByBestSeller(Pageable pageable);
+	
+	@Query(value = "Select * from kiotfpt_product where kiotfpt_product.product_best_seller = 1 and kiotfpt_product.shop_id = :shopId", nativeQuery = true)
+	Page<Product> findByBestSellerAndShopId(@Param("shopId") Integer shopId, Pageable pageable);
+	
+	@Query(value = "Select * from kiotfpt_product where kiotfpt_product.product_popular = 1", nativeQuery = true)
+	Page<Product> findByPopular(Pageable pageable);
+	
+	@Query(value = "Select * from kiotfpt_product where kiotfpt_product.product_popular = 1 and kiotfpt_product.shop_id = :shopId", nativeQuery = true)
+	Page<Product> findByPopularAndShopId(@Param("shopId") Integer shopId, Pageable pageable);
+	
+	@Query(value = "Select * from kiotfpt_product where kiotfpt_product.product_official = 1", nativeQuery = true)
+	Page<Product> findByOfficial(Pageable pageable);
+	
+	@Query(value = "Select * from kiotfpt_product where kiotfpt_product.product_official = 1 and kiotfpt_product.shop_id = :shopId", nativeQuery = true)
+	Page<Product> findByOfficialAndShopId(@Param("shopId") Integer shopId, Pageable pageable);
 	
 	@Query(value = "Select distinct brand_id From kiotfpt_product where kiotfpt_product.category_id = :category_id", nativeQuery = true)
 	List<Object[]> findBrandByCategory(@Param("category_id") int id);
@@ -74,4 +89,7 @@ public interface ProductRepository extends JpaRepository<Product, Integer>{
 	
 	@Query(value = "SELECT * FROM kiotfpt_product WHERE kiotfpt_product.status_id = 11", nativeQuery = true) //haibang
 	List<Product> findAllActiveProduct();
+	
+	@Query(value = "Select * from kiotfpt_product where kiotfpt_product.category_id = :cateId and kiotfpt_product.shop_id = :shopId", nativeQuery = true)
+	Page<Product> findByShopIDAndCateID(@Param("shopId") Integer shopId, @Param("cateId") Integer cateId, Pageable pageable);
 }
