@@ -19,4 +19,7 @@ public interface ShopRepository extends JpaRepository<Shop, Integer> {
 
 	@Query("SELECT s FROM Shop s ORDER BY SIZE(s.transactions) DESC")
 	List<Shop> findTop10ByTransactions();
+	
+    List<Shop> findByNameContainingIgnoreCase(String keyword);
+
 }
