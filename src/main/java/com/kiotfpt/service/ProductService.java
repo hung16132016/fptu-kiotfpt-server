@@ -31,6 +31,7 @@ import com.kiotfpt.model.ProductCondition;
 import com.kiotfpt.model.ProductThumbnail;
 import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.model.Shop;
+import com.kiotfpt.model.ShopCategory;
 import com.kiotfpt.model.Size;
 import com.kiotfpt.model.Status;
 import com.kiotfpt.model.Variant;
@@ -43,6 +44,7 @@ import com.kiotfpt.repository.ConditionRepository;
 import com.kiotfpt.repository.OrderRepository;
 import com.kiotfpt.repository.ProductRepository;
 import com.kiotfpt.repository.ProductThumbnailRepository;
+import com.kiotfpt.repository.ShopCateRepository;
 import com.kiotfpt.repository.ShopRepository;
 import com.kiotfpt.repository.SizeRepository;
 import com.kiotfpt.repository.StatusRepository;
@@ -105,6 +107,9 @@ public class ProductService {
 
 	@Autowired
 	private OrderRepository orderRepository;
+	
+	@Autowired
+	private ShopCateRepository shopCategoryRepository;
 
 //	@Value("${path_image}")
 //	private String imageLink;
@@ -560,88 +565,6 @@ public class ProductService {
 		return !found.isEmpty() ? repository.findByname(name) : null;
 	}
 
-	public ResponseEntity<ResponseObject> getTopDealProduct() {
-		List<Product> products = repository.findByTopDeal();
-
-		return !products.isEmpty()
-				? ResponseEntity.status(HttpStatus.OK)
-						.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
-								"Data has found successfully", products))
-				: ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-						HttpStatus.NOT_FOUND.toString().split(" ")[0], "Data has not found", new int[0]));
-	}
-
-	public ResponseEntity<ResponseObject> getTopDealProductWithShopId(int shop_id) {
-		List<Product> products = repository.findByTopDealAndShopId(shop_id);
-
-		return !products.isEmpty()
-				? ResponseEntity.status(HttpStatus.OK)
-						.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
-								"Data has found successfully", products))
-				: ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-						HttpStatus.NOT_FOUND.toString().split(" ")[0], "Data has not found", new int[0]));
-	}
-
-	public ResponseEntity<ResponseObject> getOfficialProducts() {
-		List<Product> officialProducts = repository.findByOfficialTrue();
-
-		if (officialProducts == null || officialProducts.isEmpty()) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-					HttpStatus.NOT_FOUND.toString().split(" ")[0], "No official products found.", null));
-		}
-
-		List<ProductResponse> officialProductResponses = officialProducts.stream().map(ProductResponse::new)
-				.collect(Collectors.toList());
-
-		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
-				HttpStatus.OK.toString().split(" ")[0], "Official products found.", officialProductResponses));
-	}
-
-	public ResponseEntity<ResponseObject> getOfficialProductsWithShopID(int shop_id) {
-		List<Product> officialProducts = repository.findByShopIdAndOfficialTrue(shop_id);
-
-		if (officialProducts == null || officialProducts.isEmpty()) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-					HttpStatus.NOT_FOUND.toString().split(" ")[0], "No official products found.", null));
-		}
-
-		List<ProductResponse> officialProductResponses = officialProducts.stream().map(ProductResponse::new)
-				.collect(Collectors.toList());
-
-		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
-				HttpStatus.OK.toString().split(" ")[0], "Official products found.", officialProductResponses));
-	}
-
-	public ResponseEntity<ResponseObject> getDiscountedProducts() {
-		List<Product> discountedProducts = repository.findByDiscountGreaterThan(0);
-
-		if (discountedProducts.isEmpty()) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-					HttpStatus.NOT_FOUND.toString().split(" ")[0], "No discounted products found.", null));
-		}
-
-		List<ProductResponse> discountedProductResponses = discountedProducts.stream().map(ProductResponse::new)
-				.collect(Collectors.toList());
-
-		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
-				HttpStatus.OK.toString().split(" ")[0], "Discounted products found.", discountedProductResponses));
-	}
-
-	public ResponseEntity<ResponseObject> getDiscountedProductsWithShopID(int shop_id) {
-		List<Product> discountedProducts = repository.findByShopIdAndDiscountGreaterThan(shop_id, 0);
-
-		if (discountedProducts.isEmpty()) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-					HttpStatus.NOT_FOUND.toString().split(" ")[0], "No discounted products found.", null));
-		}
-
-		List<ProductResponse> discountedProductResponses = discountedProducts.stream().map(ProductResponse::new)
-				.collect(Collectors.toList());
-
-		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
-				HttpStatus.OK.toString().split(" ")[0], "Discounted products found.", discountedProductResponses));
-	}
-
 	public ResponseEntity<ResponseObject> getProductRelated(int product_id) {
 		Optional<Product> product = repository.findById(product_id);
 		if (!product.isEmpty()) {
@@ -803,6 +726,143 @@ public class ProductService {
 				"Products without comments retrieved successfully", productsWithoutComments);
 	}
 
+	public ResponseEntity<ResponseObject> getProductsByShopCatID(int shopCatID, int page, int amount) {
+		Optional<ShopCategory> shopCate = shopCategoryRepository.findById(shopCatID);
+		
+		if (!shopCate.isEmpty()) {
+			Optional<Shop> shop = shopRepository.findById(shopCate.get().getShop().getId());
+			Optional<Category> category = categoryRepository.findById(shopCate.get().getCategory().getId());
+			if (shop.isEmpty() || category.isEmpty()) {
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+						HttpStatus.NOT_FOUND.toString().split(" ")[0], "There is no category or no shop with this shop category!", null));
+			}
+			Pageable pageable = PageRequest.of(page - 1, amount);
+			Page<Product> productPage = repository.findByShopIDAndCateID(shopCate.get().getShop().getId(), shopCate.get().getCategory().getId(), pageable);
+			if (productPage.isEmpty()) {
+				return ResponseEntity.status(HttpStatus.NOT_FOUND)
+						.body(new ResponseObject(false, "404", "There are no product with this shop category id!", null));
+			}
+			
+			List<Product> products = productPage.getContent();
+			List<ProductShopResponse> returnListProduct = new ArrayList<>();
+
+			for (Product product : products) {
+				int statusId = product.getStatus().getId();
+				if (statusId == 11) {
+					ProductShopResponse res = new ProductShopResponse(product);
+					returnListProduct.add(res);
+				}
+			}
+			if (!returnListProduct.isEmpty()) {
+				ProductShopRes res = new ProductShopRes(productPage.getTotalPages(), returnListProduct);
+
+				return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
+						HttpStatus.OK.toString().split(" ")[0], responseMessage.get("Get product by shop category id successfull"), res));
+			} else {
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+						new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0], "No products", null));
+			}
+			
+		}
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+				HttpStatus.NOT_FOUND.toString().split(" ")[0], "There is no shop category with this shop category id!", null));
+		
+	}
+	
+	public ResponseEntity<ResponseObject> getProductsByType(String type, int page, int amount) {
+		Pageable pageable = PageRequest.of(page - 1, amount);
+		Page<Product> productPage = Page.empty();
+		
+		if (type.equals("popular")) {
+			productPage = repository.findByPopular(pageable);
+		} else if (type.equals("best-seller")) {
+			productPage = repository.findByBestSeller(pageable);
+		} else if (type.equals("official")) {
+			productPage = repository.findByOfficial(pageable);
+		} else if (type.equals("top-deal")) {
+			productPage = repository.findByTopDeal(pageable);
+		} else if (type.equals("discount")) {
+			productPage = repository.findByDiscountGreaterThan(0, pageable);
+		} else {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
+					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "The type is invalid!", null));
+		}
+		
+		if (productPage.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND)
+					.body(new ResponseObject(false, "404", "There are no product with this shop category id!", null));
+		}
+		List<Product> products = productPage.getContent();
+		List<ProductShopResponse> returnListProduct = new ArrayList<>();
+
+		for (Product product : products) {
+			int statusId = product.getStatus().getId();
+			if (statusId == 11) {
+				ProductShopResponse res = new ProductShopResponse(product);
+				returnListProduct.add(res);
+			}
+		}
+		if (!returnListProduct.isEmpty()) {
+			ProductShopRes res = new ProductShopRes(productPage.getTotalPages(), returnListProduct);
+
+			return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
+					HttpStatus.OK.toString().split(" ")[0], responseMessage.get("Get product by type successfull"), res));
+		} else {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+					new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0], "There are no products with this type", null));
+		}
+	}
+
+	public ResponseEntity<ResponseObject> getProductsByTypeAndShopID(String type, int shopID, int page, int amount) {
+		Pageable pageable = PageRequest.of(page - 1, amount);
+		Page<Product> productPage = Page.empty();
+		
+		Optional<Shop> shop = shopRepository.findById(shopID);
+		if (shop.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+					HttpStatus.NOT_FOUND.toString().split(" ")[0], "There is no shop with this shop id!", null));
+		}
+		
+		if (type.equals("popular")) {
+			productPage = repository.findByPopularAndShopId(shopID, pageable);
+		} else if (type.equals("best-seller")) {
+			productPage = repository.findByBestSellerAndShopId(shopID, pageable);
+		} else if (type.equals("official")) {
+			productPage = repository.findByOfficialAndShopId(shopID, pageable);
+		} else if (type.equals("top-deal")) {
+			productPage = repository.findByTopDealAndShopId(shopID, pageable);
+		} else if (type.equals("discount")) {
+			productPage = repository.findByShopIdAndDiscountGreaterThan(shopID, 0, pageable);
+		} else {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
+					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "The type is invalid!", null));
+		}
+		
+		if (productPage.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND)
+					.body(new ResponseObject(false, "404", "There are no product with this shop category id!", null));
+		}
+		List<Product> products = productPage.getContent();
+		List<ProductShopResponse> returnListProduct = new ArrayList<>();
+
+		for (Product product : products) {
+			int statusId = product.getStatus().getId();
+			if (statusId == 11) {
+				ProductShopResponse res = new ProductShopResponse(product);
+				returnListProduct.add(res);
+			}
+		}
+		if (!returnListProduct.isEmpty()) {
+			ProductShopRes res = new ProductShopRes(productPage.getTotalPages(), returnListProduct);
+
+			return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
+					HttpStatus.OK.toString().split(" ")[0], responseMessage.get("Get product by type successfull"), res));
+		} else {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+					new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0], "There are no products with this type", null));
+		}
+	}
+	
 	@Data
 	@AllArgsConstructor
 	@NoArgsConstructor

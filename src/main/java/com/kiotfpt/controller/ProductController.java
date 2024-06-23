@@ -82,30 +82,6 @@ public class ProductController {
 		return service.updateProduct(id, obj);
 	}
 
-	@GetMapping("/discount")
-	public ResponseEntity<ResponseObject> getDiscountedProducts(
-			@RequestParam(name = "shopID", required = false) Optional<Integer> id) {
-		if (id.isEmpty())
-			return service.getDiscountedProducts();
-		return service.getDiscountedProductsWithShopID(id.get());
-	}
-
-	@GetMapping("/official")
-	public ResponseEntity<ResponseObject> getOfficialProducts(
-			@RequestParam(name = "shopID", required = false) Optional<Integer> id) {
-		if (id.isEmpty())
-			return service.getOfficialProducts();
-		return service.getOfficialProductsWithShopID(id.get());
-	}
-
-	@GetMapping("/top-deal")
-	public ResponseEntity<ResponseObject> getTopDealProduct(
-			@RequestParam(name = "shopID", required = false) Optional<Integer> id) {
-		if (id.isEmpty())
-			return service.getTopDealProduct();
-		return service.getTopDealProductWithShopId(id.get());
-	}
-
 	@GetMapping("/get-by-price-range")
 	public ResponseEntity<ResponseObject> getByPriceRange(@RequestParam(name = "min") float min,
 			@RequestParam(name = "max") float max, @RequestParam(name = "page") Integer page,
@@ -129,5 +105,33 @@ public class ProductController {
 	public ResponseEntity<ResponseObject> getProductsWithoutComments(@RequestParam(name = "accountId") int accountId) {
 		return service.getProductsNotCommentedByAccount(accountId);
 	}
+	
+	@GetMapping("/get-by-shop-and-cat")
+	public ResponseEntity<ResponseObject> getProductsByShopCatID(
+			@RequestParam(name = "shopCatID") int shopCatID, 
+			@RequestParam(name = "page") Integer page,
+			@RequestParam(name = "amount") Integer amount
+			) {
+		return service.getProductsByShopCatID(shopCatID, page, amount);
+	}
 
+	@GetMapping("/get-by-type")
+	public ResponseEntity<ResponseObject> getProductsByType(
+			@RequestParam(name = "type") String type, 
+			@RequestParam(name = "page") Integer page,
+			@RequestParam(name = "amount") Integer amount
+			) {
+		return service.getProductsByType(type, page, amount);
+	}
+	
+	@GetMapping("/get-by-type-and-shop")
+	public ResponseEntity<ResponseObject> getProductsByTypeAndShopID(
+			@RequestParam(name = "shopID") Integer shopId, 
+			@RequestParam(name = "type") String type, 
+			@RequestParam(name = "page") Integer page,
+			@RequestParam(name = "amount") Integer amount
+			) {
+		return service.getProductsByTypeAndShopID(type, shopId, page, amount);
+	}
+	
 }
