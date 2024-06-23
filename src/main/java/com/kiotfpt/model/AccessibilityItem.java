@@ -48,5 +48,4 @@ public class AccessibilityItem {
 	@ManyToOne()
 	@JoinColumn(name = "status_id")
 	private Status status;
-
 }

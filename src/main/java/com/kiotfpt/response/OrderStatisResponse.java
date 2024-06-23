@@ -12,5 +12,5 @@ import lombok.NoArgsConstructor;
 public class OrderStatisResponse {
 	private int id;
 	private float total;
-	private Date timeComplete;
+	private Date time;
 }

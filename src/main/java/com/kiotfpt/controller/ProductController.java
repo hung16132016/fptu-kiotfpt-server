@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -20,8 +21,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.request.ProductRequest;
+import com.kiotfpt.response.ProductMiniResponse;
 import com.kiotfpt.service.ProductService;
-
+import com.kiotfpt.utils.ResponseObjectHelper;
 
 @CrossOrigin(origins = "http://localhost:8888")
 @RestController
@@ -32,7 +34,8 @@ public class ProductController {
 	private ProductService service;
 
 	@GetMapping("/get-all")
-	public ResponseEntity<ResponseObject> getAllProduct(@RequestParam(name = "page") Integer page, @RequestParam(name = "amount") Integer amount) {
+	public ResponseEntity<ResponseObject> getAllProduct(@RequestParam(name = "page") Integer page,
+			@RequestParam(name = "amount") Integer amount) {
 		return service.getAllProduct(page, amount);
 	}
 
@@ -45,14 +48,16 @@ public class ProductController {
 	public ResponseEntity<ResponseObject> getNew8Added() {
 		return service.getNew8Added();
 	}
-	
+
 	@GetMapping("/get-by-category")
-	public ResponseEntity<ResponseObject> getByCategoryID(@RequestParam(name = "categoryID") Integer category_id, @RequestParam(name = "page") Integer page, @RequestParam(name = "amount") Integer amount) {
+	public ResponseEntity<ResponseObject> getByCategoryID(@RequestParam(name = "categoryID") Integer category_id,
+			@RequestParam(name = "page") Integer page, @RequestParam(name = "amount") Integer amount) {
 		return service.getByCategoryID(category_id, page, amount);
 	}
 
 	@GetMapping("/search")
-	public ResponseEntity<ResponseObject> getByKeyword(@RequestParam(name = "key") String keyword, @RequestParam(name = "page") Integer page, @RequestParam(name = "amount") Integer amount) {
+	public ResponseEntity<ResponseObject> getByKeyword(@RequestParam(name = "key") String keyword,
+			@RequestParam(name = "page") Integer page, @RequestParam(name = "amount") Integer amount) {
 		return service.getByKeyword(keyword, page, amount);
 	}
 
@@ -76,44 +81,53 @@ public class ProductController {
 	public ResponseEntity<ResponseObject> updateProduct(@PathVariable int id, @RequestBody ProductRequest obj) {
 		return service.updateProduct(id, obj);
 	}
-	
+
 	@GetMapping("/discount")
-	public ResponseEntity<ResponseObject> getDiscountedProducts(@RequestParam(name = "shopID", required=false) Optional<Integer> id) {
-		if(id.isEmpty())
+	public ResponseEntity<ResponseObject> getDiscountedProducts(
+			@RequestParam(name = "shopID", required = false) Optional<Integer> id) {
+		if (id.isEmpty())
 			return service.getDiscountedProducts();
 		return service.getDiscountedProductsWithShopID(id.get());
 	}
 
 	@GetMapping("/official")
-	public ResponseEntity<ResponseObject> getOfficialProducts(@RequestParam(name = "shopID", required=false) Optional<Integer> id) {
-		if(id.isEmpty())
+	public ResponseEntity<ResponseObject> getOfficialProducts(
+			@RequestParam(name = "shopID", required = false) Optional<Integer> id) {
+		if (id.isEmpty())
 			return service.getOfficialProducts();
 		return service.getOfficialProductsWithShopID(id.get());
 	}
-	
+
 	@GetMapping("/top-deal")
-	public ResponseEntity<ResponseObject> getTopDealProduct(@RequestParam(name = "shopID", required=false) Optional<Integer> id) {
-		if(id.isEmpty())
+	public ResponseEntity<ResponseObject> getTopDealProduct(
+			@RequestParam(name = "shopID", required = false) Optional<Integer> id) {
+		if (id.isEmpty())
 			return service.getTopDealProduct();
 		return service.getTopDealProductWithShopId(id.get());
 	}
-	
+
 	@GetMapping("/get-by-price-range")
-	public ResponseEntity<ResponseObject> getByPriceRange(@RequestParam(name = "min") float min, @RequestParam(name = "max") float max, 
-			@RequestParam(name = "page") Integer page, @RequestParam(name = "amount") Integer amount) {
+	public ResponseEntity<ResponseObject> getByPriceRange(@RequestParam(name = "min") float min,
+			@RequestParam(name = "max") float max, @RequestParam(name = "page") Integer page,
+			@RequestParam(name = "amount") Integer amount) {
 
 		return service.getByPriceRange(min, max, page, amount);
 	}
-	
+
 	@PostMapping("/get-multiple-category")
 	public ResponseEntity<ResponseObject> getByListCategoryID(@RequestBody Map<String, Object> request) {
 		List<String> category_id_list = (List<String>) request.get("category_id_list");
 		return service.getByListCategoryID(category_id_list);
 	}
-	
+
 	@GetMapping("/total-page")
 	public ResponseEntity<ResponseObject> getTotalPage(@RequestParam(name = "amount") int amount) {
 		return service.getTotalPage();
+	}
+
+	@GetMapping("/products-no-comments")
+	public ResponseEntity<ResponseObject> getProductsWithoutComments(@RequestParam(name = "accountId") int accountId) {
+		return service.getProductsNotCommentedByAccount(accountId);
 	}
 
 }

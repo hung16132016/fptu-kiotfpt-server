@@ -14,6 +14,7 @@ import javax.persistence.Transient;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.kiotfpt.request.CommentRequest;
+import com.kiotfpt.response.ProductMiniResponse;
 import com.kiotfpt.response.ProfileMiniResponse;
 
 import lombok.AllArgsConstructor;
@@ -50,10 +51,13 @@ public class Comment {
 	@JsonIgnore
 	@JoinColumn(name = "product_id")
 	private Product product;
-	
+
 	@Transient
 	private ProfileMiniResponse profile;
-	
+
+	@Transient
+	private ProductMiniResponse productMiniResponse;
+
 	public Comment(CommentRequest request, Account acc, Product product) {
 		super();
 		this.content = request.getContent();
@@ -71,6 +75,14 @@ public class Comment {
 		this.date = comment.getDate();
 		this.profile = new ProfileMiniResponse(profile);
 	}
-	
+
+	public Comment(Comment comment) {
+		super();
+		this.content = comment.getContent();
+		this.rate = comment.getRate();
+		this.date = comment.getDate();
+		this.account = comment.getAccount();
+		this.productMiniResponse = new ProductMiniResponse(comment.getProduct());
+	}
 
 }

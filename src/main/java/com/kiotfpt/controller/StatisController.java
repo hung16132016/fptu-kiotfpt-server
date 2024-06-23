@@ -43,6 +43,19 @@ public class StatisController {
 		return orderService.filterOrdersByTime(filterRequest);
 	}
 	
+	@PostMapping("/shop-revenue")
+	public ResponseEntity<ResponseObject> shopRevenue(@RequestBody DateRequest filterRequest,
+			@RequestParam int shopId) {
+
+		return orderService.revenueShop(filterRequest, shopId);
+	}
+
+	@PostMapping("/revenue")
+	public ResponseEntity<ResponseObject> revenue(@RequestBody DateRequest filterRequest) {
+
+		return orderService.revenue(filterRequest);
+	}
+	
 	@PostMapping("/product/filter")
 	public ResponseEntity<ResponseObject> filterProductsByTime(@RequestBody DateRequest filterRequest) {
 

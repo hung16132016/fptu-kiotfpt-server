@@ -2,6 +2,7 @@ package com.kiotfpt.service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -74,8 +75,12 @@ public class CommentService {
 
         List<Comment> comments = repository.findAllByAccount(optionalAccount.get());
 
+        List<Comment> transformedComments = comments.stream()
+                .map(comment -> new Comment(comment))
+                .collect(Collectors.toList());
+
         return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
-                String.valueOf(HttpStatus.OK.value()), "Comments retrieved successfully", comments));
+                String.valueOf(HttpStatus.OK.value()), "Comments retrieved successfully", transformedComments));
     }
 	
 }

@@ -50,6 +50,7 @@ import com.kiotfpt.repository.VariantRepository;
 import com.kiotfpt.request.DateRequest;
 import com.kiotfpt.request.ProductRequest;
 import com.kiotfpt.request.VariantRequest;
+import com.kiotfpt.response.ProductMiniResponse;
 import com.kiotfpt.response.ProductResponse;
 import com.kiotfpt.response.ProductShopResponse;
 import com.kiotfpt.response.ProductStatisResponse;
@@ -57,6 +58,7 @@ import com.kiotfpt.response.ProfileMiniResponse;
 import com.kiotfpt.response.VariantResponse;
 import com.kiotfpt.utils.DateUtil;
 import com.kiotfpt.utils.JsonReader;
+import com.kiotfpt.utils.ResponseObjectHelper;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -505,7 +507,7 @@ public class ProductService {
 
 		if (!returnListProduct.isEmpty()) {
 			List<Product> lis = repository.findAllByShop(shopOptional.get());
-			ProductShopRes res = new ProductShopRes((int) Math.ceil((double)lis.size() / amount), returnListProduct);
+			ProductShopRes res = new ProductShopRes((int) Math.ceil((double) lis.size() / amount), returnListProduct);
 
 			return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
 					HttpStatus.OK.toString().split(" ")[0], responseMessage.get("getProductByShopIdSuccess"), res));
@@ -781,6 +783,24 @@ public class ProductService {
 					.body(new ResponseObject(false, HttpStatus.INTERNAL_SERVER_ERROR.toString().split(" ")[0],
 							"An error occurred while filtering products", null));
 		}
+	}
+
+	public ResponseEntity<ResponseObject> getProductsNotCommentedByAccount(int accountId) {
+		// Fetch completed orders for the account
+		List<Order> completedOrders = orderRepository.findByAccountIdAndStatusId(accountId, 27);
+
+		// Collect all products in the completed orders
+		List<ProductMiniResponse> productsWithoutComments = completedOrders.stream()
+				.flatMap(order -> order.getSection().getItems().stream()).map(AccessibilityItem::getVariant)
+				.filter(variant -> !commentRepository.existsByAccountIdAndProductId(accountId, variant.getId()))
+				.map(variant -> new ProductMiniResponse(variant.getProduct(), variant)).collect(Collectors.toList());
+
+		if (productsWithoutComments.isEmpty()) {
+			return ResponseObjectHelper.createFalseResponse(HttpStatus.NOT_FOUND, "No products without comments");
+		}
+
+		return ResponseObjectHelper.createTrueResponse(HttpStatus.OK,
+				"Products without comments retrieved successfully", productsWithoutComments);
 	}
 
 	@Data

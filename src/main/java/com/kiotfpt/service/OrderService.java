@@ -1,6 +1,7 @@
 package com.kiotfpt.service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -374,6 +375,68 @@ public class OrderService {
 
 			Date startDate = DateUtil.calculateStartDate(filterRequest),
 					endDate = DateUtil.calculateEndDate(filterRequest);
+			List<String> statusList = Arrays.asList("completed", "pending");
+
+			List<Order> orders = repository.findByTimeInitBetweenAndShopIdAndStatusIn(startDate, endDate, shopId,
+					statusList);
+
+			if (orders.isEmpty()) {
+				return ResponseEntity.status(HttpStatus.NOT_FOUND)
+						.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
+								"No completed orders found for the given date and shop", null));
+			}
+
+			List<OrderStatisResponse> responseList = orders.stream()
+					.map(order -> new OrderStatisResponse(order.getId(), order.getTotal(), order.getTimeInit()))
+					.collect(Collectors.toList());
+
+			float totalOfAllOrders = orders.stream().map(Order::getTotal).reduce(0.0f, Float::sum);
+
+			return ResponseEntity.status(HttpStatus.OK)
+					.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Completed orders found",
+							new OrderFilterResult(responseList, totalOfAllOrders, responseList.size())));
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(new ResponseObject(false, HttpStatus.INTERNAL_SERVER_ERROR.toString().split(" ")[0],
+							"An error occurred while filtering completed orders", null));
+		}
+	}
+
+	public ResponseEntity<ResponseObject> filterOrdersByTime(DateRequest filterRequest) {
+		try {
+
+			Date startDate = DateUtil.calculateStartDate(filterRequest),
+					endDate = DateUtil.calculateEndDate(filterRequest);
+
+			List<Order> orders = repository.findByTimeInitBetweenAndStatusIn(startDate, endDate);
+
+			if (orders.isEmpty()) {
+				return ResponseEntity.status(HttpStatus.NOT_FOUND)
+						.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
+								"No completed orders found for the given date", null));
+			}
+
+			List<OrderStatisResponse> responseList = orders.stream()
+					.map(order -> new OrderStatisResponse(order.getId(), order.getTotal(), order.getTimeInit()))
+					.collect(Collectors.toList());
+
+			float totalOfAllOrders = orders.stream().map(Order::getTotal).reduce(0.0f, Float::sum);
+
+			return ResponseEntity.status(HttpStatus.OK)
+					.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Completed orders found",
+							new OrderFilterResult(responseList, totalOfAllOrders, responseList.size())));
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(new ResponseObject(false, HttpStatus.INTERNAL_SERVER_ERROR.toString().split(" ")[0],
+							"An error occurred while filtering completed orders", null));
+		}
+	}
+
+	public ResponseEntity<ResponseObject> revenueShop(DateRequest filterRequest, int shopId) {
+		try {
+
+			Date startDate = DateUtil.calculateStartDate(filterRequest),
+					endDate = DateUtil.calculateEndDate(filterRequest);
 
 			List<Order> orders = repository.findByTimeCompleteBetweenAndShopIdAndStatusValue(startDate, endDate, shopId,
 					"completed");
@@ -400,13 +463,13 @@ public class OrderService {
 		}
 	}
 
-	public ResponseEntity<ResponseObject> filterOrdersByTime(DateRequest filterRequest) {
+	public ResponseEntity<ResponseObject> revenue(DateRequest filterRequest) {
 		try {
 
 			Date startDate = DateUtil.calculateStartDate(filterRequest),
 					endDate = DateUtil.calculateEndDate(filterRequest);
 
-			List<Order> orders = repository.findByTimeCompleteBetweenAndStatusValue(startDate, endDate, "completed");
+			List<Order> orders = repository.findByTimeCompleteBetweenAndStatusValue(startDate, endDate,"completed");
 
 			if (orders.isEmpty()) {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND)
