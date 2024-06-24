@@ -15,6 +15,7 @@ public class AddressResponse {
 	private String address_value;
 	private DistrictResponse district;
 	private ProvinceResponse province;
+	private boolean isdefault;
 
 	public AddressResponse(Address address) {
 		super();
@@ -22,6 +23,7 @@ public class AddressResponse {
 		this.address_value = address.getValue();
 		this.district = new DistrictResponse(address.getDistrict());
 		this.province = new ProvinceResponse(address.getProvince());
+		this.isdefault = address.isIsdefault();
 	}
 
 }
