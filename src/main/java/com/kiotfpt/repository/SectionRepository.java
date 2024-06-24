@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.kiotfpt.model.Cart;
 import com.kiotfpt.model.Section;
 import com.kiotfpt.model.Shop;
+import com.kiotfpt.model.Status;
 
 @Repository
 public interface SectionRepository extends JpaRepository<Section, Integer> {
@@ -20,8 +21,7 @@ public interface SectionRepository extends JpaRepository<Section, Integer> {
 	
 	List<Section> findByCart(Cart cart);
 	
-    Optional<Section> findByShopIdAndCartId(int shopId, int accountId);
-    
+    Optional<Section> findByShopIdAndCartIdAndStatus(int shopId, int cartId, Status status);
 
     @Query("SELECT s FROM Section s WHERE s.cart.id = :cartId AND s.status.id = :statusId")
     List<Section> findByCartIdAndStatusId(@Param("cartId") int cartId, @Param("statusId") int statusId);

@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 public class SectionRequest {
 
 	private int section_id;
+	private int voucher_id;
 	private String desc;
 	private List<Integer> item_id;
 }

@@ -72,13 +72,8 @@ public class AccessibilityItemService {
 		Status inCartStatus = statusRepository.findByValue("in cart")
 				.orElseThrow(() -> new IllegalStateException("Status 'in cart' not found"));
 
-		// Fetch "completed" status
-		Status completedStatus = statusRepository.findByValue("completed")
-				.orElseThrow(() -> new IllegalStateException("Status 'completed' not found"));
-
 		// Find existing section for the shop
-		Section section = sectionRepository.findByShopIdAndCartId(variant.getProduct().getShop().getId(), cart.getId())
-				.filter(s -> !s.getStatus().equals(completedStatus)).orElse(null);
+		Section section = sectionRepository.findByShopIdAndCartIdAndStatus(variant.getProduct().getShop().getId(), cart.getId(), inCartStatus).orElse(null);
 
 		// Validate amount
 		if (itemRequest.getAmount() <= 0) {

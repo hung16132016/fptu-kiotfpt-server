@@ -28,6 +28,7 @@ import com.kiotfpt.model.Section;
 import com.kiotfpt.model.Shop;
 import com.kiotfpt.model.Status;
 import com.kiotfpt.model.Transaction;
+import com.kiotfpt.model.Variant;
 import com.kiotfpt.model.Voucher;
 import com.kiotfpt.repository.AccessibilityItemRepository;
 import com.kiotfpt.repository.AccountProfileRepository;
@@ -39,6 +40,7 @@ import com.kiotfpt.repository.SectionRepository;
 import com.kiotfpt.repository.ShopRepository;
 import com.kiotfpt.repository.StatusRepository;
 import com.kiotfpt.repository.TransactionRepository;
+import com.kiotfpt.repository.VariantRepository;
 import com.kiotfpt.repository.VoucherRepository;
 import com.kiotfpt.request.CreateOrderRequest;
 import com.kiotfpt.request.DateRequest;
@@ -48,6 +50,7 @@ import com.kiotfpt.response.OrderResponse;
 import com.kiotfpt.response.OrderStatisResponse;
 import com.kiotfpt.utils.DateUtil;
 import com.kiotfpt.utils.JsonReader;
+import com.kiotfpt.utils.ResponseObjectHelper;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -88,6 +91,9 @@ public class OrderService {
 
 	@Autowired
 	private AddressRepository addressRepository;
+
+	@Autowired
+	private VariantRepository variantRepository;
 
 	public String randomNumber;
 
@@ -199,44 +205,40 @@ public class OrderService {
 
 			// Fetch the 'Pending' and 'Processing' Status
 			Optional<Status> optionalStatus = statusRepository.findByValue("pending");
+			Optional<Status> activeStatus = statusRepository.findByValue("active");
 			Optional<Status> processStatus = statusRepository.findByValue("processing");
 			if (optionalStatus.isEmpty() || processStatus.isEmpty()) {
-				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-						HttpStatus.NOT_FOUND.toString().split(" ")[0], "Status not found", null));
+				return ResponseObjectHelper.createFalseResponse(HttpStatus.NOT_FOUND, "Status not found");
 			}
 			Status status = optionalStatus.get();
-
-			// Validate Voucher
-			Optional<Voucher> optionalVoucher = voucherRepository.findById(input.getVoucherId());
-			Voucher voucher = null;
-			if (!optionalVoucher.isEmpty()) {
-				if (optionalVoucher.get().getStatus().getId() != 11) {
-					voucher = new Voucher(0, 0, null, status);
-				} else {
-					voucher = optionalVoucher.get();
-				}
-			}
 
 			for (SectionRequest sectionRequest : input.getSections()) {
 				// Validate Section existence
 				Optional<Section> optionalSection = sectionRepository.findById(sectionRequest.getSection_id());
 				if (optionalSection.isEmpty()) {
-					return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-							HttpStatus.NOT_FOUND.toString().split(" ")[0], "Section not found", null));
+					return ResponseObjectHelper.createFalseResponse(HttpStatus.NOT_FOUND, "Section not found");
 				}
 				Section section = optionalSection.get();
 
 				// Validate Shop existence
 				Shop shop = section.getShop();
 				if (shop == null) {
-					return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-							HttpStatus.NOT_FOUND.toString().split(" ")[0], "Shop not found", null));
+					return ResponseObjectHelper.createFalseResponse(HttpStatus.NOT_FOUND, "Shop not found");
 				}
 
-				if (voucher != null && voucher.getShop().getId() != shop.getId()) {
-					return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-							.body(new ResponseObject(false, HttpStatus.BAD_REQUEST.toString().split(" ")[0],
-									"Voucher does not belong to the shop", null));
+				// Validate Voucher for the section
+				Voucher voucher = null;
+				if (sectionRequest.getVoucher_id() != 0) {
+					Optional<Voucher> optionalVoucher = voucherRepository.findById(sectionRequest.getVoucher_id());
+					if (optionalVoucher.isEmpty() || optionalVoucher.get().getShop().getId() != shop.getId()
+							|| optionalVoucher.get().getStatus().getValue().equalsIgnoreCase("inactive")) {
+						return ResponseObjectHelper.createFalseResponse(HttpStatus.BAD_REQUEST,
+								"Invalid voucher for the shop");
+					}
+
+					voucher = optionalVoucher.get();
+				} else {
+					voucher = new Voucher(0, 0, null, activeStatus.get()); // Default voucher with zero value
 				}
 
 				// Fetch the accessibility items of the section
@@ -245,7 +247,7 @@ public class OrderService {
 				float orderTotal = calculateOrderTotal(sectionRequest.getItem_id());
 
 				// Apply voucher discount if available
-				if (voucher != null) {
+				if (voucher != null && voucher.getValue() > 0) {
 					orderTotal = orderTotal - (orderTotal * voucher.getValue() / 100);
 				}
 
@@ -294,11 +296,9 @@ public class OrderService {
 					notifyRepository.save(new Notify(order, account, "pending"));
 
 				} else {
-					return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-							.body(new ResponseObject(false, HttpStatus.BAD_REQUEST.toString().split(" ")[0],
-									"Invalid number of items in section request", null));
+					return ResponseObjectHelper.createFalseResponse(HttpStatus.BAD_REQUEST,
+							"Invalid number of items in section request");
 				}
-
 			}
 			return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
 					HttpStatus.OK.toString().split(" ")[0], "Order created successfully", null));
@@ -324,50 +324,82 @@ public class OrderService {
 
 	public ResponseEntity<ResponseObject> updateOrderStatus(int id, StatusRequest status)
 			throws JsonProcessingException {
-		Optional<Order> order = repository.findById(id);
-		if (!order.isEmpty()) {
-			Optional<Status> newStat = statusRepository.findByValue(status.getValue());
-			if (!newStat.isEmpty()) {
-				if (newStat.get().getValue().equalsIgnoreCase("completed")) {
+		Optional<Order> orderOpt = repository.findById(id);
+		if (orderOpt.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+					HttpStatus.NOT_FOUND.toString().split(" ")[0], "Order does not exist", ""));
+		}
 
-					order.get().setTimeComplete(new Date());
-					order.get().setStatus(newStat.get());
-					order.get().getSection().setStatus(newStat.get());
-
-					for (AccessibilityItem item : order.get().getSection().getItems()) {
-						item.setStatus(newStat.get());
-						itemRepository.save(item);
-					}
-					repository.save(order.get());
-
-					Transaction trans = new Transaction(order.get());
-
-					transactionRepository.save(trans);
-
-					notifyRepository.save(new Notify(order.get(), order.get().getAccount(), "completed"));
-					return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
-							HttpStatus.OK.toString().split(" ")[0], "Create transaction successfully", trans));
-
-				} else {
-					order.get().setStatus(newStat.get());
-					order.get().getSection().setStatus(newStat.get());
-
-					for (AccessibilityItem item : order.get().getSection().getItems()) {
-						item.setStatus(newStat.get());
-						itemRepository.save(item);
-					}
-					notifyRepository.save(new Notify(order.get(), order.get().getAccount(), status.getValue()));
-
-					return ResponseEntity.status(HttpStatus.OK)
-							.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
-									"Update order sucessfully", repository.save(order.get())));
-				}
-			}
+		Order order = orderOpt.get();
+		Optional<Status> newStatOpt = statusRepository.findByValue(status.getValue());
+		if (newStatOpt.isEmpty()) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
 					HttpStatus.NOT_FOUND.toString().split(" ")[0], "Status does not exist", ""));
 		}
-		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-				new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0], "Order does not exist", ""));
+
+		Status newStat = newStatOpt.get();
+
+		if (newStat.getValue().equalsIgnoreCase("completed")) {
+			order.setTimeComplete(new Date());
+			order.setStatus(newStat);
+			order.getSection().setStatus(newStat);
+
+			for (AccessibilityItem item : order.getSection().getItems()) {
+				item.setStatus(newStat);
+				itemRepository.save(item);
+			}
+			repository.save(order);
+
+			Transaction trans = new Transaction(order);
+			transactionRepository.save(trans);
+
+			notifyRepository.save(new Notify(order, order.getAccount(), "completed"));
+
+			return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
+					HttpStatus.OK.toString().split(" ")[0], "Create transaction successfully", trans));
+
+		} else if (order.getStatus().getValue().equals("accepted") && newStat.getValue().equalsIgnoreCase("delivering")) {
+			order.setStatus(newStat);
+			order.getSection().setStatus(newStat);
+
+			for (AccessibilityItem item : order.getSection().getItems()) {
+				item.setStatus(newStat);
+
+				Variant variant = item.getVariant();
+				if (variant != null) {
+					int newQuantity = variant.getQuantity() - item.getQuantity();
+					if (newQuantity < 0) {
+						return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+								.body(new ResponseObject(false, HttpStatus.BAD_REQUEST.toString().split(" ")[0],
+										"Insufficient quantity in variant", null));
+					}
+					variant.setQuantity(newQuantity);
+					variantRepository.save(variant);
+				}
+
+				itemRepository.save(item);
+			}
+
+			repository.save(order);
+			notifyRepository.save(new Notify(order, order.getAccount(), "delivering"));
+
+			return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
+					HttpStatus.OK.toString().split(" ")[0], "Order status updated to delivering successfully", order));
+		} else {
+			order.setStatus(newStat);
+			order.getSection().setStatus(newStat);
+
+			for (AccessibilityItem item : order.getSection().getItems()) {
+				item.setStatus(newStat);
+				itemRepository.save(item);
+			}
+
+			repository.save(order);
+			notifyRepository.save(new Notify(order, order.getAccount(), status.getValue()));
+
+			return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
+					HttpStatus.OK.toString().split(" ")[0], "Update order successfully", order));
+		}
 	}
 
 	public ResponseEntity<ResponseObject> filterOrdersByTimeAndShop(DateRequest filterRequest, int shopId) {
@@ -469,7 +501,7 @@ public class OrderService {
 			Date startDate = DateUtil.calculateStartDate(filterRequest),
 					endDate = DateUtil.calculateEndDate(filterRequest);
 
-			List<Order> orders = repository.findByTimeCompleteBetweenAndStatusValue(startDate, endDate,"completed");
+			List<Order> orders = repository.findByTimeCompleteBetweenAndStatusValue(startDate, endDate, "completed");
 
 			if (orders.isEmpty()) {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND)

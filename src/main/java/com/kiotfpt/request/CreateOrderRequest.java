@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 public class CreateOrderRequest {
 
 	private int accountId;
-	private int voucherId;
 	private int address_id;
 	private List<SectionRequest> sections;
 
