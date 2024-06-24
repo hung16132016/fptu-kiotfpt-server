@@ -16,6 +16,7 @@ public class AddressRequest {
 	private String address_value;
 	private int district_id;
 	private int province_id;
+	private boolean isDefault;
 	
 	public AddressRequest(Address address) {
 		super();
@@ -24,6 +25,7 @@ public class AddressRequest {
 		this.address_value = address.getValue();
 		this.district_id = address.getDistrict().getId();
 		this.province_id = address.getProvince().getId();
+		this.isDefault = address.isIsdefault();
 	}
 
 }

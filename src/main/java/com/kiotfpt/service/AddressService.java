@@ -1,6 +1,7 @@
 package com.kiotfpt.service;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
@@ -98,6 +99,17 @@ public class AddressService {
 		newAddress.setProvince(province.get());
 		newAddress.setProfile(profile.get());
 		newAddress.setValue(request.getAddress_value());
+		if (request.isDefault()) {
+			Collection<Address> collection = profile.get().getAddresses();
+			List<Address> listAllAddress = new ArrayList(collection);
+			for (Address list : listAllAddress) {
+				list.setIsdefault(false);
+				repository.save(list);
+			}
+			newAddress.setIsdefault(true);
+		} else {
+			newAddress.setIsdefault(false);
+		}
 		
 		return ResponseEntity.status(HttpStatus.OK)
 				.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
@@ -177,5 +189,28 @@ public class AddressService {
 					.body(new ResponseObject(false, HttpStatus.BAD_REQUEST.toString().split(" ")[0],
 							"Could not find any province with this ID", province.get()));
 		
+	}
+	
+	public ResponseEntity<ResponseObject> setAddressDefaultByID(int address_id) {
+		Optional<Address> address = repository.findById(address_id);
+		if (address.isEmpty())
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+					HttpStatus.NOT_FOUND.toString().split(" ")[0], "There is no address with this ID", new int[0]));
+		
+		Collection<Address> collection = address.get().getProfile().getAddresses();
+		List<Address> listAllAddress = new ArrayList(collection);
+		for (Address list : listAllAddress) {
+			if (list.getId() == address_id) {
+				list.setIsdefault(true);
+			} else {
+				list.setIsdefault(false);
+			}
+			repository.save(list);
+		}
+		
+		return ResponseEntity.status(HttpStatus.OK)
+						.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
+								"Data has found successfully", address));
+				
 	}
 }

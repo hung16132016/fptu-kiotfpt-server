@@ -60,4 +60,8 @@ public class AddressController {
 		return service.getAllDistrictByProvinceID(id);
 	}
 	
+	@GetMapping("/set-default/{id}")
+	public ResponseEntity<ResponseObject> setAddressDefaultByID(@PathVariable int id) {
+		return service.setAddressDefaultByID(id);
+	}
 }
