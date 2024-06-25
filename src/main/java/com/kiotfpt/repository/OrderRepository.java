@@ -41,7 +41,9 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
     @Query("SELECT o FROM Order o WHERE o.timeInit BETWEEN ?1 AND ?2 AND (o.status.value = 'completed' OR o.status.value = 'pending')")
     List<Order> findByTimeInitBetweenAndStatusIn(Date startDate, Date endDate);
     
-    List<Order> findByTimeInitBetweenAndShopIdAndStatusIn(Date startDate, Date endDate, int shopId, List<String> statusList);
+//    List<Order> findByTimeInitBetweenAndShopIdAndStatusIn(Date startDate, Date endDate, int shopId, List<String> statusList);
+    @Query(value = "SELECT * FROM kiotfpt_order WHERE kiotfpt_order.order_time_init BETWEEN :startDate AND :endDate AND kiotfpt_order.shop_id = :shopId AND kiotfpt_order.status_id IN (27, 21);", nativeQuery = true)
+    List<Order> findByTimeInitBetweenAndShopIdAndStatusIn(Date startDate, Date endDate, int shopId);
     
 	@Query("SELECT o FROM Order o WHERE o.status.id = :statusId")
 	List<Order> findByStatusId(int statusId);
