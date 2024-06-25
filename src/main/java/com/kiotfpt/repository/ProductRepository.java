@@ -92,4 +92,7 @@ public interface ProductRepository extends JpaRepository<Product, Integer>{
 	
 	@Query(value = "Select * from kiotfpt_product where kiotfpt_product.category_id = :cateId and kiotfpt_product.shop_id = :shopId", nativeQuery = true)
 	Page<Product> findByShopIDAndCateID(@Param("shopId") Integer shopId, @Param("cateId") Integer cateId, Pageable pageable);
+	
+    @Query("SELECT DISTINCT p FROM Product p JOIN p.comments c WHERE c IS NOT NULL")
+    List<Product> findProductsWithReviews();
 }

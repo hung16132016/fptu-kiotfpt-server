@@ -871,6 +871,27 @@ public class ProductService {
 		}
 	}
 
+    public ResponseEntity<ResponseObject> getProductsWithReviews() {
+        try {
+            List<Product> products = repository.findProductsWithReviews();
+            if (products.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0], "No products found with reviews", null));
+            }
+
+            List<ProductReviewResponse> responseList = products.stream().map(product -> {
+                List<Comment> comments = commentRepository.findAllByProduct(product);
+                return new ProductReviewResponse(new ProductMiniResponse(product), comments);
+            }).collect(Collectors.toList());
+
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Products with reviews found", responseList));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseObject(false, HttpStatus.INTERNAL_SERVER_ERROR.toString().split(" ")[0], "An error occurred while fetching products with reviews", null));
+        }
+    }
+
 	@Data
 	@AllArgsConstructor
 	@NoArgsConstructor
@@ -895,5 +916,13 @@ public class ProductService {
 		private int totalPages;
 		private List<Product> products;
 		private List<Shop> shops;
+	}
+	
+	@Data
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public class ProductReviewResponse {
+	    private ProductMiniResponse product;
+	    private List<Comment> comments;
 	}
 }

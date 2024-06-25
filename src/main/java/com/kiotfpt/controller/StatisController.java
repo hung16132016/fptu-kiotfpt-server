@@ -70,9 +70,13 @@ public class StatisController {
 	}
 	
 	@GetMapping("/account")
-	public ResponseEntity<ResponseObject> sortAccountByTotalSpent() {
+	public ResponseEntity<ResponseObject> sortAccountByTotalSpent(@RequestParam int shopId) {
 
-		return profileService.getProfilesOrderedByTotalSpent();
+		return profileService.getProfilesOrderedByTotalSpent(shopId);
 	}
 
+    @GetMapping("/reviews")
+    public ResponseEntity<ResponseObject> getProductsWithReviews() {
+        return productService.getProductsWithReviews();
+    }
 }

@@ -122,9 +122,9 @@ public class AccountProfileService {
 				HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("profileNotFound"), ""));
 	}
 
-    public ResponseEntity<ResponseObject> getProfilesOrderedByTotalSpent() {
+    public ResponseEntity<ResponseObject> getProfilesOrderedByTotalSpent(int shopId) {
         try {
-            List<Order> orders = orderRepository.findAll();
+            List<Order> orders = orderRepository.findByShopIdAndStatusValue(shopId, "completed");
             List<AccountProfile> profiles = repository.findAll();
 
             Map<Integer, Double> totalSpentByAccount = orders.stream()
