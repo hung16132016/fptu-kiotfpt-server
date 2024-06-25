@@ -106,6 +106,8 @@ public class CartService {
 		List<SectionResponse> list = new ArrayList<>();
 		for (Section section : sections) {
 			List<AccessibilityItem> list_item = itemRepository.findBySection(section);
+			list_item = list_item.stream().filter(item -> item.getStatus().getId() == 31).collect(Collectors.toList());
+
 			if (list_item.isEmpty()) {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
 						HttpStatus.NOT_FOUND.toString().split(" ")[0], "Items do not exist", ""));
