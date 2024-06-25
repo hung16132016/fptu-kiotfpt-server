@@ -407,10 +407,8 @@ public class OrderService {
 
 			Date startDate = DateUtil.calculateStartDate(filterRequest),
 					endDate = DateUtil.calculateEndDate(filterRequest);
-			List<String> statusList = Arrays.asList("completed", "pending");
 
-			List<Order> orders = repository.findByTimeInitBetweenAndShopIdAndStatusIn(startDate, endDate, shopId,
-					statusList);
+			List<Order> orders = repository.findByTimeInitBetweenAndShopIdAndStatusIn(startDate, endDate, shopId);
 
 			if (orders.isEmpty()) {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -427,6 +425,7 @@ public class OrderService {
 			return ResponseEntity.status(HttpStatus.OK)
 					.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Completed orders found",
 							new OrderFilterResult(responseList, totalOfAllOrders, responseList.size())));
+			
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
 					.body(new ResponseObject(false, HttpStatus.INTERNAL_SERVER_ERROR.toString().split(" ")[0],

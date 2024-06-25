@@ -12,6 +12,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
 import com.kiotfpt.request.SectionRequest;
 
@@ -31,6 +33,7 @@ public class Order {
 	@Column(name = "order_id")
 	private int id;
 
+	@Temporal(TemporalType.TIMESTAMP)
 	@Column(name = "order_time_init", nullable = false)
 	private Date timeInit;
 
