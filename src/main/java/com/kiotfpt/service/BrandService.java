@@ -89,7 +89,7 @@ public class BrandService {
 	}
 
 	public ResponseEntity<ResponseObject> createBrand(BrandRequest brandRequest) {
-		Status activeStatus = statusRepository.findByValue("active")
+		Status activeStatus = statusRepository.findByValue("inactive")
 				.orElseThrow(() -> new RuntimeException("Active status not found"));
 		Brand brand = new Brand();
 		brand.setName(brandRequest.getName());
@@ -108,6 +108,7 @@ public class BrandService {
 	}
 
 	public ResponseEntity<ResponseObject> deleteBrand(int id) {
+
 		Brand brand = repository.findById(id).orElseThrow(() -> new RuntimeException("Brand not found"));
 		Status inactiveStatus = statusRepository.findByValue("inactive")
 				.orElseThrow(() -> new RuntimeException("Inactive status not found"));
@@ -115,5 +116,28 @@ public class BrandService {
 		repository.save(brand);
 		return ResponseEntity.status(HttpStatus.OK).body(
 				new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Brand deleted successfully", null));
+	}
+
+	public ResponseEntity<ResponseObject> activateBrand(int brandId) {
+		Optional<Brand> optionalBrand = repository.findByIdAndStatusValue(brandId, "inactive");
+
+		if (optionalBrand.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+					HttpStatus.NOT_FOUND.toString().split(" ")[0], "Brand not found or already active", null));
+		}
+
+		Brand brand = optionalBrand.get();
+		Optional<Status> activeStatus = statusRepository.findByValue("active");
+
+		if (activeStatus.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResponseObject(false,
+					HttpStatus.INTERNAL_SERVER_ERROR.toString().split(" ")[0], "Active status not found", null));
+		}
+
+		brand.setStatus(activeStatus.get());
+		repository.save(brand);
+
+		return ResponseEntity.status(HttpStatus.OK).body(
+				new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Brand activated successfully", null));
 	}
 }

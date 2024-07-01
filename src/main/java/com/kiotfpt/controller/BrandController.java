@@ -60,4 +60,9 @@ public class BrandController {
 	public ResponseEntity<ResponseObject> deleteBrand(@PathVariable int id) {
 		return service.deleteBrand(id);
 	}
+	
+    @PutMapping("/activate")
+    public ResponseEntity<ResponseObject> activateBrand(@RequestParam int brandId) {
+        return service.activateBrand(brandId);
+    }
 }

@@ -28,6 +28,8 @@ import com.kiotfpt.request.ShopRequest;
 import com.kiotfpt.request.StatusRequest;
 import com.kiotfpt.response.ShopResponse;
 import com.kiotfpt.utils.JsonReader;
+import com.kiotfpt.utils.ResponseObjectHelper;
+import com.kiotfpt.utils.TokenUtils;
 import com.kiotfpt.utils.ValidationHelper;
 
 @Service
@@ -40,10 +42,9 @@ public class ShopService {
 
 	@Autowired
 	private StatusRepository statusRepository;
-	
+
 	@Autowired
 	private ProductRepository productRepository;
-	
 
 	HashMap<String, String> responseMessage = new JsonReader().readJsonFile();
 
@@ -58,30 +59,34 @@ public class ShopService {
 	}
 
 	public ResponseEntity<ResponseObject> getAllShop(int page, int amount) {
-		Pageable pageable = PageRequest.of(page - 1, amount);
-		Page<Shop> shopPage = repository.findAll(pageable);
-		List<Shop> shops = shopPage.getContent();
 
-		if (!shops.isEmpty()) {
-			List<ShopResponse> list = new ArrayList<ShopResponse>();
+		if (TokenUtils.checkMatch("admin")) {
+			Pageable pageable = PageRequest.of(page - 1, amount);
+			Page<Shop> shopPage = repository.findAll(pageable);
+			List<Shop> shops = shopPage.getContent();
 
-			for (Shop shop : shops) {
+			if (!shops.isEmpty()) {
+				List<ShopResponse> list = new ArrayList<ShopResponse>();
 
-				if (shop.getAddress() == null) {
-					return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-							.body(new ResponseObject(false, HttpStatus.BAD_REQUEST.toString().split(" ")[0],
-									"Address cannot be empty for shop with ID: " + shop.getId(), ""));
+				for (Shop shop : shops) {
+
+					if (shop.getAddress() == null) {
+						return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+								.body(new ResponseObject(false, HttpStatus.BAD_REQUEST.toString().split(" ")[0],
+										"Address cannot be empty for shop with ID: " + shop.getId(), ""));
+					}
+					ShopResponse response = new ShopResponse(shop);
+
+					list.add(response);
 				}
-				ShopResponse response = new ShopResponse(shop);
-
-				list.add(response);
+				return ResponseEntity.status(HttpStatus.OK)
+						.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Shops found", list));
 			}
-			return ResponseEntity.status(HttpStatus.OK)
-					.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Shops found", list));
-		}
 
-		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-				HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("shopNotFound"), ""));
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+					HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("shopNotFound"), ""));
+		}
+		return ResponseObjectHelper.createFalseResponse(HttpStatus.UNAUTHORIZED, "Unauthorized");
 	}
 
 	public ResponseEntity<ResponseObject> createShop(ShopRequest shopRequest) {
@@ -112,15 +117,15 @@ public class ShopService {
 		}
 
 		AddressService service = new AddressService();
-		
+
 		ResponseEntity<ResponseObject> response = service.createAddress(shopRequest.getAddress());
-		
+
 		if (response.getBody().getResult() == false) {
 			return response;
 		}
-		
-	    Address address = (Address) response.getBody().getData();
-	    
+
+		Address address = (Address) response.getBody().getData();
+
 		Shop shop = new Shop(shopRequest, account.get(), address);
 		repository.save(shop);
 
@@ -192,36 +197,36 @@ public class ShopService {
 
 	public ResponseEntity<ResponseObject> getTop10ShopsByTransactions() {
 		List<Shop> topShops = repository.findTop10ByTransactions();
-		List<ShopResponse> shopResponses = topShops.stream().map(shop -> new ShopResponse(shop, productRepository.findAllByShop(shop)))
+		List<ShopResponse> shopResponses = topShops.stream()
+				.map(shop -> new ShopResponse(shop, productRepository.findAllByShop(shop)))
 				.collect(Collectors.toList());
 
 		return ResponseEntity.status(HttpStatus.OK)
 				.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
 						"Top 10 shops by transactions retrieved successfully", shopResponses));
 	}
-	
 
-    public ResponseEntity<ResponseObject> getShopByProductId(int productId) {
-            // Retrieve the product by ID
-            Optional<Product> optionalProduct = productRepository.findById(productId);
-            if (optionalProduct.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0], "Product not found", null));
-            }
+	public ResponseEntity<ResponseObject> getShopByProductId(int productId) {
+		// Retrieve the product by ID
+		Optional<Product> optionalProduct = productRepository.findById(productId);
+		if (optionalProduct.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+					HttpStatus.NOT_FOUND.toString().split(" ")[0], "Product not found", null));
+		}
 
-            // Get the shop associated with the product
-            Product product = optionalProduct.get();
-            Shop shop = product.getShop();
+		// Get the shop associated with the product
+		Product product = optionalProduct.get();
+		Shop shop = product.getShop();
 
-            if (shop == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0], "Shop not found for the product", null));
-            }
+		if (shop == null) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+					HttpStatus.NOT_FOUND.toString().split(" ")[0], "Shop not found for the product", null));
+		}
 
-            return ResponseEntity.status(HttpStatus.OK)
-                    .body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Shop found", shop));
+		return ResponseEntity.status(HttpStatus.OK)
+				.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Shop found", shop));
 
-    }
+	}
 //
 //	public ResponseEntity<ResponseObject> getAllShopRevenueByTime(HttpServletRequest request, int month) {
 //		Account accToken = null;

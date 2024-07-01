@@ -24,7 +24,7 @@ public class ShopController {
 	@Autowired
 	private ShopService service;
 
-	@GetMapping("/profile/{id}")
+	@GetMapping("/{id}")
 	public ResponseEntity<ResponseObject> getShopByID(@PathVariable int id) {
 		return service.getShopByID(id);
 	}

@@ -111,12 +111,8 @@ public class ProductService {
 	@Autowired
 	private ShopCateRepository shopCategoryRepository;
 
-//	@Value("${path_image}")
-//	private String imageLink;
-
 	HashMap<String, String> responseMessage = new JsonReader().readJsonFile();
 
-	// fix
 	public ResponseEntity<ResponseObject> getAllProduct(int page, int amount) {
 		Pageable pageable = PageRequest.of(page - 1, amount);
 		Page<Product> productPage = repository.findByStatusId11(pageable);
@@ -160,7 +156,6 @@ public class ProductService {
 		return new ProfileMiniResponse(profile.get());
 	}
 
-	// fix
 	public ResponseEntity<ResponseObject> getNew8Added() {
 		Pageable pageable = PageRequest.of(0, 8);
 		Page<Product> productPage = repository.findLast8ProductsByStatus11(pageable);
@@ -175,7 +170,6 @@ public class ProductService {
 						HttpStatus.NOT_FOUND.toString().split(" ")[0], "Data has not found", new int[0]));
 	}
 
-	// fix
 	public ResponseEntity<ResponseObject> getByCategoryID(int category_id, int page, int amount) {
 		Pageable pageable = PageRequest.of(page - 1, amount);
 		Page<Product> productPage = repository.findByStatus11AndCategoryId(pageable, category_id);
@@ -188,6 +182,29 @@ public class ProductService {
 								"Data has found successfully", products))
 				: ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
 						HttpStatus.NOT_FOUND.toString().split(" ")[0], "Data has not found", new int[0]));
+	}
+
+	public ResponseEntity<ResponseObject> getByBrandID(int brand_id, int page, int amount) {
+		Pageable pageable = PageRequest.of(page - 1, amount);
+		Page<Product> productPage = repository.findByStatus11AndBrandId(pageable, brand_id);
+
+		List<Product> products = productPage.getContent();
+
+		return !products.isEmpty()
+				? ResponseEntity.status(HttpStatus.OK)
+						.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
+								"Data has found successfully", products))
+				: ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+						HttpStatus.NOT_FOUND.toString().split(" ")[0], "Data has not found", new int[0]));
+	}
+
+	public ResponseEntity<ResponseObject> getProductsByRate(float rate, int page, int amount) {
+		Pageable pageable = PageRequest.of(page - 1, amount);
+		List<Product> products = repository.findByRate(rate, pageable);
+
+		return !products.isEmpty()
+				? ResponseObjectHelper.createTrueResponse(HttpStatus.OK, "Data has found successfully", products)
+				: ResponseObjectHelper.createFalseResponse(HttpStatus.NOT_FOUND, "Data has not found");
 	}
 
 	public ResponseEntity<ResponseObject> getByKeyword(String keyword, int page, int amount) {
@@ -871,26 +888,27 @@ public class ProductService {
 		}
 	}
 
-    public ResponseEntity<ResponseObject> getProductsWithReviews() {
-        try {
-            List<Product> products = repository.findProductsWithReviews();
-            if (products.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0], "No products found with reviews", null));
-            }
+	public ResponseEntity<ResponseObject> getProductsWithReviews() {
+		try {
+			List<Product> products = repository.findProductsWithReviews();
+			if (products.isEmpty()) {
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+						HttpStatus.NOT_FOUND.toString().split(" ")[0], "No products found with reviews", null));
+			}
 
-            List<ProductReviewResponse> responseList = products.stream().map(product -> {
-                List<Comment> comments = commentRepository.findAllByProduct(product);
-                return new ProductReviewResponse(new ProductMiniResponse(product), comments);
-            }).collect(Collectors.toList());
+			List<ProductReviewResponse> responseList = products.stream().map(product -> {
+				List<Comment> comments = commentRepository.findAllByProduct(product);
+				return new ProductReviewResponse(new ProductMiniResponse(product), comments);
+			}).collect(Collectors.toList());
 
-            return ResponseEntity.status(HttpStatus.OK)
-                    .body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Products with reviews found", responseList));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ResponseObject(false, HttpStatus.INTERNAL_SERVER_ERROR.toString().split(" ")[0], "An error occurred while fetching products with reviews", null));
-        }
-    }
+			return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
+					HttpStatus.OK.toString().split(" ")[0], "Products with reviews found", responseList));
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(new ResponseObject(false, HttpStatus.INTERNAL_SERVER_ERROR.toString().split(" ")[0],
+							"An error occurred while fetching products with reviews", null));
+		}
+	}
 
 	@Data
 	@AllArgsConstructor
@@ -917,12 +935,12 @@ public class ProductService {
 		private List<Product> products;
 		private List<Shop> shops;
 	}
-	
+
 	@Data
 	@NoArgsConstructor
 	@AllArgsConstructor
 	public class ProductReviewResponse {
-	    private ProductMiniResponse product;
-	    private List<Comment> comments;
+		private ProductMiniResponse product;
+		private List<Comment> comments;
 	}
 }

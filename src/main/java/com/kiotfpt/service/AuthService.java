@@ -22,11 +22,11 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.kiotfpt.model.Account;
 import com.kiotfpt.model.AccountProfile;
 import com.kiotfpt.model.Cart;
+import com.kiotfpt.model.Notify;
 import com.kiotfpt.model.Order;
 import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.model.Role;
 import com.kiotfpt.model.Shop;
-import com.kiotfpt.model.Notify;
 import com.kiotfpt.model.Status;
 import com.kiotfpt.repository.AccountProfileRepository;
 import com.kiotfpt.repository.AccountRepository;
@@ -56,7 +56,7 @@ public class AuthService {
 
 	@Autowired
 	private CartRepository cartRepository;
-	
+
 	@Autowired
 	private NotifyRepository notifyRepository;
 
@@ -67,8 +67,9 @@ public class AuthService {
 
 	@Autowired
 	private JavaMailSender mailSender;
-//	@Autowired
-//	private AccountProfileRepository profileRepository;
+
+	@Autowired
+	private JwtService jwtService;
 
 	HashMap<String, String> responseMessage = new JsonReader().readJsonFile();
 
@@ -86,7 +87,8 @@ public class AuthService {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
 					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Wrong password", new int[0]));
 
-		if (account.get().getStatus().getValue().equals("inactive") || account.get().getStatus().getValue().equals("wait for active"))
+		if (account.get().getStatus().getValue().equals("inactive")
+				|| account.get().getStatus().getValue().equals("wait for active"))
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 					.body(new ResponseObject(false, HttpStatus.BAD_REQUEST.toString().split(" ")[0],
 							responseMessage.get("accountNotActivate"), new int[0]));
@@ -94,6 +96,9 @@ public class AuthService {
 		Map<String, String> map = new HashMap<>();
 		map.put("account_id", String.valueOf(account.get().getId()));
 		map.put("role", account.get().getRole().getValue());
+
+		String jwtToken = jwtService.generateToken(account.get());
+		map.put("token", jwtToken);
 		if (map.get("role").equals("Seller")) {
 			Optional<Shop> shop = shoprepository.findByAccount(account.get());
 			map.put("shop_id", String.valueOf(shop.get().getId()));
@@ -185,7 +190,7 @@ public class AuthService {
 				Optional<Status> status = statusRepository.findById(11);
 				activeAccount.setStatus(status.get());
 				activeAccount = repository.save(activeAccount);
-				
+
 				Order fakeOrder = new Order();
 				if (activeAccount.getRole().getId() == 2) {
 					Notify welcomeNotify = new Notify(fakeOrder, activeAccount, "account welcome");
@@ -194,7 +199,7 @@ public class AuthService {
 					Notify welcomeNotify = new Notify(fakeOrder, activeAccount, "seller welcome");
 					notifyRepository.save(welcomeNotify);
 				}
-				
+
 				return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
 						HttpStatus.OK.toString().split(" ")[0], "Active account successfull", ""));
 			}
@@ -233,15 +238,17 @@ public class AuthService {
 				HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Could not find any account with this username", ""));
 	}
 
-	public ResponseEntity<ResponseObject> sendmail() throws AddressException, MessagingException, JsonProcessingException {
+	public ResponseEntity<ResponseObject> sendmail()
+			throws AddressException, MessagingException, JsonProcessingException {
 
 		Optional<Account> acc = repository.findById(1);
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
-	    String json = objectMapper.writeValueAsString(acc.get());
-        System.out.println(json);
-		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
-				HttpStatus.OK.toString().split(" ")[0], responseMessage.get("signUpSuccess"), json.replaceAll("\\\\", "")));
+		ObjectMapper objectMapper = new ObjectMapper();
+		objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+		String json = objectMapper.writeValueAsString(acc.get());
+		System.out.println(json);
+		return ResponseEntity.status(HttpStatus.OK)
+				.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
+						responseMessage.get("signUpSuccess"), json.replaceAll("\\\\", "")));
 	}
 
 	private String generateRandomPassword() {

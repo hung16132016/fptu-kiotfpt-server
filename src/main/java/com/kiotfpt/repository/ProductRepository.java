@@ -24,6 +24,9 @@ public interface ProductRepository extends JpaRepository<Product, Integer>{
 	@Query("SELECT p FROM Product p WHERE p.status.id = 11 AND p.category.id = :categoryId") //haibang
 	Page<Product> findByStatus11AndCategoryId(Pageable pageable, @Param("categoryId") Integer categoryId);
 	
+	@Query("SELECT p FROM Product p WHERE p.status.id = 11 AND p.brand.id = :brandId")
+	Page<Product> findByStatus11AndBrandId(Pageable pageable, @Param("brandId") Integer brandId);
+	
 	@Query("SELECT p FROM Product p WHERE p.status.id = 11 AND LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%'))") //haibang
 	Page<Product> findByStatus11AndKeyword(Pageable pageable, @Param("keyword") String keyword);
 
@@ -95,4 +98,6 @@ public interface ProductRepository extends JpaRepository<Product, Integer>{
 	
     @Query("SELECT DISTINCT p FROM Product p JOIN p.comments c WHERE c IS NOT NULL")
     List<Product> findProductsWithReviews();
+
+	List<Product> findByRate(float rate, Pageable pageable);
 }

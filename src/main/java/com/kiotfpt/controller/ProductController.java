@@ -3,10 +3,8 @@ package com.kiotfpt.controller;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -21,9 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.request.ProductRequest;
-import com.kiotfpt.response.ProductMiniResponse;
 import com.kiotfpt.service.ProductService;
-import com.kiotfpt.utils.ResponseObjectHelper;
 
 @CrossOrigin(origins = "http://localhost:8888")
 @RestController
@@ -54,7 +50,19 @@ public class ProductController {
 			@RequestParam(name = "page") Integer page, @RequestParam(name = "amount") Integer amount) {
 		return service.getByCategoryID(category_id, page, amount);
 	}
+	
+	@GetMapping("/get-by-brand")
+	public ResponseEntity<ResponseObject> getByBrandID(@RequestParam(name = "brandID") Integer brand_id,
+			@RequestParam(name = "page") Integer page, @RequestParam(name = "amount") Integer amount) {
+		return service.getByBrandID(brand_id, page, amount);
+	}
 
+	@GetMapping("/get-by-rate")
+	public ResponseEntity<ResponseObject> getByRate(@RequestParam(name = "rate") Float rate,
+			@RequestParam(name = "page") Integer page, @RequestParam(name = "amount") Integer amount) {
+		return service.getProductsByRate(rate, page, amount);
+	}
+	
 	@GetMapping("/search")
 	public ResponseEntity<ResponseObject> getByKeyword(@RequestParam(name = "key") String keyword,
 			@RequestParam(name = "page") Integer page, @RequestParam(name = "amount") Integer amount) {
