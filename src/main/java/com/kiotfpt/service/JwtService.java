@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -25,7 +26,8 @@ public class JwtService {
 
 	private static final Logger log = LoggerFactory.getLogger(JwtService.class);
 
-	private static final String SECRET_KEY = "FA1E5C78D09A45B6E2C4F1278A3B6D8E7C1A2F3B4E5D6F7A8B9C0D1E2F3A4B5";
+    @Value("${jwt.secret}")
+    private String secretKey;
 
 	@Autowired
 	private HttpServletRequest request;
@@ -84,7 +86,7 @@ public class JwtService {
 	}
 
 	private Key getSignInKey() {
-		byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
+		byte[] keyBytes = Decoders.BASE64.decode(secretKey);
 		return Keys.hmacShaKeyFor(keyBytes);
 	}
 
