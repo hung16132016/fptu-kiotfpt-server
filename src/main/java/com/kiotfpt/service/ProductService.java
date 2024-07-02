@@ -61,6 +61,7 @@ import com.kiotfpt.response.VariantResponse;
 import com.kiotfpt.utils.DateUtil;
 import com.kiotfpt.utils.JsonReader;
 import com.kiotfpt.utils.ResponseObjectHelper;
+import com.kiotfpt.utils.TokenUtils;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -110,6 +111,9 @@ public class ProductService {
 
 	@Autowired
 	private ShopCateRepository shopCategoryRepository;
+
+	@Autowired
+	private TokenUtils tokenUtils;
 
 	HashMap<String, String> responseMessage = new JsonReader().readJsonFile();
 
@@ -651,53 +655,29 @@ public class ProductService {
 				HttpStatus.OK.toString().split(" ")[0], "Data has found successfully", number_of_page));
 	}
 
-	public ResponseEntity<ResponseObject> filterProductsByTime(DateRequest filterRequest) {
+	public ResponseEntity<ResponseObject> filterProductsByTimeAndShop(DateRequest filterRequest) {
 		try {
 
 			Date startDate = DateUtil.calculateStartDate(filterRequest),
 					endDate = DateUtil.calculateEndDate(filterRequest);
+			
+			
+			List<Order> orders = null;
+			if (tokenUtils.checkMatch("admin")) {
+				orders = orderRepository.findByTimeCompleteBetweenAndStatusValue(startDate, endDate, "completed");
+			} else if (tokenUtils.checkMatch("shop")) {
 
-			List<Order> orders = orderRepository.findByTimeCompleteBetweenAndStatusValue(startDate, endDate,
-					"completed");
-
-			if (orders.isEmpty()) {
-				return ResponseEntity.status(HttpStatus.NOT_FOUND)
-						.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
-								"No orders found for the given date range", null));
-			}
-
-			List<ProductStatisResponse> responseList = new ArrayList<>();
-			ProductFilterResult result = new ProductFilterResult(responseList, 0, 0);
-
-			for (Order order : orders) {
-				for (AccessibilityItem item : order.getSection().getItems()) {
-					responseList.add(new ProductStatisResponse(order.getId(), item.getVariant().getProduct().getName(),
-							item.getQuantity(), order.getTotal(), order.getTimeComplete(),
-							new VariantResponse(item.getVariant())));
-					result.setTotalMoney(result.getTotalMoney() + item.getTotal());
-					result.setTotalQuantity(result.getTotalQuantity() + item.getQuantity());
+				Optional<Shop> shop = shopRepository.findByAccount(tokenUtils.getAccount());
+				if (shop.isEmpty()) {
+					return ResponseObjectHelper.createFalseResponse(HttpStatus.NOT_FOUND,
+							"No shop found with the current account");
 				}
+
+				orders = orderRepository.findByTimeCompleteBetweenAndShopIdAndStatusValue(startDate, endDate,
+						shop.get().getId(), "completed");
 			}
-			result.setProducts(responseList);
-
-			return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
-					HttpStatus.OK.toString().split(" ")[0], "Products filtered successfully", result));
-		} catch (Exception e) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body(new ResponseObject(false, HttpStatus.INTERNAL_SERVER_ERROR.toString().split(" ")[0],
-							"An error occurred while filtering products", null));
-		}
-	}
-
-	public ResponseEntity<ResponseObject> filterProductsByTimeAndShop(DateRequest filterRequest, int shopId) {
-		try {
-
-			Date startDate = DateUtil.calculateStartDate(filterRequest),
-					endDate = DateUtil.calculateEndDate(filterRequest);
-
-			List<Order> orders = orderRepository.findByTimeCompleteBetweenAndShopIdAndStatusValue(startDate, endDate,
-					shopId, "completed");
-
+			
+			
 			if (orders.isEmpty()) {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND)
 						.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],

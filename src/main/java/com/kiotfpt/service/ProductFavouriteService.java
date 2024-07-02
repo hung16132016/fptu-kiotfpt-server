@@ -17,9 +17,10 @@ import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.repository.AccountRepository;
 import com.kiotfpt.repository.ProductFavouriteRepository;
 import com.kiotfpt.repository.ProductRepository;
-import com.kiotfpt.request.ProductFavouriteRequest;
 import com.kiotfpt.response.ProductResponse;
 import com.kiotfpt.utils.JsonReader;
+import com.kiotfpt.utils.ResponseObjectHelper;
+import com.kiotfpt.utils.TokenUtils;
 
 @Service
 public class ProductFavouriteService {
@@ -32,7 +33,10 @@ public class ProductFavouriteService {
 
 	@Autowired
 	private ProductRepository productRepository;
-	
+
+	@Autowired
+	private TokenUtils tokenUtils;
+
 	HashMap<String, String> responseMessage = new JsonReader().readJsonFile();
 
 	public ResponseEntity<ResponseObject> getAllProductFavouriteByAccountID(int id) {
@@ -72,34 +76,25 @@ public class ProductFavouriteService {
 				HttpStatus.OK.toString().split(" ")[0], "Delete favourite product successfull", null));
 	}
 
-	public ResponseEntity<ResponseObject> createProductFavourite(ProductFavouriteRequest request) {
+	public ResponseEntity<ResponseObject> createProductFavourite(int id) {
 		// Fetch the Account
-		Account account = accountRepository.findById(request.getAccount_id()).orElse(null);
-		if (account == null) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND)
-					.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
-							"Account with id: " + request.getAccount_id() + " not found", null));
-		}
+		Account account = tokenUtils.getAccount();
 
 		// Fetch the Product
-		Product product = productRepository.findById(request.getProduct_id()).orElse(null);
+		Product product = productRepository.findById(id).orElse(null);
 		if (product == null) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND)
-					.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
-							"Product with id: " + request.getProduct_id() + " not found", null));
+			return ResponseObjectHelper.createFalseResponse(HttpStatus.NOT_FOUND,
+					"Product with id: " + id + " not found");
 		}
 
-		// Create a new ProductFavourite entity
 		ProductFavourite productFavourite = new ProductFavourite();
 		productFavourite.setAccount(account);
 		productFavourite.setProduct(product);
 
-		// Save the ProductFavourite entity
 		repository.save(productFavourite);
 
-		// Return a successful response
-		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
-				HttpStatus.OK.toString().split(" ")[0], "Product added to favourites successfully", productFavourite));
+		return ResponseObjectHelper.createTrueResponse(HttpStatus.OK, "Product added to favourites successfully",
+				productFavourite);
 	}
 
 }

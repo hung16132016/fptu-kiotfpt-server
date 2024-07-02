@@ -2,6 +2,7 @@ package com.kiotfpt.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,24 +30,27 @@ public class VoucherController {
 	public ResponseEntity<ResponseObject> getVoucherByShopID(@RequestParam(name = "shopID") int id) {
 		return service.getVoucherByShopID(id);
 	}
-	
-    @GetMapping("/{id}")
-    public ResponseEntity<ResponseObject> getVoucherById(@PathVariable int id) {
-        return service.getVoucherById(id);
-    }
-    
-    @DeleteMapping("/delete/{id}")
-    public ResponseEntity<ResponseObject> deleteVoucherById(@PathVariable int id) {
-        return service.deleteVoucherById(id);
-    }
-    
-    @PostMapping("/create")
-    public ResponseEntity<ResponseObject> createVoucher(@RequestBody VoucherRequest request) {
-        return service.createVoucher(request);
-    }
-    
-    @PutMapping("/update/{id}")
-    public ResponseEntity<ResponseObject> updateVoucher(@PathVariable int id, @RequestBody VoucherRequest request) {
-        return service.updateVoucher(id, request);
-    }
+
+	@GetMapping("/{id}")
+	public ResponseEntity<ResponseObject> getVoucherById(@PathVariable int id) {
+		return service.getVoucherById(id);
+	}
+
+	@PreAuthorize("hasAuthority('shop')")
+	@DeleteMapping("/delete/{id}")
+	public ResponseEntity<ResponseObject> deleteVoucherById(@PathVariable int id) {
+		return service.deleteVoucherById(id);
+	}
+
+	@PreAuthorize("hasAuthority('shop')")
+	@PostMapping("/create")
+	public ResponseEntity<ResponseObject> createVoucher(@RequestBody VoucherRequest request) {
+		return service.createVoucher(request);
+	}
+
+	@PreAuthorize("hasAuthority('shop')")
+	@PutMapping("/update/{id}")
+	public ResponseEntity<ResponseObject> updateVoucher(@PathVariable int id, @RequestBody VoucherRequest request) {
+		return service.updateVoucher(id, request);
+	}
 }

@@ -2,6 +2,7 @@ package com.kiotfpt.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,9 +22,10 @@ public class CartController {
 	@Autowired
 	private CartService service;
 
-	@GetMapping("/{id}")
-	public ResponseEntity<ResponseObject> getCartByID(@PathVariable int id) {
-		return service.getCartByID(id);
+	@PreAuthorize("hasAuthority('user')")
+	@GetMapping("")
+	public ResponseEntity<ResponseObject> getCartByID() {
+		return service.getCartByID();
 	}
 
 	@GetMapping("/amount")

@@ -2,6 +2,7 @@ package com.kiotfpt.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -52,11 +53,13 @@ public class BrandController {
 	}
 
 	@PutMapping("/update/{id}")
+	@PreAuthorize("hasAuthority('admin')")
 	public ResponseEntity<ResponseObject> updateBrand(@PathVariable int id, @RequestBody BrandRequest brandRequest) {
 		return service.updateBrand(id, brandRequest);
 	}
 
 	@DeleteMapping("/delete/{id}")
+	@PreAuthorize("hasAuthority('admin')")
 	public ResponseEntity<ResponseObject> deleteBrand(@PathVariable int id) {
 		return service.deleteBrand(id);
 	}

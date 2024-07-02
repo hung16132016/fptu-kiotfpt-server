@@ -11,6 +11,8 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import org.springframework.security.core.GrantedAuthority;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.AllArgsConstructor;
@@ -22,8 +24,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "kiotfpt_role")
-public class Role {
-	
+public class Role implements GrantedAuthority {
+
+	private static final long serialVersionUID = 1L;
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "role_id")
@@ -36,4 +40,8 @@ public class Role {
 	@JsonIgnore
 	private Collection<Account> accounts;
 
+	@Override
+	public String getAuthority() {
+		return value;
+	}
 }

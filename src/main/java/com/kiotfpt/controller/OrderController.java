@@ -2,6 +2,7 @@ package com.kiotfpt.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,7 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.request.CreateOrderRequest;
-import com.kiotfpt.request.StatusRequest;
 import com.kiotfpt.service.OrderService;
 
 @CrossOrigin(origins = "http://localhost:8888")
@@ -37,14 +37,16 @@ public class OrderController {
 		return service.getOrderByShopID(shopID, page, amount);
 	}
 
+	@PreAuthorize("hasAuthority('shop')")
 	@PutMapping("/update/{id}")
-	public ResponseEntity<ResponseObject> updateOrder(@PathVariable int id, @RequestBody StatusRequest status) throws JsonProcessingException {
+	public ResponseEntity<ResponseObject> updateOrder(@PathVariable int id, @RequestParam String status)
+			throws JsonProcessingException {
 		return service.updateOrderStatus(id, status);
 	}
 
 	@PutMapping("/delete/{id}")
 	public ResponseEntity<ResponseObject> deleteOrder(@PathVariable int id) throws JsonProcessingException {
-		return service.updateOrderStatus(id, new StatusRequest(1, "Inactive"));
+		return service.updateOrderStatus(id, "inactive");
 	}
 
 	@PostMapping("/checkout")

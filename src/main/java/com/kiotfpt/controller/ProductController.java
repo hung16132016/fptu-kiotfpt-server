@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -75,11 +76,13 @@ public class ProductController {
 		return service.findByShopId(shopID, page, amount);
 	}
 
+	@PreAuthorize("hasAuthority('shop')")
 	@PostMapping("/create")
 	public ResponseEntity<ResponseObject> createProduct(@RequestBody ProductRequest product) throws IOException {
 		return service.createProduct(product);
 	}
 
+	@PreAuthorize("hasAuthority('shop')")     
 	@DeleteMapping("/delete/{id}")
 	public ResponseEntity<ResponseObject> deleteProduct(@PathVariable int id, @RequestBody List<Integer> variantIds) {
 		return service.deleteProduct(id, variantIds);

@@ -6,8 +6,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -22,67 +25,67 @@ public class JwtService {
 
 	private static final Logger log = LoggerFactory.getLogger(JwtService.class);
 
-    private static final String SECRET_KEY = "FA1E5C78D09A45B6E2C4F1278A3B6D8E7C1A2F3B4E5D6F7A8B9C0D1E2F3A4B5";
+	private static final String SECRET_KEY = "FA1E5C78D09A45B6E2C4F1278A3B6D8E7C1A2F3B4E5D6F7A8B9C0D1E2F3A4B5";
 
-    public String extractUsername(String token) {
-        return extractClaim(token, Claims::getSubject);
-    }
+	@Autowired
+	private HttpServletRequest request;
 
-    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
-        final Claims claims = extractAllClaims(token);
-        return claimsResolver.apply(claims);
-    }
+	public String extractUsername(String token) {
+		return extractClaim(token, Claims::getSubject);
+	}
 
-    public String generateToken(UserDetails userDetails) {
-        return generateToken(new HashMap<>(), userDetails);
-    }
+	public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+		final Claims claims = extractAllClaims(token);
+		return claimsResolver.apply(claims);
+	}
 
-    public String generateToken(
-            Map<String, Object> extraClaims,
-            UserDetails userDetails
-    ) {
-        return Jwts
-                .builder()
-                .setClaims(extraClaims)
-                .setSubject(userDetails.getUsername())
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24))
-                .signWith(getSignInKey(), SignatureAlgorithm.HS256)
-                .compact();
-    }
+	public String generateToken(UserDetails userDetails) {
+		return generateToken(new HashMap<>(), userDetails);
+	}
 
-    public boolean isTokenValid(String token, UserDetails userDetails) {
-        final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
-    }
+	public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
+		return Jwts.builder().setClaims(extraClaims).setSubject(userDetails.getUsername())
+				.setIssuedAt(new Date(System.currentTimeMillis()))
+				.setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24))
+				.signWith(getSignInKey(), SignatureAlgorithm.HS256).compact();
+	}
 
-    private boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
-    }
+	public boolean isTokenValid(String token, UserDetails userDetails) {
+		final String username = extractUsername(token);
+		return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
+	}
 
-    private Date extractExpiration(String token) {
-        return extractClaim(token, Claims::getExpiration);
-    }
+	private boolean isTokenExpired(String token) {
+		return extractExpiration(token).before(new Date());
+	}
 
-    private Claims extractAllClaims(String token) {
-        try {
-            return Jwts
-                    .parserBuilder()
-                    .setSigningKey(getSignInKey())
-                    .build()
-                    .parseClaimsJws(token)
-                    .getBody();
-        } catch (Exception e) {
-            // Log the exception and token for troubleshooting
-            log.error("Error extracting claims from token: {}", token, e);
-            throw e;
-        }
-    }
+	private Date extractExpiration(String token) {
+		return extractClaim(token, Claims::getExpiration);
+	}
 
+	private Claims extractAllClaims(String token) {
+		try {
+			return Jwts.parserBuilder().setSigningKey(getSignInKey()).build().parseClaimsJws(token).getBody();
+		} catch (Exception e) {
+			// Log the exception and token for troubleshooting
+			log.error("Error extracting claims from token: {}", token, e);
+			throw e;
+		}
+	}
 
-    private Key getSignInKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
-        return Keys.hmacShaKeyFor(keyBytes);
-    }
+	public String getCurrentToken() {
+		final String authorizationHeader = request.getHeader("Authorization");
+
+		if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+			return null;
+		}
+
+		return authorizationHeader.substring(7);
+	}
+
+	private Key getSignInKey() {
+		byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
+		return Keys.hmacShaKeyFor(keyBytes);
+	}
 
 }

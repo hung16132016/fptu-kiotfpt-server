@@ -12,6 +12,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import com.kiotfpt.model.Account;
@@ -25,7 +26,6 @@ import com.kiotfpt.repository.ProductRepository;
 import com.kiotfpt.repository.ShopRepository;
 import com.kiotfpt.repository.StatusRepository;
 import com.kiotfpt.request.ShopRequest;
-import com.kiotfpt.request.StatusRequest;
 import com.kiotfpt.response.ShopResponse;
 import com.kiotfpt.utils.JsonReader;
 import com.kiotfpt.utils.ResponseObjectHelper;
@@ -46,10 +46,13 @@ public class ShopService {
 	@Autowired
 	private ProductRepository productRepository;
 
+	@Autowired
+	private TokenUtils tokenUtils;
+
 	HashMap<String, String> responseMessage = new JsonReader().readJsonFile();
 
-	public ResponseEntity<ResponseObject> getShopByID(int id) {
-		Optional<Shop> shop = repository.findById(id);
+	public ResponseEntity<ResponseObject> getShopByID() {
+		Optional<Shop> shop = repository.findByAccount(tokenUtils.getAccount());
 		if (!shop.isEmpty()) {
 			return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
 					HttpStatus.OK.toString().split(" ")[0], responseMessage.get("shopFound"), shop.get()));
@@ -59,34 +62,31 @@ public class ShopService {
 	}
 
 	public ResponseEntity<ResponseObject> getAllShop(int page, int amount) {
+		Pageable pageable = PageRequest.of(page - 1, amount);
+		Page<Shop> shopPage = repository.findAll(pageable);
+		List<Shop> shops = shopPage.getContent();
 
-		if (TokenUtils.checkMatch("admin")) {
-			Pageable pageable = PageRequest.of(page - 1, amount);
-			Page<Shop> shopPage = repository.findAll(pageable);
-			List<Shop> shops = shopPage.getContent();
+		if (!shops.isEmpty()) {
+			List<ShopResponse> list = new ArrayList<ShopResponse>();
 
-			if (!shops.isEmpty()) {
-				List<ShopResponse> list = new ArrayList<ShopResponse>();
+			for (Shop shop : shops) {
 
-				for (Shop shop : shops) {
-
-					if (shop.getAddress() == null) {
-						return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-								.body(new ResponseObject(false, HttpStatus.BAD_REQUEST.toString().split(" ")[0],
-										"Address cannot be empty for shop with ID: " + shop.getId(), ""));
-					}
-					ShopResponse response = new ShopResponse(shop);
-
-					list.add(response);
+				if (shop.getAddress() == null) {
+					return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+							.body(new ResponseObject(false, HttpStatus.BAD_REQUEST.toString().split(" ")[0],
+									"Address cannot be empty for shop with ID: " + shop.getId(), ""));
 				}
-				return ResponseEntity.status(HttpStatus.OK)
-						.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Shops found", list));
-			}
+				ShopResponse response = new ShopResponse(shop);
 
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-					HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("shopNotFound"), ""));
+				list.add(response);
+			}
+			return ResponseEntity.status(HttpStatus.OK)
+					.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Shops found", list));
 		}
-		return ResponseObjectHelper.createFalseResponse(HttpStatus.UNAUTHORIZED, "Unauthorized");
+
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+				HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("shopNotFound"), ""));
+
 	}
 
 	public ResponseEntity<ResponseObject> createShop(ShopRequest shopRequest) {
@@ -161,38 +161,36 @@ public class ShopService {
 				HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("shopNotFound"), ""));
 	}
 
-	public ResponseEntity<ResponseObject> banShop(int shopId, StatusRequest request) {
+	@PreAuthorize("hasAuthority('admin')")
+	public ResponseEntity<ResponseObject> banShop(int shopId, String status) {
 		Optional<Shop> optionalShop = repository.findById(shopId);
 		if (!optionalShop.isPresent()) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-					HttpStatus.NOT_FOUND.toString().split(" ")[0], "Shop with id: " + shopId + " not found", null));
+			return ResponseObjectHelper.createFalseResponse(HttpStatus.NOT_FOUND,
+					"Shop with id: " + shopId + " not found");
 		}
 
 		Shop shop = optionalShop.get();
 		Account account = shop.getAccount();
 		if (account == null) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body(new ResponseObject(false, HttpStatus.BAD_REQUEST.toString().split(" ")[0],
-							"No account associated with shop id: " + shopId, null));
+			return ResponseObjectHelper.createFalseResponse(HttpStatus.BAD_REQUEST,
+					"No account associated with shop id: " + shopId);
 		}
 
 		// Determine the new status value
-		String statusValue = request.getValue().equalsIgnoreCase("true") ? "inactive" : "active";
+		String statusValue = status.equalsIgnoreCase("inactive") ? "inactive" : "active";
 
 		// Fetch the corresponding status from the database
 		Optional<Status> statusOptional = statusRepository.findByValue(statusValue);
 		if (!statusOptional.isPresent()) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body(new ResponseObject(false, HttpStatus.INTERNAL_SERVER_ERROR.toString().split(" ")[0],
-							statusValue + " status not found in database", null));
+			return ResponseObjectHelper.createFalseResponse(HttpStatus.NOT_FOUND,
+					statusValue + " status not found in database");
 		}
 
 		// Update the account status
 		account.setStatus(statusOptional.get());
 		accountRepository.save(account);
 
-		return ResponseEntity.status(HttpStatus.OK).body(
-				new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Change status successfully", null));
+		return ResponseObjectHelper.createTrueResponse(HttpStatus.NOT_FOUND, "Change status successfully", null);
 	}
 
 	public ResponseEntity<ResponseObject> getTop10ShopsByTransactions() {

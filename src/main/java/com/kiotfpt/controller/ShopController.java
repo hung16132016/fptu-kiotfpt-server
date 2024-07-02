@@ -2,6 +2,7 @@ package com.kiotfpt.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,7 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.request.ShopRequest;
-import com.kiotfpt.request.StatusRequest;
 import com.kiotfpt.service.ShopService;
 
 @CrossOrigin(origins = "http://localhost:8888")
@@ -24,16 +24,18 @@ public class ShopController {
 	@Autowired
 	private ShopService service;
 
-	@GetMapping("/{id}")
-	public ResponseEntity<ResponseObject> getShopByID(@PathVariable int id) {
-		return service.getShopByID(id);
-	}
-	
-    @PostMapping("/ban/{id}")
-	public ResponseEntity<ResponseObject> banShop(@PathVariable int id, @RequestBody StatusRequest request) {
-		return service.banShop(id, request);
+	@GetMapping("")
+	public ResponseEntity<ResponseObject> getShopByID() {
+		return service.getShopByID();
 	}
 
+	@PreAuthorize("hasAuthority('admin')")
+	@PostMapping("/ban/{id}")
+	public ResponseEntity<ResponseObject> banShop(@PathVariable int id, @RequestParam String status) {
+		return service.banShop(id, status);
+	}
+
+	@PreAuthorize("hasAuthority('admin')")
 	@GetMapping("/get-all")
 	public ResponseEntity<ResponseObject> getAllShops(@RequestParam(defaultValue = "1") int page,
 			@RequestParam(defaultValue = "10") int amount) {
@@ -45,19 +47,20 @@ public class ShopController {
 		return service.createShop(shop);
 	}
 
+	@PreAuthorize("hasAuthority('shop')")
 	@PutMapping("/profile/update/{id}")
 	public ResponseEntity<ResponseObject> updateShop(@PathVariable int id, @RequestBody ShopRequest shop) {
 		return service.updateShop(id, shop);
 	}
-	
-    @GetMapping("/popular")
-    public ResponseEntity<ResponseObject> getTop10ShopsByTransactions() {
-        return service.getTop10ShopsByTransactions();
-    }
-    
-    @GetMapping("/get-by-product")
-    public ResponseEntity<ResponseObject> getShopByProductId(@RequestParam int productId) {
-        return service.getShopByProductId(productId);
-    }
+
+	@GetMapping("/popular")
+	public ResponseEntity<ResponseObject> getTop10ShopsByTransactions() {
+		return service.getTop10ShopsByTransactions();
+	}
+
+	@GetMapping("/get-by-product")
+	public ResponseEntity<ResponseObject> getShopByProductId(@RequestParam int productId) {
+		return service.getShopByProductId(productId);
+	}
 
 }

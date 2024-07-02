@@ -2,6 +2,7 @@ package com.kiotfpt.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,60 +24,42 @@ public class StatisController {
 
 	@Autowired
 	private OrderService orderService;
-	
+
 	@Autowired
 	private AccountProfileService profileService;
 
 	@Autowired
 	private ProductService productService;
 
-	@PostMapping("/order/filter-by-shop")
-	public ResponseEntity<ResponseObject> filterOrdersByTimeAndShop(@RequestBody DateRequest filterRequest,
-			@RequestParam int shopId) {
-
-		return orderService.filterOrdersByTimeAndShop(filterRequest, shopId);
-	}
-
-	@PostMapping("/order/filter")
+	@PreAuthorize("hasAnyAuthority('admin', 'shop')")
+	@PostMapping("/order")
 	public ResponseEntity<ResponseObject> filterOrdersByTime(@RequestBody DateRequest filterRequest) {
 
 		return orderService.filterOrdersByTime(filterRequest);
 	}
-	
-	@PostMapping("/shop-revenue")
-	public ResponseEntity<ResponseObject> shopRevenue(@RequestBody DateRequest filterRequest,
-			@RequestParam int shopId) {
 
-		return orderService.revenueShop(filterRequest, shopId);
-	}
-
+	@PreAuthorize("hasAnyAuthority('admin', 'shop')")
 	@PostMapping("/revenue")
 	public ResponseEntity<ResponseObject> revenue(@RequestBody DateRequest filterRequest) {
 
 		return orderService.revenue(filterRequest);
 	}
-	
-	@PostMapping("/product/filter")
-	public ResponseEntity<ResponseObject> filterProductsByTime(@RequestBody DateRequest filterRequest) {
 
-		return productService.filterProductsByTime(filterRequest);
-	}
-	
-	@PostMapping("/product/filter-by-shop")
-	public ResponseEntity<ResponseObject> filterProductsByTimeAndShop(@RequestBody DateRequest filterRequest,
-			@RequestParam int shopId) {
+	@PreAuthorize("hasAnyAuthority('admin', 'shop')")
+	@PostMapping("/product")
+	public ResponseEntity<ResponseObject> filterProductsByTimeAndShop(@RequestBody DateRequest filterRequest) {
 
-		return productService.filterProductsByTimeAndShop(filterRequest, shopId);
+		return productService.filterProductsByTimeAndShop(filterRequest);
 	}
-	
-	@GetMapping("/account")
+
+	@GetMapping("/customer")
 	public ResponseEntity<ResponseObject> sortAccountByTotalSpent(@RequestParam int shopId) {
 
 		return profileService.getProfilesOrderedByTotalSpent(shopId);
 	}
 
-    @GetMapping("/reviews")
-    public ResponseEntity<ResponseObject> getProductsWithReviews() {
-        return productService.getProductsWithReviews();
-    }
+	@GetMapping("/reviews")
+	public ResponseEntity<ResponseObject> getProductsWithReviews() {
+		return productService.getProductsWithReviews();
+	}
 }

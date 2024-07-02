@@ -1,7 +1,6 @@
 package com.kiotfpt.service;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -45,12 +44,12 @@ import com.kiotfpt.repository.VoucherRepository;
 import com.kiotfpt.request.CreateOrderRequest;
 import com.kiotfpt.request.DateRequest;
 import com.kiotfpt.request.SectionRequest;
-import com.kiotfpt.request.StatusRequest;
 import com.kiotfpt.response.OrderResponse;
 import com.kiotfpt.response.OrderStatisResponse;
 import com.kiotfpt.utils.DateUtil;
 import com.kiotfpt.utils.JsonReader;
 import com.kiotfpt.utils.ResponseObjectHelper;
+import com.kiotfpt.utils.TokenUtils;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -94,6 +93,9 @@ public class OrderService {
 
 	@Autowired
 	private VariantRepository variantRepository;
+
+	@Autowired
+	private TokenUtils tokenUtils;
 
 	public String randomNumber;
 
@@ -322,7 +324,7 @@ public class OrderService {
 		return total;
 	}
 
-	public ResponseEntity<ResponseObject> updateOrderStatus(int id, StatusRequest status)
+	public ResponseEntity<ResponseObject> updateOrderStatus(int id, String status)
 			throws JsonProcessingException {
 		Optional<Order> orderOpt = repository.findById(id);
 		if (orderOpt.isEmpty()) {
@@ -331,7 +333,7 @@ public class OrderService {
 		}
 
 		Order order = orderOpt.get();
-		Optional<Status> newStatOpt = statusRepository.findByValue(status.getValue());
+		Optional<Status> newStatOpt = statusRepository.findByValue(status);
 		if (newStatOpt.isEmpty()) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
 					HttpStatus.NOT_FOUND.toString().split(" ")[0], "Status does not exist", ""));
@@ -358,7 +360,8 @@ public class OrderService {
 			return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
 					HttpStatus.OK.toString().split(" ")[0], "Create transaction successfully", trans));
 
-		} else if (order.getStatus().getValue().equals("accepted") && newStat.getValue().equalsIgnoreCase("delivering")) {
+		} else if (order.getStatus().getValue().equals("accepted")
+				&& newStat.getValue().equalsIgnoreCase("delivering")) {
 			order.setStatus(newStat);
 			order.getSection().setStatus(newStat);
 
@@ -395,41 +398,10 @@ public class OrderService {
 			}
 
 			repository.save(order);
-			notifyRepository.save(new Notify(order, order.getAccount(), status.getValue()));
+			notifyRepository.save(new Notify(order, order.getAccount(), status));
 
 			return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
 					HttpStatus.OK.toString().split(" ")[0], "Update order successfully", order));
-		}
-	}
-
-	public ResponseEntity<ResponseObject> filterOrdersByTimeAndShop(DateRequest filterRequest, int shopId) {
-		try {
-
-			Date startDate = DateUtil.calculateStartDate(filterRequest),
-					endDate = DateUtil.calculateEndDate(filterRequest);
-
-			List<Order> orders = repository.findByTimeInitBetweenAndShopIdAndStatusIn(startDate, endDate, shopId);
-
-			if (orders.isEmpty()) {
-				return ResponseEntity.status(HttpStatus.NOT_FOUND)
-						.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
-								"No completed orders found for the given date and shop", null));
-			}
-
-			List<OrderStatisResponse> responseList = orders.stream()
-					.map(order -> new OrderStatisResponse(order.getId(), order.getTotal(), order.getTimeInit()))
-					.collect(Collectors.toList());
-
-			float totalOfAllOrders = orders.stream().map(Order::getTotal).reduce(0.0f, Float::sum);
-
-			return ResponseEntity.status(HttpStatus.OK)
-					.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Completed orders found",
-							new OrderFilterResult(responseList, totalOfAllOrders, responseList.size())));
-			
-		} catch (Exception e) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body(new ResponseObject(false, HttpStatus.INTERNAL_SERVER_ERROR.toString().split(" ")[0],
-							"An error occurred while filtering completed orders", null));
 		}
 	}
 
@@ -439,7 +411,19 @@ public class OrderService {
 			Date startDate = DateUtil.calculateStartDate(filterRequest),
 					endDate = DateUtil.calculateEndDate(filterRequest);
 
-			List<Order> orders = repository.findByTimeInitBetweenAndStatusIn(startDate, endDate);
+			List<Order> orders = null;
+			if (tokenUtils.checkMatch("admin")) {
+				orders = repository.findByTimeInitBetweenAndStatusIn(startDate, endDate);
+			} else if (tokenUtils.checkMatch("shop")) {
+
+				Optional<Shop> shop = shopRepository.findByAccount(tokenUtils.getAccount());
+				if (shop.isEmpty()) {
+					return ResponseObjectHelper.createFalseResponse(HttpStatus.NOT_FOUND,
+							"No shop found with the current account");
+				}
+
+				orders = repository.findByTimeInitBetweenAndShopIdAndStatusIn(startDate, endDate, shop.get().getId());
+			}
 
 			if (orders.isEmpty()) {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -463,44 +447,26 @@ public class OrderService {
 		}
 	}
 
-	public ResponseEntity<ResponseObject> revenueShop(DateRequest filterRequest, int shopId) {
-		try {
-
-			Date startDate = DateUtil.calculateStartDate(filterRequest),
-					endDate = DateUtil.calculateEndDate(filterRequest);
-
-			List<Order> orders = repository.findByTimeCompleteBetweenAndShopIdAndStatusValue(startDate, endDate, shopId,
-					"completed");
-
-			if (orders.isEmpty()) {
-				return ResponseEntity.status(HttpStatus.NOT_FOUND)
-						.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
-								"No completed orders found for the given date and shop", null));
-			}
-
-			List<OrderStatisResponse> responseList = orders.stream()
-					.map(order -> new OrderStatisResponse(order.getId(), order.getTotal(), order.getTimeComplete()))
-					.collect(Collectors.toList());
-
-			float totalOfAllOrders = orders.stream().map(Order::getTotal).reduce(0.0f, Float::sum);
-
-			return ResponseEntity.status(HttpStatus.OK)
-					.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Completed orders found",
-							new OrderFilterResult(responseList, totalOfAllOrders, responseList.size())));
-		} catch (Exception e) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body(new ResponseObject(false, HttpStatus.INTERNAL_SERVER_ERROR.toString().split(" ")[0],
-							"An error occurred while filtering completed orders", null));
-		}
-	}
-
 	public ResponseEntity<ResponseObject> revenue(DateRequest filterRequest) {
 		try {
 
 			Date startDate = DateUtil.calculateStartDate(filterRequest),
 					endDate = DateUtil.calculateEndDate(filterRequest);
 
-			List<Order> orders = repository.findByTimeCompleteBetweenAndStatusValue(startDate, endDate, "completed");
+			List<Order> orders = null;
+			if (tokenUtils.checkMatch("admin")) {
+				orders = repository.findByTimeCompleteBetweenAndStatusValue(startDate, endDate, "completed");
+			} else if (tokenUtils.checkMatch("shop")) {
+
+				Optional<Shop> shop = shopRepository.findByAccount(tokenUtils.getAccount());
+				if (shop.isEmpty()) {
+					return ResponseObjectHelper.createFalseResponse(HttpStatus.NOT_FOUND,
+							"No shop found with the current account");
+				}
+
+				orders = repository.findByTimeCompleteBetweenAndShopIdAndStatusValue(startDate, endDate,
+						shop.get().getId(), "completed");
+			}
 
 			if (orders.isEmpty()) {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND)

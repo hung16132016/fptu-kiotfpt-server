@@ -2,6 +2,7 @@ package com.kiotfpt.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,11 +23,13 @@ public class ShopCateController {
     @Autowired
     private ShopCateService service;
 
+    
     @PostMapping("/add")
     public ResponseEntity<ResponseObject> addShopCategory(@RequestParam int shopID, @RequestParam int categoryID) {
         return service.addShopCategory(shopID, categoryID);
     }
     
+    @PreAuthorize("hasAuthority('shop')")
     @DeleteMapping("/remove/{id}")
     public ResponseEntity<ResponseObject> removeShopCategoryById(@PathVariable int id) {
         return service.removeShopCategoryById(id);

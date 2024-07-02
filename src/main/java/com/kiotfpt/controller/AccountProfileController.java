@@ -2,9 +2,9 @@ package com.kiotfpt.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,16 +22,18 @@ public class AccountProfileController {
 	@Autowired
 	private AccountProfileService service;
 
-	@GetMapping("/{id}")
-	public ResponseEntity<ResponseObject> getProfileByAccountID(@PathVariable int id) {
-		return service.getProfileByAccountID(id);
+	@PreAuthorize("hasAuthority('user')")
+	@GetMapping("")
+	public ResponseEntity<ResponseObject> getProfileByAccountID() {
+		return service.getProfileByAccountID();
 	}
-	
-	@PutMapping("/update-profile")
+
+	@PreAuthorize("hasAuthority('user')")
+	@PutMapping("/update")
 	public ResponseEntity<ResponseObject> updateProfile(@RequestBody AccountProfile request) {
 		return service.updateProfile(request);
 	}
-	
+
 	@PutMapping("/update-password")
 	public ResponseEntity<ResponseObject> updatePassword(@RequestBody UpdatePasswordRequest request) {
 		return service.updatePassword(request);

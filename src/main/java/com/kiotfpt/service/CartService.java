@@ -33,6 +33,7 @@ import com.kiotfpt.response.SectionResponse;
 import com.kiotfpt.response.ShopMiniResponse;
 import com.kiotfpt.response.StatusResponse;
 import com.kiotfpt.utils.JsonReader;
+import com.kiotfpt.utils.TokenUtils;
 
 @Service
 public class CartService {
@@ -51,6 +52,9 @@ public class CartService {
 
 	@Autowired
 	private StatusRepository statusRepository;
+	
+	@Autowired
+	private TokenUtils tokenUtils;
 
 //	@Autowired
 //	private AddressDeliverRepository addRepository;
@@ -82,8 +86,8 @@ public class CartService {
 				HttpStatus.OK.toString().split(" ")[0], responseMessage.get("cartFound"), count));
 	}
 
-	public ResponseEntity<ResponseObject> getCartByID(int cart_id) {
-		Optional<Cart> cart = repository.findById(cart_id);
+	public ResponseEntity<ResponseObject> getCartByID() {
+		Optional<Cart> cart = repository.findCartByAccountID(tokenUtils.getAccount().getId());
 		if (!cart.isPresent()) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
 					HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("cartNotFound"), ""));
