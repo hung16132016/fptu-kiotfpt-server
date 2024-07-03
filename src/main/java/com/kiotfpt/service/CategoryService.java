@@ -25,6 +25,8 @@ import com.kiotfpt.request.CategoryRequest;
 import com.kiotfpt.response.GetAllCategoryResponse;
 import com.kiotfpt.response.StatusResponse;
 import com.kiotfpt.utils.JsonReader;
+import com.kiotfpt.utils.ResponseObjectHelper;
+import com.kiotfpt.utils.TokenUtils;
 
 @Service
 public class CategoryService {
@@ -42,6 +44,8 @@ public class CategoryService {
 
 	@Autowired
 	private ShopRepository shopRepository;
+
+	private TokenUtils tokenUtils;
 
 	HashMap<String, String> responseMessage = new JsonReader().readJsonFile();
 
@@ -88,26 +92,32 @@ public class CategoryService {
 	public ResponseEntity<ResponseObject> createCategory(CategoryRequest request) {
 		Optional<Category> foundCategory = repository.findByName(request.getName().trim());
 		if (!foundCategory.isEmpty())
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
-					new ResponseObject(false, HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Category existed", ""));
+			return ResponseObjectHelper.createFalseResponse(HttpStatus.BAD_REQUEST, "Category existed");
 
-		Category newCategory = new Category(request, statusRepository.findByValue("inactive").get());
+		Category newCategory = null;
+		if (tokenUtils.checkMatch("shop") == true) {
+			newCategory = new Category(request, statusRepository.findByValue("inactive").get());
+		} else if (tokenUtils.checkMatch("admin") == true)
+			newCategory = new Category(request, statusRepository.findByValue("active").get());
+
 		repository.save(newCategory);
 
-		// Create new ShopCategory entry
-		Optional<Shop> foundShop = shopRepository.findById(request.getShop_id());
-		if (foundShop.isEmpty()) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-					new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0], "Shop not found", ""));
+		if (tokenUtils.checkMatch("shop") == true) {
+			// Create new ShopCategory entry
+			Optional<Shop> foundShop = shopRepository.findByAccount(tokenUtils.getAccount());
+			if (foundShop.isEmpty()) {
+				return ResponseObjectHelper.createFalseResponse(HttpStatus.NOT_FOUND,
+						"Shop not found with account id " + tokenUtils.getAccount().getId());
+			}
+
+			ShopCategory newShopCategory = new ShopCategory();
+			newShopCategory.setCategory(newCategory);
+			newShopCategory.setShop(foundShop.get());
+			shopCategoryRepository.save(newShopCategory);
 		}
 
-		ShopCategory newShopCategory = new ShopCategory();
-		newShopCategory.setCategory(newCategory);
-		newShopCategory.setShop(foundShop.get());
-		shopCategoryRepository.save(newShopCategory);
-
-		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
-				HttpStatus.OK.toString().split(" ")[0], responseMessage.get("createCategorySuccess"), newCategory));
+		return ResponseObjectHelper.createTrueResponse(HttpStatus.OK, responseMessage.get("createCategorySuccess"),
+				newCategory);
 	}
 
 	public ResponseEntity<ResponseObject> updateCategory(int id, CategoryRequest request) {
@@ -158,27 +168,28 @@ public class CategoryService {
 				HttpStatus.OK.toString().split(" ")[0], "Categories fetched successfully", activeCategories));
 
 	}
-	
-	 public ResponseEntity<ResponseObject> changeCategoryStatus(int categoryId, String stat) {
-	        Optional<Category> optionalCategory = repository.findById(categoryId);
-	        if (!optionalCategory.isPresent()) {
-	            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-	                    HttpStatus.NOT_FOUND.toString().split(" ")[0], "Category with id: " + categoryId + " not found", null));
-	        }
 
-	        Optional<Status> optionalStatus = statusRepository.findByValue(stat);
-	        if (!optionalStatus.isPresent()) {
-	            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-	                    HttpStatus.NOT_FOUND.toString().split(" ")[0], "Status with id: " + stat + " not found", null));
-	        }
+	public ResponseEntity<ResponseObject> changeCategoryStatus(int categoryId, String stat) {
+		Optional<Category> optionalCategory = repository.findById(categoryId);
+		if (!optionalCategory.isPresent()) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND)
+					.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
+							"Category with id: " + categoryId + " not found", null));
+		}
 
-	        Category category = optionalCategory.get();
-	        category.setStatus(optionalStatus.get());
+		Optional<Status> optionalStatus = statusRepository.findByValue(stat);
+		if (!optionalStatus.isPresent()) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+					HttpStatus.NOT_FOUND.toString().split(" ")[0], "Status with id: " + stat + " not found", null));
+		}
 
-	        repository.save(category);
+		Category category = optionalCategory.get();
+		category.setStatus(optionalStatus.get());
 
-	        return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
-	                HttpStatus.OK.toString().split(" ")[0], "Category status updated successfully", category));
-	    }
+		repository.save(category);
+
+		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
+				HttpStatus.OK.toString().split(" ")[0], "Category status updated successfully", category));
+	}
 
 }

@@ -14,7 +14,6 @@ public class CategoryRequest {
 	private int id;
 	private String name;
 	private String thumbnail;
-	private int shop_id;
 
 	public CategoryRequest(Category category) {
 		super();

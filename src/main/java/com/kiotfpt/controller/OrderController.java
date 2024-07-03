@@ -26,18 +26,20 @@ public class OrderController {
 	@Autowired
 	private OrderService service;
 
+	@PreAuthorize("hasAuthority('user')")
 	@GetMapping("/get-all")
-	public ResponseEntity<ResponseObject> getAllOrderByAccountID(@RequestParam(name = "accountID") int id) {
-		return service.getOrderByAccountID(id);
-	}
-
-	@GetMapping("/get-by-shop")
-	public ResponseEntity<ResponseObject> getOrderByShop(@RequestParam(name = "shop_id") Integer shopID,
-			@RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "10") int amount) {
-		return service.getOrderByShopID(shopID, page, amount);
+	public ResponseEntity<ResponseObject> getAllOrderByAccountID() {
+		return service.getOrderByAccountID();
 	}
 
 	@PreAuthorize("hasAuthority('shop')")
+	@GetMapping("/get-by-shop")
+	public ResponseEntity<ResponseObject> getOrderByShop(@RequestParam(defaultValue = "1") int page,
+			@RequestParam(defaultValue = "10") int amount) {
+		return service.getOrderByShopID(page, amount);
+	}
+
+	@PreAuthorize("hasAnyAuthority('shop', 'user')")
 	@PutMapping("/update/{id}")
 	public ResponseEntity<ResponseObject> updateOrder(@PathVariable int id, @RequestParam String status)
 			throws JsonProcessingException {
@@ -49,6 +51,7 @@ public class OrderController {
 		return service.updateOrderStatus(id, "inactive");
 	}
 
+	@PreAuthorize("hasAuthority('user')")
 	@PostMapping("/checkout")
 	public ResponseEntity<ResponseObject> createOrder(@RequestBody CreateOrderRequest map) {
 		return service.createOrder(map);

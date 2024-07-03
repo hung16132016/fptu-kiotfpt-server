@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kiotfpt.model.ResponseObject;
@@ -26,9 +25,10 @@ public class AddressController {
 	@Autowired
 	private AddressService service;
 
+	@PreAuthorize("hasAuthority('user')")
 	@GetMapping("/get-all")
-	public ResponseEntity<ResponseObject> getAllAddressByAccountID(@RequestParam(name = "accountID") int id) {
-		return service.getAddressByAccountID(id);
+	public ResponseEntity<ResponseObject> getAllAddressByAccountID() {
+		return service.getAddressByAccountID();
 	}
 	
 	@GetMapping("/get/{id}")

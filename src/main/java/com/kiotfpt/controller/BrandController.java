@@ -47,6 +47,7 @@ public class BrandController {
 
 	}
 
+    @PreAuthorize("hasAuthority('admin')")
 	@PostMapping("/create")
 	public ResponseEntity<ResponseObject> createBrand(@RequestBody BrandRequest brandRequest) {
 		return service.createBrand(brandRequest);

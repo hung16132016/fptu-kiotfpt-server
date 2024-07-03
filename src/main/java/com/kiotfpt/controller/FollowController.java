@@ -2,6 +2,7 @@ package com.kiotfpt.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,10 +20,11 @@ public class FollowController {
 	@Autowired
 	private FollowService service;
 
+	@PreAuthorize("hasAuthority('user')")
 	@GetMapping("")
 	public ResponseEntity<ResponseObject> followShop(@RequestParam(name = "shopId", required = true) int shopId,
-			@RequestParam(name = "accountId", required = true) int accountId) {
-		return service.followShop(shopId, accountId);
+			@RequestParam(name = "status", required = true) String status) {
+		return service.followShop(shopId, status);
 	}
 
 	@GetMapping("/check")

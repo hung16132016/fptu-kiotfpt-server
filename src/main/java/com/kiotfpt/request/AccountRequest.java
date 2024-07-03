@@ -10,7 +10,5 @@ import lombok.NoArgsConstructor;
 public class AccountRequest {
 	private String username;
 	private String password;
-	private int role_id;
-	private int status_id;
 
 }

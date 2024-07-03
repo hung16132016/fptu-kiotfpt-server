@@ -15,77 +15,70 @@ import com.kiotfpt.model.ShopCategory;
 import com.kiotfpt.repository.CategoryRepository;
 import com.kiotfpt.repository.ShopCateRepository;
 import com.kiotfpt.repository.ShopRepository;
+import com.kiotfpt.utils.ResponseObjectHelper;
+import com.kiotfpt.utils.TokenUtils;
 
 @Service
 public class ShopCateService {
 
-    @Autowired
-    private ShopCateRepository shopCategoryRepository;
+	@Autowired
+	private ShopCateRepository shopCategoryRepository;
 
-    @Autowired
-    private ShopRepository shopRepository;
+	@Autowired
+	private ShopRepository shopRepository;
 
-    @Autowired
-    private CategoryRepository categoryRepository;
+	@Autowired
+	private CategoryRepository categoryRepository;
 
-    public ResponseEntity<ResponseObject> addShopCategory(int shopID, int categoryID) {
-        if (!shopRepository.existsById(shopID)) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
-                            "Shop with id: " + shopID + " not found", null));
-        }
+	@Autowired
+	private TokenUtils tokenUtils;
 
-        if (!categoryRepository.existsById(categoryID)) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
-                            "Category with id: " + categoryID + " not found", null));
-        }
+	public ResponseEntity<ResponseObject> addShopCategory(int shopID, int categoryID) {
+		if (!shopRepository.existsById(shopID)) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+					HttpStatus.NOT_FOUND.toString().split(" ")[0], "Shop with id: " + shopID + " not found", null));
+		}
 
-        Shop shop = shopRepository.findById(shopID).get();
-        Category category = categoryRepository.findById(categoryID).get();
+		if (!categoryRepository.existsById(categoryID)) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND)
+					.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
+							"Category with id: " + categoryID + " not found", null));
+		}
 
-        ShopCategory shopCategory = new ShopCategory();
-        shopCategory.setShop(shop);
-        shopCategory.setCategory(category);
+		Shop shop = shopRepository.findById(shopID).get();
+		Category category = categoryRepository.findById(categoryID).get();
 
-        shopCategoryRepository.save(shopCategory);
+		ShopCategory shopCategory = new ShopCategory();
+		shopCategory.setShop(shop);
+		shopCategory.setCategory(category);
 
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
-                        "Shop category added successfully", null));
-    }
-    
-    public ResponseEntity<ResponseObject> removeShopCategoryById(int id) {
-        if (!shopCategoryRepository.existsById(id)) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
-                            "ShopCategory with id: " + id + " not found", null));
-        }
+		shopCategoryRepository.save(shopCategory);
 
-        shopCategoryRepository.deleteById(id);
+		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
+				HttpStatus.OK.toString().split(" ")[0], "Shop category added successfully", null));
+	}
 
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
-                        "ShopCategory removed successfully", null));
-    }
-    
-    public ResponseEntity<ResponseObject> getShopCategoryByShopID(int shopID) {
-    	Optional<Shop> optShop = shopRepository.findById(shopID);
-    	
-    	if (optShop.isEmpty())
-    		return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
-                            "Shop with id: " + shopID + " not found", null));
-    	
-    	Shop shop = optShop.get();
-    	Collection<ShopCategory> listShopCate = shop.getShopcategories();
-    	if (listShopCate.isEmpty())
-    		return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
-                            "This shop have no shop category", null));
-    	
-    	return ResponseEntity.status(HttpStatus.OK)
-                .body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
-                        "Get shop category by shop ID successfully", listShopCate));
-    }
+	public ResponseEntity<ResponseObject> removeShopCategoryById(int id) {
+		if (!shopCategoryRepository.existsById(id)) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+					HttpStatus.NOT_FOUND.toString().split(" ")[0], "ShopCategory with id: " + id + " not found", null));
+		}
+
+		shopCategoryRepository.deleteById(id);
+
+		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
+				HttpStatus.OK.toString().split(" ")[0], "ShopCategory removed successfully", null));
+	}
+
+	public ResponseEntity<ResponseObject> getShopCategoryByShopID() {
+		Optional<Shop> optShop = shopRepository.findByAccount(tokenUtils.getAccount());
+
+		Shop shop = optShop.get();
+		Collection<ShopCategory> listShopCate = shop.getShopcategories();
+		if (listShopCate.isEmpty())
+			return ResponseObjectHelper.createFalseResponse(HttpStatus.NOT_FOUND, "This shop have no shop category");
+
+		return ResponseObjectHelper.createTrueResponse(HttpStatus.OK, "Get shop category by shop ID successfully",
+				listShopCate);
+	}
 }

@@ -46,24 +46,22 @@ public class AddressService {
 
 	HashMap<String, String> responseMessage = new JsonReader().readJsonFile();
 
-	public ResponseEntity<ResponseObject> getAddressByAccountID(int account_id) {
-		Optional<AccountProfile> acc = accountprofileRepository.findById(account_id);
-		if (!acc.isEmpty()) {
-			List<Address> addresses = repository.findAllByProfile(acc.get());
-			if (!addresses.isEmpty()) {
+	public ResponseEntity<ResponseObject> getAddressByAccountID() {
+		Optional<AccountProfile> acc = accountprofileRepository.findByAccount(tokenUtils.getAccount());
+		if (acc.isEmpty())
+			return ResponseObjectHelper.createFalseResponse(HttpStatus.NOT_FOUND,
+					responseMessage.get("accountNotFound"));
 
-				List<AddressResponse> list = new ArrayList<AddressResponse>();
-				for (Address address : addresses) {
-					list.add(new AddressResponse(address));
-				}
-				return ResponseEntity.status(HttpStatus.OK).body(
-						new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Addresses found", list));
-			}
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-					HttpStatus.NOT_FOUND.toString().split(" ")[0], "Addresses do not exist", new int[0]));
+		List<Address> addresses = repository.findAllByProfile(acc.get());
+		if (!addresses.isEmpty())
+			return ResponseObjectHelper.createFalseResponse(HttpStatus.NOT_FOUND, "Addresses do not exist");
+
+		List<AddressResponse> list = new ArrayList<AddressResponse>();
+		for (Address address : addresses) {
+			list.add(new AddressResponse(address));
 		}
-		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-				HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("accountNotFound"), ""));
+		return ResponseObjectHelper.createTrueResponse(HttpStatus.OK, "Addresses found", list);
+
 	}
 
 	public ResponseEntity<ResponseObject> getAddressByID(int address_id) {

@@ -16,9 +16,11 @@ import com.kiotfpt.model.Account;
 import com.kiotfpt.model.AccountProfile;
 import com.kiotfpt.model.Order;
 import com.kiotfpt.model.ResponseObject;
+import com.kiotfpt.model.Shop;
 import com.kiotfpt.repository.AccountProfileRepository;
 import com.kiotfpt.repository.AccountRepository;
 import com.kiotfpt.repository.OrderRepository;
+import com.kiotfpt.repository.ShopRepository;
 import com.kiotfpt.request.UpdatePasswordRequest;
 import com.kiotfpt.response.ProfileStatisResponse;
 import com.kiotfpt.utils.JsonReader;
@@ -38,6 +40,9 @@ public class AccountProfileService {
 
 	@Autowired
 	private OrderRepository orderRepository;
+
+	@Autowired
+	private ShopRepository shopRepository;
 
 	@Autowired
 	private TokenUtils tokenUtils;
@@ -106,36 +111,33 @@ public class AccountProfileService {
 	}
 
 	public ResponseEntity<ResponseObject> updatePassword(UpdatePasswordRequest request) {
-		Optional<Account> accountFound = accountRepository.findById(request.getAccount_id());
-		if (accountFound.isPresent()) {
-			if (request.getOldPassword().strip().equals("") || request.getNewPassword().strip().equals("")
-					|| request.getRetypePassword().strip().equals(""))
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
-						HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Input can not be empty!", new int[0]));
-			if (request.getNewPassword().length() > 32)
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
-						HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Your new password is too long!", new int[0]));
-			if (!request.getNewPassword().equals(request.getRetypePassword()))
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-						.body(new ResponseObject(false, HttpStatus.BAD_REQUEST.toString().split(" ")[0],
-								"New password and retype password is not the same!", new int[0]));
-			String newPassword = MD5.generateMD5Hash(request.getOldPassword());
-			if (!newPassword.equals(accountFound.get().getPassword()))
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
-						HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Old password is wrong!", new int[0]));
-			Account account = accountFound.get();
-			account.setPassword(newPassword);
-			accountRepository.save(account);
-			return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
-					HttpStatus.OK.toString().split(" ")[0], "Update password seccessfull", new int[0]));
-		}
-		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-				HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("profileNotFound"), ""));
+		Account accountFound = tokenUtils.getAccount();
+
+		if (request.getOldPassword().strip().equals("") || request.getNewPassword().strip().equals("")
+				|| request.getRetypePassword().strip().equals(""))
+			return ResponseObjectHelper.createFalseResponse(HttpStatus.BAD_REQUEST, "Input can not be empty!");
+		if (request.getNewPassword().length() > 32)
+			return ResponseObjectHelper.createFalseResponse(HttpStatus.BAD_REQUEST, "Your new password is too long!");
+		if (!request.getNewPassword().equals(request.getRetypePassword()))
+			return ResponseObjectHelper.createFalseResponse(HttpStatus.BAD_REQUEST,
+					"New password and retype password is not the same!");
+		String newPassword = MD5.generateMD5Hash(request.getOldPassword());
+		if (!newPassword.equals(accountFound.getPassword()))
+			return ResponseObjectHelper.createFalseResponse(HttpStatus.BAD_REQUEST, "Old password is wrong!");
+		Account account = accountFound;
+		account.setPassword(newPassword);
+		accountRepository.save(account);
+		return ResponseObjectHelper.createTrueResponse(HttpStatus.OK, "Update password seccessfull", new int[0]);
 	}
 
-	public ResponseEntity<ResponseObject> getProfilesOrderedByTotalSpent(int shopId) {
+	public ResponseEntity<ResponseObject> getProfilesOrderedByTotalSpent() {
 		try {
-			List<Order> orders = orderRepository.findByShopIdAndStatusValue(shopId, "completed");
+			Optional<Shop> shop = shopRepository.findByAccount(tokenUtils.getAccount());
+			if (shop.isEmpty()) {
+				return ResponseObjectHelper.createFalseResponse(HttpStatus.BAD_REQUEST,
+						"No shop found with the current account");
+			}
+			List<Order> orders = orderRepository.findByShopIdAndStatusValue(shop.get().getId(), "completed");
 			List<AccountProfile> profiles = repository.findAll();
 
 			Map<Integer, Double> totalSpentByAccount = orders.stream().collect(Collectors

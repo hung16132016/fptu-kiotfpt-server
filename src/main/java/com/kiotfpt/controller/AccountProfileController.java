@@ -34,6 +34,7 @@ public class AccountProfileController {
 		return service.updateProfile(request);
 	}
 
+	@PreAuthorize("hasAuthority('user')")
 	@PutMapping("/update-password")
 	public ResponseEntity<ResponseObject> updatePassword(@RequestBody UpdatePasswordRequest request) {
 		return service.updatePassword(request);

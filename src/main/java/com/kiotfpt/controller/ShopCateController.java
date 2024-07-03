@@ -23,7 +23,7 @@ public class ShopCateController {
     @Autowired
     private ShopCateService service;
 
-    
+    @PreAuthorize("hasAuthority('shop')")
     @PostMapping("/add")
     public ResponseEntity<ResponseObject> addShopCategory(@RequestParam int shopID, @RequestParam int categoryID) {
         return service.addShopCategory(shopID, categoryID);
@@ -35,8 +35,9 @@ public class ShopCateController {
         return service.removeShopCategoryById(id);
     }
     
+    @PreAuthorize("hasAuthority('shop')")
     @GetMapping("/get-by-shop")
-    public ResponseEntity<ResponseObject> getShopCategoryByShopID(@RequestParam int shopID) {
-        return service.getShopCategoryByShopID(shopID);
+    public ResponseEntity<ResponseObject> getShopCategoryByShopID() {
+        return service.getShopCategoryByShopID();
     }
 }

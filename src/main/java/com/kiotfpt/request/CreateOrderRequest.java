@@ -10,8 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreateOrderRequest {
-
-	private int accountId;
+	
 	private int address_id;
 	private List<SectionRequest> sections;
 

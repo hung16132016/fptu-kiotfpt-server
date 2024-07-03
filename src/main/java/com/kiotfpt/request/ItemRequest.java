@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 public class ItemRequest {
 	private int amount;
 	private String note;
-	private int account_id;
 	private int variant_id;
 
 }

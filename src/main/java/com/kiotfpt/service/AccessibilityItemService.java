@@ -9,20 +9,19 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kiotfpt.model.AccessibilityItem;
-import com.kiotfpt.model.Account;
 import com.kiotfpt.model.Cart;
 import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.model.Section;
 import com.kiotfpt.model.Status;
 import com.kiotfpt.model.Variant;
 import com.kiotfpt.repository.AccessibilityItemRepository;
-import com.kiotfpt.repository.AccountRepository;
 import com.kiotfpt.repository.CartRepository;
 import com.kiotfpt.repository.SectionRepository;
 import com.kiotfpt.repository.StatusRepository;
 import com.kiotfpt.repository.VariantRepository;
 import com.kiotfpt.request.ItemRequest;
 import com.kiotfpt.utils.ResponseObjectHelper;
+import com.kiotfpt.utils.TokenUtils;
 
 @Service
 public class AccessibilityItemService {
@@ -33,9 +32,6 @@ public class AccessibilityItemService {
 	private SectionRepository sectionRepository;
 
 	@Autowired
-	private AccountRepository accountRepository;
-
-	@Autowired
 	private VariantRepository variantRepository;
 
 	@Autowired
@@ -43,17 +39,14 @@ public class AccessibilityItemService {
 
 	@Autowired
 	private CartRepository cartRepository;
+	
+	@Autowired
+	private TokenUtils tokenUtils;
 
 	public ResponseEntity<ResponseObject> createItem(ItemRequest itemRequest) {
-		// Validate Account
-		Optional<Account> optionalAccount = accountRepository.findById(itemRequest.getAccount_id());
-		if (optionalAccount.isEmpty()) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-					HttpStatus.NOT_FOUND.toString().split(" ")[0], "Account not found", null));
-		}
 
 		// Validate Cart
-		Optional<Cart> optionalCart = cartRepository.findCartByAccountID(itemRequest.getAccount_id());
+		Optional<Cart> optionalCart = cartRepository.findCartByAccountID(tokenUtils.getAccount().getId());
 		if (optionalCart.isEmpty()) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
 					new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0], "Cart not found", null));

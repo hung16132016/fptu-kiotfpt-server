@@ -51,7 +51,7 @@ public class ProductController {
 			@RequestParam(name = "page") Integer page, @RequestParam(name = "amount") Integer amount) {
 		return service.getByCategoryID(category_id, page, amount);
 	}
-	
+
 	@GetMapping("/get-by-brand")
 	public ResponseEntity<ResponseObject> getByBrandID(@RequestParam(name = "brandID") Integer brand_id,
 			@RequestParam(name = "page") Integer page, @RequestParam(name = "amount") Integer amount) {
@@ -63,17 +63,18 @@ public class ProductController {
 			@RequestParam(name = "page") Integer page, @RequestParam(name = "amount") Integer amount) {
 		return service.getProductsByRate(rate, page, amount);
 	}
-	
+
 	@GetMapping("/search")
 	public ResponseEntity<ResponseObject> getByKeyword(@RequestParam(name = "key") String keyword,
 			@RequestParam(name = "page") Integer page, @RequestParam(name = "amount") Integer amount) {
 		return service.getByKeyword(keyword, page, amount);
 	}
 
+	@PreAuthorize("hasAuthority('shop')")
 	@GetMapping("/get-by-shop")
-	public ResponseEntity<ResponseObject> getProductByShop(@RequestParam(name = "shop_id") Integer shopID,
-			@RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "10") int amount) {
-		return service.findByShopId(shopID, page, amount);
+	public ResponseEntity<ResponseObject> getProductByShop(@RequestParam(defaultValue = "1") int page,
+			@RequestParam(defaultValue = "10") int amount) {
+		return service.findByShopId(page, amount);
 	}
 
 	@PreAuthorize("hasAuthority('shop')")
@@ -82,7 +83,7 @@ public class ProductController {
 		return service.createProduct(product);
 	}
 
-	@PreAuthorize("hasAuthority('shop')")     
+	@PreAuthorize("hasAuthority('shop')")
 	@DeleteMapping("/delete/{id}")
 	public ResponseEntity<ResponseObject> deleteProduct(@PathVariable int id, @RequestBody List<Integer> variantIds) {
 		return service.deleteProduct(id, variantIds);
@@ -116,33 +117,30 @@ public class ProductController {
 	public ResponseEntity<ResponseObject> getProductsWithoutComments(@RequestParam(name = "accountId") int accountId) {
 		return service.getProductsNotCommentedByAccount(accountId);
 	}
-	
+
 	@GetMapping("/get-by-shop-and-cat")
-	public ResponseEntity<ResponseObject> getProductsByShopCatID(
-			@RequestParam(name = "shopCatID") int shopCatID, 
-			@RequestParam(name = "page") Integer page,
-			@RequestParam(name = "amount") Integer amount
-			) {
+	public ResponseEntity<ResponseObject> getProductsByShopCatID(@RequestParam(name = "shopCatID") int shopCatID,
+			@RequestParam(name = "page") Integer page, @RequestParam(name = "amount") Integer amount) {
 		return service.getProductsByShopCatID(shopCatID, page, amount);
 	}
 
 	@GetMapping("/get-by-type")
-	public ResponseEntity<ResponseObject> getProductsByType(
-			@RequestParam(name = "type") String type, 
-			@RequestParam(name = "page") Integer page,
-			@RequestParam(name = "amount") Integer amount
-			) {
+	public ResponseEntity<ResponseObject> getProductsByType(@RequestParam(name = "type") String type,
+			@RequestParam(name = "page") Integer page, @RequestParam(name = "amount") Integer amount) {
 		return service.getProductsByType(type, page, amount);
 	}
-	
+
 	@GetMapping("/get-by-type-and-shop")
-	public ResponseEntity<ResponseObject> getProductsByTypeAndShopID(
-			@RequestParam(name = "shopID") Integer shopId, 
-			@RequestParam(name = "type") String type, 
-			@RequestParam(name = "page") Integer page,
-			@RequestParam(name = "amount") Integer amount
-			) {
+	public ResponseEntity<ResponseObject> getProductsByTypeAndShopID(@RequestParam(name = "shopID") Integer shopId,
+			@RequestParam(name = "type") String type, @RequestParam(name = "page") Integer page,
+			@RequestParam(name = "amount") Integer amount) {
 		return service.getProductsByTypeAndShopID(type, shopId, page, amount);
 	}
 	
+	@PreAuthorize("hasAuthority('user')")
+	@GetMapping("/bought")
+	public ResponseEntity<ResponseObject> getProductsBoughtByAccount() {
+		return service.getProductsBoughtByAccount();
+	}
+
 }

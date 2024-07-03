@@ -101,27 +101,25 @@ public class OrderService {
 
 	HashMap<String, String> responseMessage = new JsonReader().readJsonFile();
 
-	public ResponseEntity<ResponseObject> getOrderByAccountID(int account_id) {
-		Optional<Account> acc = accountRepository.findById(account_id);
-		if (!acc.isEmpty()) {
-			List<Order> orders = repository.findAllByAccount(acc.get());
-			if (!orders.isEmpty()) {
-				List<OrderResponse> orderResponses = new ArrayList<>();
-				for (Order order : orders) {
-					orderResponses.add(new OrderResponse(order));
-				}
-				return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
-						HttpStatus.OK.toString().split(" ")[0], "Orders found", orderResponses));
+	public ResponseEntity<ResponseObject> getOrderByAccountID() {
+		Account acc = tokenUtils.getAccount();
+
+		List<Order> orders = repository.findAllByAccount(acc);
+		if (!orders.isEmpty()) {
+			List<OrderResponse> orderResponses = new ArrayList<>();
+			for (Order order : orders) {
+				orderResponses.add(new OrderResponse(order));
 			}
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-					HttpStatus.NOT_FOUND.toString().split(" ")[0], "Orders do not exist", new int[0]));
+			return ResponseEntity.status(HttpStatus.OK).body(
+					new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Orders found", orderResponses));
 		}
-		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-				new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0], "Account not found", ""));
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+				HttpStatus.NOT_FOUND.toString().split(" ")[0], "Orders do not exist", new int[0]));
+
 	}
 
-	public ResponseEntity<ResponseObject> getOrderByShopID(int shop_id, int page, int amount) {
-		Optional<Shop> shopOptional = shopRepository.findById(shop_id);
+	public ResponseEntity<ResponseObject> getOrderByShopID(int page, int amount) {
+		Optional<Shop> shopOptional = shopRepository.findByAccount(tokenUtils.getAccount());
 		if (!shopOptional.isEmpty()) {
 			Pageable pageable = PageRequest.of(page - 1, amount);
 			Page<Order> orderPage = repository.findAllByShop(shopOptional.get(), pageable);
@@ -185,13 +183,8 @@ public class OrderService {
 
 	public ResponseEntity<ResponseObject> createOrder(CreateOrderRequest input) {
 		try {
-			// Validate Account existence
-			Optional<Account> optionalAccount = accountRepository.findById(input.getAccountId());
-			if (optionalAccount.isEmpty()) {
-				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-						HttpStatus.NOT_FOUND.toString().split(" ")[0], "Account not found", null));
-			}
-			Account account = optionalAccount.get();
+
+			Account account = tokenUtils.getAccount();
 
 			// Validate Address existence
 			Optional<Address> optionalAddress = addressRepository.findById(input.getAddress_id());
@@ -324,8 +317,7 @@ public class OrderService {
 		return total;
 	}
 
-	public ResponseEntity<ResponseObject> updateOrderStatus(int id, String status)
-			throws JsonProcessingException {
+	public ResponseEntity<ResponseObject> updateOrderStatus(int id, String status) throws JsonProcessingException {
 		Optional<Order> orderOpt = repository.findById(id);
 		if (orderOpt.isEmpty()) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
@@ -333,6 +325,7 @@ public class OrderService {
 		}
 
 		Order order = orderOpt.get();
+
 		Optional<Status> newStatOpt = statusRepository.findByValue(status);
 		if (newStatOpt.isEmpty()) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
@@ -360,8 +353,8 @@ public class OrderService {
 			return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
 					HttpStatus.OK.toString().split(" ")[0], "Create transaction successfully", trans));
 
-		} else if (order.getStatus().getValue().equals("accepted")
-				&& newStat.getValue().equalsIgnoreCase("delivering")) {
+		} else if (order.getStatus().getValue().equals("accepted") && newStat.getValue().equalsIgnoreCase("delivering")
+				&& tokenUtils.checkMatch("shop")) {
 			order.setStatus(newStat);
 			order.getSection().setStatus(newStat);
 
@@ -388,7 +381,11 @@ public class OrderService {
 
 			return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
 					HttpStatus.OK.toString().split(" ")[0], "Order status updated to delivering successfully", order));
-		} else {
+
+		} else if (((order.getStatus().getValue().equals("pending") || order.getStatus().getValue().equals("accepted"))
+				&& newStat.getValue().equalsIgnoreCase("cancel") && tokenUtils.checkMatch("user"))
+				|| tokenUtils.checkMatch("shop")) {
+
 			order.setStatus(newStat);
 			order.getSection().setStatus(newStat);
 
@@ -398,10 +395,17 @@ public class OrderService {
 			}
 
 			repository.save(order);
-			notifyRepository.save(new Notify(order, order.getAccount(), status));
+			notifyRepository.save(new Notify(order, order.getAccount(), newStat.getValue()));
 
 			return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
 					HttpStatus.OK.toString().split(" ")[0], "Update order successfully", order));
+
+		} else if (!order.getStatus().getValue().equals("pending") && !order.getStatus().getValue().equals("accepted")
+				&& newStat.getValue().equalsIgnoreCase("cancel")) {
+			return ResponseObjectHelper.createFalseResponse(HttpStatus.BAD_REQUEST, "You can not cancel this order");
+
+		} else {
+			return ResponseObjectHelper.createFalseResponse(HttpStatus.BAD_REQUEST, "You can not update this order");
 		}
 	}
 

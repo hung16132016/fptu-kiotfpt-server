@@ -2,6 +2,7 @@ package com.kiotfpt.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,16 +24,19 @@ public class AccessibilityItemController {
 	@Autowired
 	private AccessibilityItemService service;
 
-	@PostMapping("/add-to-cart")
+	@PreAuthorize("hasAuthority('user')")
+	@PostMapping("/item/add-to-cart")
 	public ResponseEntity<ResponseObject> addProductToCart(@RequestBody ItemRequest item) {
 		return service.createItem(item);
 	}
 
+	@PreAuthorize("hasAuthority('user')")
 	@DeleteMapping("/item/delete/{id}")
 	public ResponseEntity<ResponseObject> deleteItem(@PathVariable int id) {
 		return service.deleteItem(id);
 	}
 
+	@PreAuthorize("hasAuthority('user')")
 	@GetMapping("item/update-amount")
 	public ResponseEntity<ResponseObject> updateItemAmount(@RequestParam int itemId, @RequestParam int newAmount) {
 		return service.updateItemAmount(itemId, newAmount);

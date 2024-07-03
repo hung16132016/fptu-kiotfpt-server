@@ -41,6 +41,7 @@ public class CategoryController {
 		return service.getCategoryById(id);
 	}
 
+	@PreAuthorize("hasAnyAuthority('admin', 'shop')")
 	@PostMapping("/create")
 	public ResponseEntity<ResponseObject> createCategory(@RequestBody CategoryRequest newCategory) {
 		return service.createCategory(newCategory);
@@ -63,9 +64,10 @@ public class CategoryController {
 	public ResponseEntity<ResponseObject> getCategoriesByShop(@RequestParam int shopId) {
 		return service.getCategoriesByShop(shopId);
 	}
-	
-    @PutMapping("/update-status/{id}")
-    public ResponseEntity<ResponseObject> changeCategoryStatus(@PathVariable int id, @RequestBody StatusRequest request) {
-        return service.changeCategoryStatus(id, request.getValue());
-    }
+
+	@PutMapping("/update-status/{id}")
+	public ResponseEntity<ResponseObject> changeCategoryStatus(@PathVariable int id,
+			@RequestBody StatusRequest request) {
+		return service.changeCategoryStatus(id, request.getValue());
+	}
 }

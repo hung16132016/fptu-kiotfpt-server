@@ -501,15 +501,15 @@ public class ProductService {
 	}
 
 	// fix
-	public ResponseEntity<ResponseObject> findByShopId(int id, int page, int amount) {
-		Optional<Shop> shopOptional = shopRepository.findById(id);
+	public ResponseEntity<ResponseObject> findByShopId(int page, int amount) {
+		Optional<Shop> shopOptional = shopRepository.findByAccount(tokenUtils.getAccount());
 		if (shopOptional.isEmpty()) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND)
 					.body(new ResponseObject(false, "404", responseMessage.get("notFindShop"), null));
 		}
 
 		Pageable pageable = PageRequest.of(page - 1, amount);
-		Page<Product> productPage = repository.findAllByShopId(id, pageable);
+		Page<Product> productPage = repository.findAllByShopId(shopOptional.get().getId(), pageable);
 
 		if (productPage.isEmpty()) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -521,7 +521,7 @@ public class ProductService {
 
 		for (Product product : products) {
 			int statusId = product.getStatus().getId();
-			if (statusId != 2 && statusId != 3 && statusId != 4) {
+			if (statusId != 12 && statusId != 13 && statusId != 14) {
 				List<Variant> variants = (List<Variant>) product.getVariants();
 				List<VariantResponse> variantResponses = new ArrayList<>();
 				for (Variant variant : variants) {
@@ -660,8 +660,7 @@ public class ProductService {
 
 			Date startDate = DateUtil.calculateStartDate(filterRequest),
 					endDate = DateUtil.calculateEndDate(filterRequest);
-			
-			
+
 			List<Order> orders = null;
 			if (tokenUtils.checkMatch("admin")) {
 				orders = orderRepository.findByTimeCompleteBetweenAndStatusValue(startDate, endDate, "completed");
@@ -676,8 +675,7 @@ public class ProductService {
 				orders = orderRepository.findByTimeCompleteBetweenAndShopIdAndStatusValue(startDate, endDate,
 						shop.get().getId(), "completed");
 			}
-			
-			
+
 			if (orders.isEmpty()) {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND)
 						.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
@@ -786,6 +784,8 @@ public class ProductService {
 			productPage = repository.findByTopDeal(pageable);
 		} else if (type.equals("discount")) {
 			productPage = repository.findByDiscountGreaterThan(0, pageable);
+		} else if (type.equals("all")) {
+			productPage = repository.findAll(pageable);
 		} else {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
 					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "The type is invalid!", null));
@@ -837,6 +837,8 @@ public class ProductService {
 			productPage = repository.findByTopDealAndShopId(shopID, pageable);
 		} else if (type.equals("discount")) {
 			productPage = repository.findByShopIdAndDiscountGreaterThan(shopID, 0, pageable);
+		} else if (type.equals("all")) {
+			productPage = repository.findAllByShopId(shopID, pageable);
 		} else {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
 					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "The type is invalid!", null));
@@ -870,23 +872,49 @@ public class ProductService {
 
 	public ResponseEntity<ResponseObject> getProductsWithReviews() {
 		try {
-			List<Product> products = repository.findProductsWithReviews();
+			Optional<Shop> shop = shopRepository.findByAccount(tokenUtils.getAccount());
+			if (shop.isEmpty()) {
+				return ResponseObjectHelper.createFalseResponse(HttpStatus.BAD_REQUEST,
+						"No shop found with the current account");
+			}
+			List<Product> products = repository.findAllByShopId(shop.get().getId());
 			if (products.isEmpty()) {
-				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-						HttpStatus.NOT_FOUND.toString().split(" ")[0], "No products found with reviews", null));
+				return ResponseObjectHelper.createFalseResponse(HttpStatus.NOT_FOUND,
+						"No products found for the given shop");
 			}
 
-			List<ProductReviewResponse> responseList = products.stream().map(product -> {
-				List<Comment> comments = commentRepository.findAllByProduct(product);
-				return new ProductReviewResponse(new ProductMiniResponse(product), comments);
-			}).collect(Collectors.toList());
+			List<ProductReviewResponse> responseList = products.stream()
+					.filter(product -> !commentRepository.findAllByProduct(product).isEmpty()).map(product -> {
+						List<Comment> comments = commentRepository.findAllByProduct(product);
+						return new ProductReviewResponse(new ProductMiniResponse(product), comments);
+					}).collect(Collectors.toList());
 
-			return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
-					HttpStatus.OK.toString().split(" ")[0], "Products with reviews found", responseList));
+			if (responseList.isEmpty()) {
+				return ResponseObjectHelper.createFalseResponse(HttpStatus.NOT_FOUND,
+						"No products with reviews found for the given shop");
+			}
+
+			return ResponseObjectHelper.createTrueResponse(HttpStatus.OK,
+					"Products with reviews found for the given shop", responseList);
 		} catch (Exception e) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body(new ResponseObject(false, HttpStatus.INTERNAL_SERVER_ERROR.toString().split(" ")[0],
-							"An error occurred while fetching products with reviews", null));
+			return ResponseObjectHelper.createFalseResponse(HttpStatus.INTERNAL_SERVER_ERROR,
+					"An error occurred while fetching products with reviews for the given shop");
+		}
+	}
+
+	public ResponseEntity<ResponseObject> getProductsBoughtByAccount() {
+		try {
+			List<Order> orders = orderRepository.findByAccountId(tokenUtils.getAccount().getId());
+
+			List<ProductMiniResponse> productsBought = orders.stream()
+					.flatMap(order -> order.getSection().getItems().stream())
+					.map(item -> new ProductMiniResponse(item.getVariant().getProduct())).collect(Collectors.toList());
+
+			return ResponseObjectHelper.createTrueResponse(HttpStatus.OK,
+					"Products bought by account retrieved successfully", productsBought);
+		} catch (Exception e) {
+			return ResponseObjectHelper.createFalseResponse(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Failed to retrieve products bought by account");
 		}
 	}
 
