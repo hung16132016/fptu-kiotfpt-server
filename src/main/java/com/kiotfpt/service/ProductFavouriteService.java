@@ -2,8 +2,6 @@ package com.kiotfpt.service;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -14,10 +12,8 @@ import com.kiotfpt.model.Account;
 import com.kiotfpt.model.Product;
 import com.kiotfpt.model.ProductFavourite;
 import com.kiotfpt.model.ResponseObject;
-import com.kiotfpt.repository.AccountRepository;
 import com.kiotfpt.repository.ProductFavouriteRepository;
 import com.kiotfpt.repository.ProductRepository;
-import com.kiotfpt.response.ProductResponse;
 import com.kiotfpt.utils.JsonReader;
 import com.kiotfpt.utils.ResponseObjectHelper;
 import com.kiotfpt.utils.TokenUtils;
@@ -29,9 +25,6 @@ public class ProductFavouriteService {
 	private ProductFavouriteRepository repository;
 
 	@Autowired
-	private AccountRepository accountRepository;
-
-	@Autowired
 	private ProductRepository productRepository;
 
 	@Autowired
@@ -39,27 +32,18 @@ public class ProductFavouriteService {
 
 	HashMap<String, String> responseMessage = new JsonReader().readJsonFile();
 
-	public ResponseEntity<ResponseObject> getAllProductFavouriteByAccountID(int id) {
-		Optional<Account> acc = accountRepository.findById(id);
+	public ResponseEntity<ResponseObject> getAllProductFavouriteByAccountID() {
+		Account acc = tokenUtils.getAccount();
 
-		if (!acc.isPresent()) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-					HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("accountNotFound"), null));
-		}
-
-		List<ProductFavourite> productFavourites = repository.findByAccount(acc.get());
+		List<ProductFavourite> productFavourites = repository.findByAccount(acc);
 
 		if (productFavourites.isEmpty()) {
-			return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
-					HttpStatus.OK.toString().split(" ")[0], "No favourtie product found", productFavourites));
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(true,
+					HttpStatus.NOT_FOUND.toString().split(" ")[0], "No favourtie product found", productFavourites));
 		}
 
-		List<ProductResponse> productResponses = productFavourites.stream()
-				.map(productFavourite -> new ProductResponse(productFavourite.getProduct()))
-				.collect(Collectors.toList());
-
 		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
-				HttpStatus.OK.toString().split(" ")[0], "Favourite products found", productResponses));
+				HttpStatus.OK.toString().split(" ")[0], "Favourite products found", productFavourites));
 	}
 
 	public ResponseEntity<ResponseObject> deleteProductFavouriteById(int id) {

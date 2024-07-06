@@ -51,8 +51,18 @@ public class ShopService {
 
 	HashMap<String, String> responseMessage = new JsonReader().readJsonFile();
 
-	public ResponseEntity<ResponseObject> getShopByID() {
+	public ResponseEntity<ResponseObject> getShopProfileByID() {
 		Optional<Shop> shop = repository.findByAccount(tokenUtils.getAccount());
+		if (!shop.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
+					HttpStatus.OK.toString().split(" ")[0], responseMessage.get("shopFound"), shop.get()));
+		}
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+				HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("shopNotFound"), ""));
+	}
+
+	public ResponseEntity<ResponseObject> getShopByID(int id) {
+		Optional<Shop> shop = repository.findById(id);
 		if (!shop.isEmpty()) {
 			return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
 					HttpStatus.OK.toString().split(" ")[0], responseMessage.get("shopFound"), shop.get()));
@@ -190,7 +200,7 @@ public class ShopService {
 		account.setStatus(statusOptional.get());
 		accountRepository.save(account);
 
-		return ResponseObjectHelper.createTrueResponse(HttpStatus.NOT_FOUND, "Change status successfully", null);
+		return ResponseObjectHelper.createTrueResponse(HttpStatus.OK, "Change status successfully", null);
 	}
 
 	public ResponseEntity<ResponseObject> getTop10ShopsByTransactions() {

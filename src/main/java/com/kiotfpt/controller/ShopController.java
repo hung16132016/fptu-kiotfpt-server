@@ -24,13 +24,19 @@ public class ShopController {
 	@Autowired
 	private ShopService service;
 
-	@GetMapping("")
-	public ResponseEntity<ResponseObject> getShopByID() {
-		return service.getShopByID();
+	@GetMapping("/{id}")
+	public ResponseEntity<ResponseObject> getShopByID(@PathVariable int id) {
+		return service.getShopByID(id);
+	}
+
+	@PreAuthorize("hasAuthority('shop')")
+	@GetMapping("/profile")
+	public ResponseEntity<ResponseObject> getShopProfileByID() {
+		return service.getShopProfileByID();
 	}
 
 	@PreAuthorize("hasAuthority('admin')")
-	@PostMapping("/ban/{id}")
+	@GetMapping("/ban/{id}")
 	public ResponseEntity<ResponseObject> banShop(@PathVariable int id, @RequestParam String status) {
 		return service.banShop(id, status);
 	}

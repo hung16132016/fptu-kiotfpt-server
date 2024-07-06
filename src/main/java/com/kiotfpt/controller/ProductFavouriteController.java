@@ -22,9 +22,10 @@ public class ProductFavouriteController {
 	@Autowired
 	private ProductFavouriteService service;
 
+	@PreAuthorize("hasAuthority('user')")
 	@GetMapping("/get-all")
-	public ResponseEntity<ResponseObject> getAllProductFavouriteByAccountID(@RequestParam(name = "accountID") int id) {
-		return service.getAllProductFavouriteByAccountID(id);
+	public ResponseEntity<ResponseObject> getAllProductFavouriteByAccountID() {
+		return service.getAllProductFavouriteByAccountID();
 	}
 	
 	@PreAuthorize("hasAuthority('user')")

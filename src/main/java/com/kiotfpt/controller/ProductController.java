@@ -36,7 +36,7 @@ public class ProductController {
 		return service.getAllProduct(page, amount);
 	}
 
-	@GetMapping("/{id}")
+	@GetMapping("/detail/{id}")
 	public ResponseEntity<ResponseObject> getProductById(@PathVariable int id) {
 		return service.getProductById(id);
 	}

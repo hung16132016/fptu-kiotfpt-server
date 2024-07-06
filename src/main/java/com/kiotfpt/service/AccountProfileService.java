@@ -131,33 +131,36 @@ public class AccountProfileService {
 	}
 
 	public ResponseEntity<ResponseObject> getProfilesOrderedByTotalSpent() {
-		try {
-			Optional<Shop> shop = shopRepository.findByAccount(tokenUtils.getAccount());
-			if (shop.isEmpty()) {
-				return ResponseObjectHelper.createFalseResponse(HttpStatus.BAD_REQUEST,
-						"No shop found with the current account");
-			}
-			List<Order> orders = orderRepository.findByShopIdAndStatusValue(shop.get().getId(), "completed");
-			List<AccountProfile> profiles = repository.findAll();
+        try {
+            Optional<Shop> shop = shopRepository.findByAccount(tokenUtils.getAccount());
+            if (shop.isEmpty()) {
+                return ResponseObjectHelper.createFalseResponse(HttpStatus.BAD_REQUEST,
+                        "No shop found with the current account");
+            }
+            List<Order> orders = orderRepository.findByShopIdAndStatusValue(shop.get().getId(), "completed");
+            List<AccountProfile> profiles = repository.findAll();
 
-			Map<Integer, Double> totalSpentByAccount = orders.stream().collect(Collectors
-					.groupingBy(order -> order.getAccount().getId(), Collectors.summingDouble(Order::getTotal)));
+            Map<Integer, Double> totalSpentByAccount = orders.stream()
+                    .collect(Collectors.groupingBy(order -> order.getAccount().getId(), Collectors.summingDouble(Order::getTotal)));
 
-			List<ProfileStatisResponse> profileResponses = profiles.stream().map(profile -> {
-				double totalSpent = totalSpentByAccount.getOrDefault(profile.getAccount().getId(), 0.0);
-				ProfileStatisResponse response = new ProfileStatisResponse(profile);
-				response.setTotalSpent(totalSpent);
-				return response;
-			}).sorted(Comparator.comparingDouble(ProfileStatisResponse::getTotalSpent).reversed())
-					.collect(Collectors.toList());
+            List<ProfileStatisResponse> profileResponses = profiles.stream()
+                    .map(profile -> {
+                        double totalSpent = totalSpentByAccount.getOrDefault(profile.getAccount().getId(), 0.0);
+                        ProfileStatisResponse response = new ProfileStatisResponse(profile);
+                        response.setTotalSpent(totalSpent);
+                        return response;
+                    })
+                    .filter(response -> response.getTotalSpent() > 0)
+                    .sorted(Comparator.comparingDouble(ProfileStatisResponse::getTotalSpent).reversed())
+                    .collect(Collectors.toList());
 
-			return ResponseEntity.status(HttpStatus.OK)
-					.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
-							"Profiles retrieved and sorted successfully", profileResponses));
-		} catch (Exception e) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body(new ResponseObject(false, HttpStatus.INTERNAL_SERVER_ERROR.toString().split(" ")[0],
-							"An error occurred while retrieving profiles", null));
-		}
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
+                            "Profiles retrieved and sorted successfully", profileResponses));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseObject(false, HttpStatus.INTERNAL_SERVER_ERROR.toString().split(" ")[0],
+                            "An error occurred while retrieving profiles", null));
+        }
 	}
 }
