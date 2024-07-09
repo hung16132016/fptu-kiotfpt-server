@@ -75,7 +75,6 @@ public class ProductController {
 		return service.findByShopId(page, amount);
 	}
 
-	@PreAuthorize("hasAuthority('shop')")
 	@PostMapping("/create")
 	public ResponseEntity<ResponseObject> createProduct(@RequestBody ProductRequest product) {
 		return service.createProduct(product);
