@@ -15,8 +15,7 @@ public class CorsConfig {
     public CorsFilter corsFilter() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
-        config.addAllowedOrigin("http://localhost:3000");
-        config.addAllowedOrigin("https://api.kiotfpt.store");
+        config.addAllowedOrigin("*");
         config.addAllowedMethod("*");
         config.setAllowedHeaders(Arrays.asList("authorization", "content-type", "x-auth-token"));
         config.setExposedHeaders(Arrays.asList("x-auth-token"));
