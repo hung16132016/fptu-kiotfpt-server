@@ -1,5 +1,7 @@
 package com.kiotfpt.config;
 
+import java.util.Arrays;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
@@ -16,7 +18,8 @@ public class CorsConfig {
         config.addAllowedOrigin("http://localhost:3000");
         config.addAllowedOrigin("https://api.kiotfpt.store");
         config.addAllowedMethod("*");
-        config.addAllowedHeader("*");
+        config.setAllowedHeaders(Arrays.asList("authorization", "content-type", "x-auth-token"));
+        config.setExposedHeaders(Arrays.asList("x-auth-token"));
         source.registerCorsConfiguration("/**", config);
         return new CorsFilter(source);
     }

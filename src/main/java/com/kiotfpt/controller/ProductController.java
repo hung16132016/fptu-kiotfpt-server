@@ -1,7 +1,6 @@
 package com.kiotfpt.controller;
 
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -101,11 +100,11 @@ public class ProductController {
 		return service.getByPriceRange(min, max, page, amount);
 	}
 
-	@PostMapping("/get-multiple-category")
-	public ResponseEntity<ResponseObject> getByListCategoryID(@RequestBody Map<String, Object> request) {
-		List<String> category_id_list = (List<String>) request.get("category_id_list");
-		return service.getByListCategoryID(category_id_list);
-	}
+//	@PostMapping("/get-multiple-category")
+//	public ResponseEntity<ResponseObject> getByListCategoryID(@RequestBody Map<String, Object> request) {
+//		List<String> category_id_list = (List<String>) request.get("category_id_list");
+//		return service.getByListCategoryID(category_id_list);
+//	}
 
 	@GetMapping("/total-page")
 	public ResponseEntity<ResponseObject> getTotalPage(@RequestParam(name = "amount") int amount) {

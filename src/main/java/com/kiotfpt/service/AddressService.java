@@ -1,7 +1,6 @@
 package com.kiotfpt.service;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
@@ -103,9 +102,7 @@ public class AddressService {
 		newAddress.setProfile(profile.get());
 		newAddress.setValue(request.getAddress_value());
 		if (request.isDefault()) {
-			Collection<Address> collection = profile.get().getAddresses();
-			List<Address> listAllAddress = new ArrayList(collection);
-			for (Address list : listAllAddress) {
+			for (Address list : profile.get().getAddresses()) {
 				list.setIsdefault(false);
 				repository.save(list);
 			}
@@ -192,9 +189,7 @@ public class AddressService {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
 					HttpStatus.NOT_FOUND.toString().split(" ")[0], "There is no address with this ID", new int[0]));
 
-		Collection<Address> collection = address.get().getProfile().getAddresses();
-		List<Address> listAllAddress = new ArrayList(collection);
-		for (Address list : listAllAddress) {
+		for (Address list : address.get().getProfile().getAddresses()) {
 			if (list.getId() == address_id) {
 				list.setIsdefault(true);
 			} else {
