@@ -1,6 +1,5 @@
 package com.kiotfpt.controller;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -79,7 +78,7 @@ public class ProductController {
 
 	@PreAuthorize("hasAuthority('shop')")
 	@PostMapping("/create")
-	public ResponseEntity<ResponseObject> createProduct(@RequestBody ProductRequest product) throws IOException {
+	public ResponseEntity<ResponseObject> createProduct(@RequestBody ProductRequest product) {
 		return service.createProduct(product);
 	}
 

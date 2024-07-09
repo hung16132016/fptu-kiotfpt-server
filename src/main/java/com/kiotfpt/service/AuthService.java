@@ -94,6 +94,9 @@ public class AuthService {
 							responseMessage.get("accountNotActivate"), new int[0]));
 
 		Map<String, String> map = new HashMap<>();
+		if (account.get().getRole().getValue().equalsIgnoreCase("shop"))
+			map.put("shop_id", String.valueOf(shoprepository.findByAccount(account.get()).get().getId()));
+
 		map.put("account_id", String.valueOf(account.get().getId()));
 		map.put("role", account.get().getRole().getValue());
 

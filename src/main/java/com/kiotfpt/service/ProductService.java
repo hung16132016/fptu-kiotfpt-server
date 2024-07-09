@@ -457,7 +457,7 @@ public class ProductService {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
 						HttpStatus.NOT_FOUND.toString().split(" ")[0], "Size not found!", null));
 			}
-
+			
 			float variantPrice = variantRequest.getPrice();
 			minPrice = Math.min(minPrice, variantPrice);
 			maxPrice = Math.max(maxPrice, variantPrice);
@@ -470,30 +470,26 @@ public class ProductService {
 
 			// Add the variant to the list
 			variants.add(variant);
+
 		}
 
 		// Update the product with the saved variants
 		product.setVariants(variants);
 		product.setMinPrice(minPrice);
 		product.setMaxPrice(maxPrice);
-
+		
 		// Set and save thumbnails
-		List<ProductThumbnail> thumbnails = new ArrayList<>();
+		List<ProductThumbnail> thumbnails = new ArrayList<ProductThumbnail>();
 		for (String thumbnailUrl : thumbnailUrls) {
 			ProductThumbnail thumbnail = new ProductThumbnail(thumbnailUrl, product);
 
 			// Save each thumbnail
-			thumbnail = thumbnailRepository.save(thumbnail);
+			thumbnailRepository.save(thumbnail);
 
 			// Add the thumbnail to the list
 			thumbnails.add(thumbnail);
 		}
 
-		// Update the product with the saved thumbnails
-		product.setThumbnail(thumbnails);
-
-		// Save the updated product
-		product = repository.save(product);
 		ProductResponse response = new ProductResponse(product);
 
 		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
