@@ -457,8 +457,12 @@ public class ProductService {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
 						HttpStatus.NOT_FOUND.toString().split(" ")[0], "Size not found!", null));
 			}
-			
+
 			float variantPrice = variantRequest.getPrice();
+			if (variantPrice <= 0)
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
+						HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Price must be greater than 0", null));
+
 			minPrice = Math.min(minPrice, variantPrice);
 			maxPrice = Math.max(maxPrice, variantPrice);
 
@@ -477,7 +481,7 @@ public class ProductService {
 		product.setVariants(variants);
 		product.setMinPrice(minPrice);
 		product.setMaxPrice(maxPrice);
-		
+
 		// Set and save thumbnails
 		List<ProductThumbnail> thumbnails = new ArrayList<ProductThumbnail>();
 		for (String thumbnailUrl : thumbnailUrls) {
@@ -898,7 +902,7 @@ public class ProductService {
 		}
 	}
 
-	//fix filter status
+	// fix filter status
 	public ResponseEntity<ResponseObject> getProductsBoughtByAccount() {
 		try {
 			List<Order> orders = orderRepository.findByAccountId(tokenUtils.getAccount().getId());

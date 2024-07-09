@@ -1,9 +1,12 @@
 package com.kiotfpt.response;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import com.kiotfpt.model.Product;
 import com.kiotfpt.model.ProductThumbnail;
+import com.kiotfpt.model.Variant;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -31,6 +34,7 @@ public class ProductShopResponse {
 	private StatusResponse status;
 	private CategoryResponse category;
 	private Collection<ProductThumbnail> thumbnail;
+	private List<VariantResponse> variants;
 
 	public ProductShopResponse(Product product) {
 		super();
@@ -51,6 +55,11 @@ public class ProductShopResponse {
 		this.status = new StatusResponse(product.getStatus());
 		this.category = new CategoryResponse(product.getCategory());
 		this.thumbnail = product.getThumbnail();
+		List<VariantResponse> listVariants = new ArrayList<>();
+		for (Variant variant : product.getVariants()) {
+			listVariants.add(new VariantResponse(variant));
+		}
+		this.variants = listVariants;
 	}
 
 }
