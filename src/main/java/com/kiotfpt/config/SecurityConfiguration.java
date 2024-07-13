@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -26,38 +27,43 @@ import com.kiotfpt.filter.JwtAuthenticationFilter;
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
-	@Autowired
-	private JwtAuthenticationFilter jwtAuthFilter;
+    @Autowired
+    private JwtAuthenticationFilter jwtAuthFilter;
 
-	@Autowired
-	private Environment env;
+    @Autowired
+    private Environment env;
 
-	@Override
-	protected void configure(HttpSecurity http) throws Exception {
-		// Load permit all endpoints from environment
-		String[] permitAllEndpoints = env.getProperty("security.permit.all", String[].class);
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        // Load permit all endpoints from environment
+        String[] permitAllEndpoints = env.getProperty("security.permit.all", String[].class);
 
-		// Create a list of permit all matchers including the specific /v1/shop/{id}
-		// pattern
-		List<RequestMatcher> permitAllMatchers = Stream
-				.concat(Stream.of(new ShopIdRequestMatcher()),
-						Stream.of(permitAllEndpoints).map(endpoint -> new AntPathRequestMatcher(endpoint)))
-				.collect(Collectors.toList());
+        // Create a list of permit all matchers including the specific /v1/shop/{id} pattern
+        List<RequestMatcher> permitAllMatchers = Stream
+                .concat(Stream.of(new ShopIdRequestMatcher()),
+                        Stream.of(permitAllEndpoints).map(endpoint -> new AntPathRequestMatcher(endpoint)))
+                .collect(Collectors.toList());
 
-		RequestMatcher permitAllMatcher = new OrRequestMatcher(permitAllMatchers);
+        RequestMatcher permitAllMatcher = new OrRequestMatcher(permitAllMatchers);
 
-		http.csrf().disable()
-				.authorizeRequests(
-						requests -> requests.requestMatchers(permitAllMatcher).permitAll().anyRequest().authenticated())
-				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-				.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
-	}
+        http.csrf().disable()
+            .cors().and()
+            .authorizeRequests()
+                .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()  // Allow preflight requests
+                .requestMatchers(permitAllMatcher).permitAll()
+                .anyRequest().authenticated()
+            .and()
+            .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            .and()
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+    }
 
-	public class ShopIdRequestMatcher implements RequestMatcher {
-		@Override
-		public boolean matches(HttpServletRequest request) {
-			String uri = request.getRequestURI();
-			return uri.matches("^/v1/shop/\\d+$"); // Adjust regex if ID pattern is different
-		}
-	}
+    public class ShopIdRequestMatcher implements RequestMatcher {
+        @Override
+        public boolean matches(HttpServletRequest request) {
+            String uri = request.getRequestURI();
+            return uri.matches("^/v1/shop/\\d+$"); // Adjust regex if ID pattern is different
+        }
+    }
 }

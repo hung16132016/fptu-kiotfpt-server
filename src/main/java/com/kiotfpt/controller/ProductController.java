@@ -20,7 +20,7 @@ import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.request.ProductRequest;
 import com.kiotfpt.service.ProductService;
 
-@CrossOrigin(origins = "http://localhost:8888")
+@CrossOrigin(origins = "http://localhost:8888", allowCredentials = "true")
 @RestController
 @RequestMapping("/v1/product")
 public class ProductController {
