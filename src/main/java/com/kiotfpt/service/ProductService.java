@@ -885,7 +885,11 @@ public class ProductService {
 
 			List<ProductReviewResponse> responseList = products.stream()
 					.filter(product -> !commentRepository.findAllByProduct(product).isEmpty()).map(product -> {
-						List<Comment> comments = commentRepository.findAllByProduct(product);
+						List<Comment> comments = commentRepository.findAllByProduct(product).stream().map(comment -> {
+							AccountProfile profile = accountProfileRepository.findByAccount(comment.getAccount()).orElse(null);
+							comment.setProfile(new ProfileMiniResponse(profile));
+							return comment;
+						}).collect(Collectors.toList());
 						return new ProductReviewResponse(new ProductMiniResponse(product), comments);
 					}).collect(Collectors.toList());
 
