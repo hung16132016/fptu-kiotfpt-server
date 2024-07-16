@@ -1,10 +1,10 @@
 package com.kiotfpt.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.request.BrandRequest;
 import com.kiotfpt.service.BrandService;
+import com.kiotfpt.utils.ResponseObjectHelper;
 
 @CrossOrigin(origins = "http://localhost:8888")
 @RestController
@@ -47,10 +48,21 @@ public class BrandController {
 
 	}
 
-    @PreAuthorize("hasAuthority('admin')")
+	@PreAuthorize("hasAuthority('admin')")
 	@PostMapping("/create")
 	public ResponseEntity<ResponseObject> createBrand(@RequestBody BrandRequest brandRequest) {
 		return service.createBrand(brandRequest);
+	}
+
+	@GetMapping("/update-status/{id}")
+	@PreAuthorize("hasAuthority('admin')")
+	public ResponseEntity<ResponseObject> updateStatusBrand(@PathVariable int id, @RequestParam String status) {
+		if (status.equalsIgnoreCase("inactive"))
+			return service.deleteBrand(id);
+		else if (status.equalsIgnoreCase("active"))
+			return service.activateBrand(id);
+		else
+			return ResponseObjectHelper.createFalseResponse(HttpStatus.BAD_REQUEST, "Invalid status");
 	}
 
 	@PutMapping("/update/{id}")
@@ -59,14 +71,4 @@ public class BrandController {
 		return service.updateBrand(id, brandRequest);
 	}
 
-	@DeleteMapping("/delete/{id}")
-	@PreAuthorize("hasAuthority('admin')")
-	public ResponseEntity<ResponseObject> deleteBrand(@PathVariable int id) {
-		return service.deleteBrand(id);
-	}
-	
-    @PutMapping("/activate")
-    public ResponseEntity<ResponseObject> activateBrand(@RequestParam int brandId) {
-        return service.activateBrand(brandId);
-    }
 }
