@@ -3,6 +3,7 @@ package com.kiotfpt.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.request.ProductRequest;
 import com.kiotfpt.service.ProductService;
+import com.kiotfpt.utils.ResponseObjectHelper;
 
 @CrossOrigin(origins = "http://localhost:8888", allowCredentials = "true")
 @RestController
@@ -138,6 +140,17 @@ public class ProductController {
 	@GetMapping("/bought")
 	public ResponseEntity<ResponseObject> getProductsBoughtByAccount() {
 		return service.getProductsBoughtByAccount();
+	}
+	
+	@GetMapping("/update-status/{id}")
+	@PreAuthorize("hasAuthority('shop')")
+	public ResponseEntity<ResponseObject> updateStatusProduct(@PathVariable int id, @RequestParam String status) {
+		if (status.equalsIgnoreCase("inactive"))
+			return service.deactiveProduct(id);
+		else if (status.equalsIgnoreCase("active"))
+			return service.activateProduct(id);
+		else
+			return ResponseObjectHelper.createFalseResponse(HttpStatus.BAD_REQUEST, "Invalid status");
 	}
 
 }

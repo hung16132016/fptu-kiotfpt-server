@@ -350,7 +350,7 @@ public class ProductService {
 
 		// Check if all variants are selected for deletion
 		if (variantIds.size() == productVariants.size()) {
-			Optional<Status> statusDeleted = statusRepository.findByValue("Inactive");
+			Optional<Status> statusDeleted = statusRepository.findByValue("inactive");
 			if (!statusDeleted.isPresent()) {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
 						HttpStatus.NOT_FOUND.toString().split(" ")[0], "Inactive status not found", new int[0]));
@@ -921,6 +921,40 @@ public class ProductService {
 			return ResponseObjectHelper.createFalseResponse(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Failed to retrieve products bought by account");
 		}
+	}
+	
+	public ResponseEntity<ResponseObject> deactiveProduct(int id) {
+
+		Product product = repository.findById(id).orElseThrow(() -> new RuntimeException("Product not found"));
+		Status inactiveStatus = statusRepository.findByValue("inactive")
+				.orElseThrow(() -> new RuntimeException("Inactive status not found"));
+		product.setStatus(inactiveStatus);
+		repository.save(product);
+		return ResponseEntity.status(HttpStatus.OK).body(
+				new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Product deleted successfully", null));
+	}
+
+	public ResponseEntity<ResponseObject> activateProduct(int productId) {
+		Optional<Product> optionalProduct = repository.findByIdAndStatusValue(productId, "inactive");
+
+		if (optionalProduct.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+					HttpStatus.NOT_FOUND.toString().split(" ")[0], "Product not found or already active", null));
+		}
+
+		Product product = optionalProduct.get();
+		Optional<Status> activeStatus = statusRepository.findByValue("active");
+
+		if (activeStatus.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResponseObject(false,
+					HttpStatus.INTERNAL_SERVER_ERROR.toString().split(" ")[0], "Active status not found", null));
+		}
+
+		product.setStatus(activeStatus.get());
+		repository.save(product);
+
+		return ResponseEntity.status(HttpStatus.OK).body(
+				new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Product activated successfully", null));
 	}
 
 	@Data
