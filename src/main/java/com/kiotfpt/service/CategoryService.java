@@ -45,6 +45,7 @@ public class CategoryService {
 	@Autowired
 	private ShopRepository shopRepository;
 
+	@Autowired
 	private TokenUtils tokenUtils;
 
 	HashMap<String, String> responseMessage = new JsonReader().readJsonFile();
