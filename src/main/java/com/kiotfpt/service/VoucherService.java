@@ -44,10 +44,10 @@ public class VoucherService {
 
 			if (!productResponses.isEmpty()) {
 				return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
-						HttpStatus.OK.toString().split(" ")[0], "Transactions found", productResponses));
+						HttpStatus.OK.toString().split(" ")[0], "Vouchers found", productResponses));
 			}
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-					HttpStatus.NOT_FOUND.toString().split(" ")[0], "Transactions do not exist", new int[0]));
+					HttpStatus.NOT_FOUND.toString().split(" ")[0], "Vouchers do not exist", new int[0]));
 		}
 		return ResponseEntity.status(HttpStatus.NOT_FOUND)
 				.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0], "Shop not found", ""));
@@ -139,5 +139,39 @@ public class VoucherService {
 		return ResponseEntity.status(HttpStatus.OK)
 				.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Voucher updated successfully",
 						new VoucherResponse(updatedVoucher)));
+	}
+	
+	public ResponseEntity<ResponseObject> deactivateVoucher(int id) {
+
+		Voucher voucher = repository.findById(id).orElseThrow(() -> new RuntimeException("Voucher not found"));
+		Status inactiveStatus = statusRepository.findByValue("inactive")
+				.orElseThrow(() -> new RuntimeException("Inactive status not found"));
+		voucher.setStatus(inactiveStatus);
+		repository.save(voucher);
+		return ResponseEntity.status(HttpStatus.OK).body(
+				new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Voucher deleted successfully", null));
+	}
+
+	public ResponseEntity<ResponseObject> activateVoucher(int id) {
+		Optional<Voucher> optionalVoucher = repository.findByIdAndStatusValue(id, "inactive");
+
+		if (optionalVoucher.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+					HttpStatus.NOT_FOUND.toString().split(" ")[0], "Voucher not found or already active", null));
+		}
+
+		Voucher voucher = optionalVoucher.get();
+		Optional<Status> activeStatus = statusRepository.findByValue("active");
+
+		if (activeStatus.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResponseObject(false,
+					HttpStatus.INTERNAL_SERVER_ERROR.toString().split(" ")[0], "Active status not found", null));
+		}
+
+		voucher.setStatus(activeStatus.get());
+		repository.save(voucher);
+
+		return ResponseEntity.status(HttpStatus.OK).body(
+				new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Voucher activated successfully", null));
 	}
 }

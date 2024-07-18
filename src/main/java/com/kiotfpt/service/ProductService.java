@@ -520,17 +520,15 @@ public class ProductService {
 		List<ProductShopResponse> returnListProduct = new ArrayList<>();
 
 		for (Product product : products) {
-			int statusId = product.getStatus().getId();
-			if (statusId != 12 && statusId != 13 && statusId != 14) {
-				List<Variant> variants = (List<Variant>) product.getVariants();
-				List<VariantResponse> variantResponses = new ArrayList<>();
-				for (Variant variant : variants) {
-					variantResponses.add(new VariantResponse(variant));
-				}
-
-				ProductShopResponse res = new ProductShopResponse(product);
-				returnListProduct.add(res);
+			List<Variant> variants = (List<Variant>) product.getVariants();
+			List<VariantResponse> variantResponses = new ArrayList<>();
+			for (Variant variant : variants) {
+				variantResponses.add(new VariantResponse(variant));
 			}
+
+			ProductShopResponse res = new ProductShopResponse(product);
+			returnListProduct.add(res);
+
 		}
 
 		if (!returnListProduct.isEmpty()) {
@@ -886,7 +884,8 @@ public class ProductService {
 			List<ProductReviewResponse> responseList = products.stream()
 					.filter(product -> !commentRepository.findAllByProduct(product).isEmpty()).map(product -> {
 						List<Comment> comments = commentRepository.findAllByProduct(product).stream().map(comment -> {
-							AccountProfile profile = accountProfileRepository.findByAccount(comment.getAccount()).orElse(null);
+							AccountProfile profile = accountProfileRepository.findByAccount(comment.getAccount())
+									.orElse(null);
 							comment.setProfile(new ProfileMiniResponse(profile));
 							return comment;
 						}).collect(Collectors.toList());
@@ -922,7 +921,7 @@ public class ProductService {
 					"Failed to retrieve products bought by account");
 		}
 	}
-	
+
 	public ResponseEntity<ResponseObject> deactiveProduct(int id) {
 
 		Product product = repository.findById(id).orElseThrow(() -> new RuntimeException("Product not found"));
@@ -953,8 +952,8 @@ public class ProductService {
 		product.setStatus(activeStatus.get());
 		repository.save(product);
 
-		return ResponseEntity.status(HttpStatus.OK).body(
-				new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Product activated successfully", null));
+		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
+				HttpStatus.OK.toString().split(" ")[0], "Product activated successfully", null));
 	}
 
 	@Data
