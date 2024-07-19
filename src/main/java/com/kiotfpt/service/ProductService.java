@@ -686,8 +686,8 @@ public class ProductService {
 			for (Order order : orders) {
 				for (AccessibilityItem item : order.getSection().getItems()) {
 					responseList.add(new ProductStatisResponse(order.getId(), item.getVariant().getProduct().getName(),
-							item.getQuantity(), order.getTotal(), order.getTimeComplete(),
-							new VariantResponse(item.getVariant())));
+							item.getVariant().getProduct().getThumbnail(), item.getQuantity(), order.getTotal(),
+							order.getTimeComplete(), new VariantResponse(item.getVariant())));
 					result.setTotalMoney(result.getTotalMoney() + item.getTotal());
 					result.setTotalQuantity(result.getTotalQuantity() + item.getQuantity());
 				}
