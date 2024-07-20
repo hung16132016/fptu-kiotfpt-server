@@ -33,6 +33,10 @@ public class ShopCategory {
 	private Shop shop;
 
 	@ManyToOne()
+	@JoinColumn(name = "status_id")
+	private Status status;
+	
+	@ManyToOne()
 	@JoinColumn(name = "category_id")
 	private Category category;
 

@@ -63,4 +63,8 @@ public class Status {
 	@OneToMany(mappedBy = "status", cascade = CascadeType.ALL)
 	@JsonIgnore
 	private Collection<Brand> brands;
+	
+	@OneToMany(mappedBy = "status", cascade = CascadeType.ALL)
+	@JsonIgnore
+	private Collection<ShopCategory> shopCates;
 }

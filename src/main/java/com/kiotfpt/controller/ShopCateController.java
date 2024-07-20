@@ -1,6 +1,7 @@
 package com.kiotfpt.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.service.ShopCateService;
+import com.kiotfpt.utils.ResponseObjectHelper;
 
 @CrossOrigin(origins = "http://localhost:8888")
 @RestController
@@ -40,4 +42,15 @@ public class ShopCateController {
     public ResponseEntity<ResponseObject> getShopCategoryByShopID() {
         return service.getShopCategoryByShopID();
     }
+    
+	@GetMapping("/update-status/{id}")
+	@PreAuthorize("hasAuthority('shop')")
+	public ResponseEntity<ResponseObject> updateStatusBrand(@PathVariable int id, @RequestParam String status) {
+		if (status.equalsIgnoreCase("inactive"))
+			return service.deleteShopCate(id);
+		else if (status.equalsIgnoreCase("active"))
+			return service.activateShopCate(id);
+		else
+			return ResponseObjectHelper.createFalseResponse(HttpStatus.BAD_REQUEST, "Invalid status");
+	}
 }

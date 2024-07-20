@@ -17,12 +17,17 @@ import org.springframework.stereotype.Service;
 
 import com.kiotfpt.model.Account;
 import com.kiotfpt.model.Address;
+import com.kiotfpt.model.District;
 import com.kiotfpt.model.Product;
+import com.kiotfpt.model.Province;
 import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.model.Shop;
 import com.kiotfpt.model.Status;
 import com.kiotfpt.repository.AccountRepository;
+import com.kiotfpt.repository.AddressRepository;
+import com.kiotfpt.repository.DistrictRepository;
 import com.kiotfpt.repository.ProductRepository;
+import com.kiotfpt.repository.ProvinceRepository;
 import com.kiotfpt.repository.ShopRepository;
 import com.kiotfpt.repository.StatusRepository;
 import com.kiotfpt.request.ShopRequest;
@@ -45,6 +50,15 @@ public class ShopService {
 
 	@Autowired
 	private ProductRepository productRepository;
+	
+	@Autowired
+	private AddressRepository addressRepository;
+
+	@Autowired
+	private ProvinceRepository provinceRepository;
+
+	@Autowired
+	private DistrictRepository districtRepository;
 
 	@Autowired
 	private TokenUtils tokenUtils;
@@ -156,12 +170,35 @@ public class ShopService {
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
 						HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Phone is not valid", ""));
 			}
+			
+			Optional<Address> address = addressRepository.findById(shop.getAddress().getAddress_id());
+			if (address.isEmpty())
+				return ResponseObjectHelper.createFalseResponse(HttpStatus.BAD_REQUEST, "Address is not exist");
 
+			Optional<Province> province = provinceRepository.findById(shop.getAddress().getProvince_id());
+			if (province.isEmpty())
+				return ResponseObjectHelper.createFalseResponse(HttpStatus.BAD_REQUEST, "Province is not exist");
+
+			Optional<District> district = districtRepository.findById(shop.getAddress().getDistrict_id());
+			if (district.isEmpty())
+				return ResponseObjectHelper.createFalseResponse(HttpStatus.BAD_REQUEST, "District is not exist");
+
+			if (shop.getAddress().getAddress_value().length() == 0)
+				return ResponseObjectHelper.createFalseResponse(HttpStatus.BAD_REQUEST, "Input cannot be empty!");
+			if (shop.getAddress().getAddress_value().length() == 255)
+				return ResponseObjectHelper.createFalseResponse(HttpStatus.BAD_REQUEST, "Input is too long!");
+
+			Address updateAddress = address.get();
+			updateAddress.setDistrict(district.get());
+			updateAddress.setProvince(province.get());
+			updateAddress.setValue(shop.getAddress().getAddress_value());
+			
 			foundshop.get().setEmail(shop.getEmail());
 			foundshop.get().setName(shop.getName());
 			foundshop.get().setPhone(shop.getPhone());
 			foundshop.get().setThumbnail(shop.getThumbnail());
-
+			foundshop.get().setAddress(updateAddress);
+			
 			repository.save(foundshop.get());
 
 			return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
@@ -235,138 +272,5 @@ public class ShopService {
 				.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Shop found", shop));
 
 	}
-//
-//	public ResponseEntity<ResponseObject> getAllShopRevenueByTime(HttpServletRequest request, int month) {
-//		Account accToken = null;
-//		try {
-//			accToken = accountRepository.findByToken(request.getHeader("Authorization").split(" ")[1]);
-//		} catch (NullPointerException e) {
-//			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ResponseObject(false,
-//					HttpStatus.UNAUTHORIZED.toString().split(" ")[0], responseMessage.get("unauthorized"), ""));
-//		}
-//
-//		if (accToken == null || accToken.getRole().getID() != 3) {
-//			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ResponseObject(false,
-//					HttpStatus.UNAUTHORIZED.toString().split(" ")[0], responseMessage.get("unauthorized"), ""));
-//		}
-//		List<Shop> shops = repository.findAll();
-//		double sum = 0;
-//		List<Map<String, Object>> shopDataList = new ArrayList<>();
-//		for (Shop s : shops) {
-//			Map<String, Object> shopData = new HashMap<>();
-//			for (Transaction j : s.getTransaction()) {
-//				if (j.getTime().getMonth() + 1 == month) {
-//					sum = sum + j.getTotal();
-//				}
-//			}
-//			if(sum == 0) {
-//				continue;
-//			}
-//			shopData.put("shop", s);
-//			shopData.put("revenue", sum);
-//			sum = 0;
-//			shopDataList.add(shopData);
-//		}
-//		if (shopDataList.isEmpty()) {
-//			return ResponseEntity.status(HttpStatus.NOT_FOUND)
-//					.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
-//							responseMessage.get("notFoundDataMonth") + month + "!", ""));
-//		}
-//
-//		if (month < 1 || month > 12) {
-//			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-//					HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("inputMonthFail"), ""));
-//		}
-//		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
-//				HttpStatus.OK.toString().split(" ")[0], responseMessage.get("shopFound"), shopDataList));
-//	}
-//
-//	public ResponseEntity<ResponseObject> getTotalRevenueByTime(HttpServletRequest request, int month) {
-//		Account accToken = null;
-//		try {
-//			accToken = accountRepository.findByToken(request.getHeader("Authorization").split(" ")[1]);
-//		} catch (NullPointerException e) {
-//			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ResponseObject(false,
-//					HttpStatus.UNAUTHORIZED.toString().split(" ")[0], responseMessage.get("unauthorized"), ""));
-//		}
-//
-//		if (accToken == null || accToken.getRole().getID() != 3) {
-//			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ResponseObject(false,
-//					HttpStatus.UNAUTHORIZED.toString().split(" ")[0], responseMessage.get("unauthorized"), ""));
-//		}
-//		List<Shop> shops = repository.findAll();
-//		double sum = 0;
-//		for (Shop s : shops) {
-//			for (Transaction j : s.getTransaction()) {
-//				if (j.getTime().getMonth() + 1 == month) {
-//					sum = sum + j.getTotal();
-//				}
-//			}
-//			
-//		}
-//		if (sum == 0) {
-//			return ResponseEntity.status(HttpStatus.NOT_FOUND)
-//					.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
-//							responseMessage.get("notFoundDataMonth") + month + "!", ""));
-//		}
-//		if (month < 1 || month > 12) {
-//			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-//					HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("inputMonthFail"), ""));
-//		}
-//		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
-//				HttpStatus.OK.toString().split(" ")[0], responseMessage.get("totalRevenue"), Math.round(sum * 100.0) /100.0));
-//	}
-//
-//	public ResponseEntity<ResponseObject> getTotalRevenueByYear(HttpServletRequest request, int year) {
-//		String token = "";
-//		try {
-//			token = request.getHeader("Authorization").split(" ")[1];
-//		} catch (NullPointerException e) {
-//			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ResponseObject(false,
-//					HttpStatus.UNAUTHORIZED.toString().split(" ")[0], responseMessage.get("unauthorized"), ""));
-//		}
-//
-//		Account acc = accountRepository.findByToken(token);
-//
-//		if (acc == null || acc.getRole().getID() != 3) {
-//			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ResponseObject(false,
-//					HttpStatus.UNAUTHORIZED.toString().split(" ")[0], responseMessage.get("unauthorized"), ""));
-//		}
-//
-//		List<Shop> shops = repository.findAll();
-//		
-//		List<Map<String, Object>> data = new ArrayList<>();
-//
-//		List<String> months = new ArrayList<>();
-//		months.add("Jan");
-//		months.add("Feb");
-//		months.add("Mar");
-//		months.add("Apr");
-//		months.add("May");
-//		months.add("Jun");
-//		months.add("Jul");
-//		months.add("Aug");
-//		months.add("Sep");
-//		months.add("Oct");
-//		months.add("Nov");
-//		months.add("Dec");
-//
-//		for (int month = 1; month <= 12; month++) {
-//			double sum = 0;
-//			for (Shop shop : shops) {
-//				for (Transaction tran : shop.getTransaction()) {
-//					if (tran.getTime().getMonth() + 1 == month && tran.getTime().getYear() + 1900 == year) {
-//						sum += tran.getTotal();
-//					}
-//				}
-//			}
-//			Map<String, Object> ob = new HashMap<>();
-//		    ob.put("time", months.get(month - 1));
-//		    ob.put("value", Math.round(sum * 100.0) / 100.0);
-//		    data.add(ob);
-//		}
-//
-//		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
-//				HttpStatus.OK.toString().split(" ")[0], responseMessage.get("getTotalRevenueByYearSuccess"), data));
-//	}
+
 }
