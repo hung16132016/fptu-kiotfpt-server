@@ -50,7 +50,7 @@ public class ShopService {
 
 	@Autowired
 	private ProductRepository productRepository;
-	
+
 	@Autowired
 	private AddressRepository addressRepository;
 
@@ -160,6 +160,9 @@ public class ShopService {
 	public ResponseEntity<ResponseObject> updateShop(int id, ShopRequest shop) {
 		Optional<Shop> foundshop = repository.findById(id);
 		if (foundshop.isPresent()) {
+			if (shop.getName().isEmpty() || shop.getName().isBlank() || shop.getName().length() > 255)
+				return ResponseObjectHelper.createFalseResponse(HttpStatus.BAD_REQUEST, "Name is not valid");
+
 			ValidationHelper help = new ValidationHelper();
 			if (help.isValidEmail(shop.getEmail()) == false) {
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
@@ -170,7 +173,7 @@ public class ShopService {
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
 						HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Phone is not valid", ""));
 			}
-			
+
 			Optional<Address> address = addressRepository.findById(shop.getAddress().getAddress_id());
 			if (address.isEmpty())
 				return ResponseObjectHelper.createFalseResponse(HttpStatus.BAD_REQUEST, "Address is not exist");
@@ -192,20 +195,19 @@ public class ShopService {
 			updateAddress.setDistrict(district.get());
 			updateAddress.setProvince(province.get());
 			updateAddress.setValue(shop.getAddress().getAddress_value());
-			
+
 			foundshop.get().setEmail(shop.getEmail());
 			foundshop.get().setName(shop.getName());
 			foundshop.get().setPhone(shop.getPhone());
 			foundshop.get().setThumbnail(shop.getThumbnail());
 			foundshop.get().setAddress(updateAddress);
-			
+
 			repository.save(foundshop.get());
 
-			return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
-					HttpStatus.OK.toString().split(" ")[0], responseMessage.get("updateShopSuccess"), shop));
+			return ResponseObjectHelper.createTrueResponse(HttpStatus.BAD_REQUEST,
+					responseMessage.get("updateShopSuccess"), foundshop.get());
 		}
-		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-				HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("shopNotFound"), ""));
+		return ResponseObjectHelper.createFalseResponse(HttpStatus.NOT_FOUND, responseMessage.get("shopNotFound"));
 	}
 
 	@PreAuthorize("hasAuthority('admin')")
