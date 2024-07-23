@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ProfileMiniResponse {
 
+	private int account_id;
 	private String name;
 	private String phone;
 	private String avatar;
@@ -18,6 +19,7 @@ public class ProfileMiniResponse {
 	
 	public ProfileMiniResponse(AccountProfile profile) {
 		super();
+		this.account_id = profile.getAccount().getId();
 		this.name = profile.getName();
 		this.phone = profile.getPhone();
 		this.avatar = profile.getThumbnail();

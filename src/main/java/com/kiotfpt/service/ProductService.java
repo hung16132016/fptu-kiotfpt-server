@@ -799,7 +799,12 @@ public class ProductService {
 		for (Product product : products) {
 			int statusId = product.getStatus().getId();
 			if (statusId == 11) {
-				ProductShopResponse res = new ProductShopResponse(product);
+
+				List<AccountProfile> profiles = product.getFavourite().stream()
+						.map(fav -> accountProfileRepository.findByAccount(fav.getAccount()))
+						.filter(Optional::isPresent).map(Optional::get).collect(Collectors.toList());
+
+				ProductShopResponse res = new ProductShopResponse(product, profiles);
 				returnListProduct.add(res);
 			}
 		}
