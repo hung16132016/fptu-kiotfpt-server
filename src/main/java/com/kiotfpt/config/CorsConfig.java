@@ -16,7 +16,7 @@ public class CorsConfig {
         CorsConfiguration config = new CorsConfiguration();
         
         // Allow specific origins
-        config.setAllowedOrigins(Arrays.asList("http://localhost:3000","http://4.230.17.119:3000")); 
+        config.setAllowedOrigins(Arrays.asList("http://localhost:3000","http://4.230.17.119:3000","https://beta.kiotfpt.store")); 
         // Specify allowed methods
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         // Specify allowed headers
