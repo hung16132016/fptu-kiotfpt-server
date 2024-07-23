@@ -52,7 +52,7 @@ public class AddressService {
 					responseMessage.get("accountNotFound"));
 
 		List<Address> addresses = repository.findAllByProfile(acc.get());
-		if (!addresses.isEmpty())
+		if (addresses.isEmpty())
 			return ResponseObjectHelper.createFalseResponse(HttpStatus.NOT_FOUND, "Addresses do not exist");
 
 		List<AddressResponse> list = new ArrayList<AddressResponse>();
