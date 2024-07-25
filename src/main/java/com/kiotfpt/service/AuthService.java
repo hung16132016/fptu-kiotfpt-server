@@ -168,7 +168,7 @@ public class AuthService {
 						+ request.getUsername().strip() + "</p>"
 						+ "<p>Thank you for submitting an account registration request on Mappe!</p>"
 						+ "<p>Please do not share the link with anyone else to avoid losing your account.</p>"
-						+ "<p>Please click this link " + "<a href=\"http://localhost:8888/v1/auth/confirm-sign-up/"
+						+ "<p>Please click this link " + "<a href=\"https://api.kiotfpt.store/v1/auth/confirm-sign-up/"
 						+ request.getUsername().strip() + "\">"
 						+ "<p style='font-size: 24px;'><strong>confirm sign-up</strong></p>"
 						+ "</a> to activate your account.</p>" + "</div>";
