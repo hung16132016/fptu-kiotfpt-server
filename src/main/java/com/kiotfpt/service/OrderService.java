@@ -192,7 +192,7 @@ public class OrderService {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
 						HttpStatus.NOT_FOUND.toString().split(" ")[0], "Address not found", null));
 			}
-			if (!optionalAddress.get().getProfile().getAccount().equals(account)) {
+			if (optionalAddress.get().getProfile().getAccount().getId() != account.getId()) {
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
 						HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Address not from same account", null));
 			}
