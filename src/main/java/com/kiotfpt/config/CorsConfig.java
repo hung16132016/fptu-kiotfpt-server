@@ -10,24 +10,25 @@ import org.springframework.web.filter.CorsFilter;
 @Configuration
 public class CorsConfig {
 
-    @Bean
-    public CorsFilter corsFilter() {
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        CorsConfiguration config = new CorsConfiguration();
-        
-        // Allow specific origins
-        config.setAllowedOrigins(Arrays.asList("http://localhost:3000","http://4.230.17.119:3000","https://beta.kiotfpt.store")); 
-        // Specify allowed methods
-        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        // Specify allowed headers
-        config.setAllowedHeaders(Arrays.asList("authorization", "content-type", "x-auth-token"));
-        // Specify exposed headers
-        config.setExposedHeaders(Arrays.asList("x-auth-token"));
-        // Allow credentials if needed
-        config.setAllowCredentials(true); 
-        
-        source.registerCorsConfiguration("/**", config);
-        
-        return new CorsFilter(source);
-    }
+	@Bean
+	public CorsFilter corsFilter() {
+		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+		CorsConfiguration config = new CorsConfiguration();
+
+		// Allow specific origins
+		config.setAllowedOrigins(Arrays.asList("http://localhost:3000", "http://4.230.17.119:3000",
+				"https://beta.kiotfpt.store", "http://localhost:3333"));
+		// Specify allowed methods
+		config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+		// Specify allowed headers
+		config.setAllowedHeaders(Arrays.asList("authorization", "content-type", "x-auth-token"));
+		// Specify exposed headers
+		config.setExposedHeaders(Arrays.asList("x-auth-token"));
+		// Allow credentials if needed
+		config.setAllowCredentials(true);
+
+		source.registerCorsConfiguration("/**", config);
+
+		return new CorsFilter(source);
+	}
 }
