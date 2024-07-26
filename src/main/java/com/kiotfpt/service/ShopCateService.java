@@ -62,9 +62,17 @@ public class ShopCateService {
 		Shop shop = shopRepository.findById(shopID).get();
 		Category category = categoryRepository.findById(categoryID).get();
 
+		// Check if the shop already has the category
+	    boolean categoryExists = repository.existsByShopAndCategory(shop, category);
+	    if (categoryExists) {
+	        return ResponseObjectHelper.createFalseResponse(HttpStatus.BAD_REQUEST,
+	                "The shop already has this category");
+	    }
+	    
 		ShopCategory shopCategory = new ShopCategory();
 		shopCategory.setShop(shop);
 		shopCategory.setCategory(category);
+		shopCategory.setStatus(statusRepository.findByValue("active").get());
 
 		repository.save(shopCategory);
 

@@ -18,8 +18,13 @@ import com.kiotfpt.repository.ShopRepository;
 import com.kiotfpt.repository.StatusRepository;
 import com.kiotfpt.repository.VoucherRepository;
 import com.kiotfpt.request.VoucherRequest;
+import com.kiotfpt.response.ShopMiniResponse;
 import com.kiotfpt.response.VoucherResponse;
 import com.kiotfpt.utils.JsonReader;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Service
 public class VoucherService {
@@ -41,10 +46,11 @@ public class VoucherService {
 			List<Voucher> vouchers = repository.findAllByShop(shop.get());
 			List<VoucherResponse> productResponses = vouchers.stream().map(voucher -> new VoucherResponse(voucher))
 					.collect(Collectors.toList());
+			VoucherShop res = new VoucherShop(new ShopMiniResponse(shop.get()), productResponses);
 
 			if (!productResponses.isEmpty()) {
 				return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
-						HttpStatus.OK.toString().split(" ")[0], "Vouchers found", productResponses));
+						HttpStatus.OK.toString().split(" ")[0], "Vouchers found", res));
 			}
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
 					HttpStatus.NOT_FOUND.toString().split(" ")[0], "Vouchers do not exist", new int[0]));
@@ -114,14 +120,14 @@ public class VoucherService {
 
 	public ResponseEntity<ResponseObject> updateVoucher(int id, VoucherRequest request) {
 		int value = request.getValue();
-		
+
 		// Check if the voucher exists
 		Optional<Voucher> optionalVoucher = repository.findById(id);
 		if (!optionalVoucher.isPresent()) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
 					HttpStatus.NOT_FOUND.toString().split(" ")[0], "Voucher with id: " + id + " not found", null));
 		}
-		
+
 		if (value <= 0 || value > 100) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
 					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Voucher value must be between 1 and 100", null));
@@ -140,7 +146,7 @@ public class VoucherService {
 				.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Voucher updated successfully",
 						new VoucherResponse(updatedVoucher)));
 	}
-	
+
 	public ResponseEntity<ResponseObject> deactivateVoucher(int id) {
 
 		Voucher voucher = repository.findById(id).orElseThrow(() -> new RuntimeException("Voucher not found"));
@@ -171,7 +177,15 @@ public class VoucherService {
 		voucher.setStatus(activeStatus.get());
 		repository.save(voucher);
 
-		return ResponseEntity.status(HttpStatus.OK).body(
-				new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Voucher activated successfully", null));
+		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
+				HttpStatus.OK.toString().split(" ")[0], "Voucher activated successfully", null));
+	}
+
+	@Data
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public class VoucherShop {
+		private ShopMiniResponse shop;
+		private List<VoucherResponse> vouchers;
 	}
 }

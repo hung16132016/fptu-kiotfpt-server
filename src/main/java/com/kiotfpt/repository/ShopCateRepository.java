@@ -7,8 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import com.kiotfpt.model.Brand;
 import com.kiotfpt.model.Category;
+import com.kiotfpt.model.Shop;
 import com.kiotfpt.model.ShopCategory;
 
 @Repository
@@ -18,5 +18,7 @@ public interface ShopCateRepository extends JpaRepository<ShopCategory, Integer>
     List<Category> findCategoriesByShopId(int shopId);
 
 	Optional<ShopCategory> findByIdAndStatusValue(int id, String string);
+
+	boolean existsByShopAndCategory(Shop shop, Category category);
 
 }
