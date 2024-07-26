@@ -177,13 +177,13 @@ public class ProductService {
 	public ResponseEntity<ResponseObject> getByCategoryID(int category_id, int page, int amount) {
 		Pageable pageable = PageRequest.of(page - 1, amount);
 		Page<Product> productPage = repository.findByStatus11AndCategoryId(pageable, category_id);
-
 		List<Product> products = productPage.getContent();
+		ListProduct list = new ListProduct(productPage.getTotalPages(), products);
 
 		return !products.isEmpty()
 				? ResponseEntity.status(HttpStatus.OK)
 						.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
-								"Data has found successfully", products))
+								"Data has found successfully", list))
 				: ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
 						HttpStatus.NOT_FOUND.toString().split(" ")[0], "Data has not found", new int[0]));
 	}
@@ -191,13 +191,13 @@ public class ProductService {
 	public ResponseEntity<ResponseObject> getByBrandID(int brand_id, int page, int amount) {
 		Pageable pageable = PageRequest.of(page - 1, amount);
 		Page<Product> productPage = repository.findByStatus11AndBrandId(pageable, brand_id);
-
 		List<Product> products = productPage.getContent();
+		ListProduct list = new ListProduct(productPage.getTotalPages(), products);
 
 		return !products.isEmpty()
 				? ResponseEntity.status(HttpStatus.OK)
 						.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
-								"Data has found successfully", products))
+								"Data has found successfully", list))
 				: ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
 						HttpStatus.NOT_FOUND.toString().split(" ")[0], "Data has not found", new int[0]));
 	}
@@ -783,7 +783,8 @@ public class ProductService {
 		} else if (type.equals("discount")) {
 			productPage = repository.findByDiscountGreaterThan(0, pageable);
 		} else if (type.equals("all")) {
-			productPage = repository.findAll(pageable);
+			Optional<Status> active = statusRepository.findByValue("active");
+			productPage = repository.findByStatus(pageable, active.get());
 		} else {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
 					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "The type is invalid!", null));
@@ -976,6 +977,14 @@ public class ProductService {
 	public static class ProductShopRes {
 		private int totalPage;
 		private List<ProductShopResponse> products;
+	}
+
+	@Data
+	@AllArgsConstructor
+	@NoArgsConstructor
+	public static class ListProduct {
+		private int totalPage;
+		private List<Product> products;
 	}
 
 	@Data

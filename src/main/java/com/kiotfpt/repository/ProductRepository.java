@@ -13,6 +13,7 @@ import org.springframework.stereotype.Repository;
 import com.kiotfpt.model.Category;
 import com.kiotfpt.model.Product;
 import com.kiotfpt.model.Shop;
+import com.kiotfpt.model.Status;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Integer> {
@@ -109,5 +110,7 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
 	List<Product> findByRate(float rate, Pageable pageable);
 
 	Optional<Product> findByIdAndStatusValue(int productId, String string);
+
+	Page<Product> findByStatus(Pageable pageable, Status status);
 
 }
