@@ -19,6 +19,9 @@ public class ProductMiniResponse {
 
 	private int id;
 	private String name;
+	private float min_price;
+	private float max_price;
+	private float rate;
 	private StatusResponse status;
 	private Collection<ProductThumbnail> thumbnail;
 	private VariantResponse variant;
@@ -33,6 +36,9 @@ public class ProductMiniResponse {
 	public ProductMiniResponse(Product product, Shop Shop) {
 		this.id = product.getId();
 		this.name = product.getName();
+		this.min_price = product.getMinPrice();
+		this.max_price = product.getMaxPrice();
+		this.rate = product.getRate();
 		this.status = new StatusResponse(product.getStatus());
 		this.thumbnail = product.getThumbnail();
 	}
