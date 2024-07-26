@@ -1,6 +1,6 @@
 package com.kiotfpt.model;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -12,9 +12,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.kiotfpt.request.SectionRequest;
 
 import lombok.AllArgsConstructor;
@@ -33,12 +32,13 @@ public class Order {
 	@Column(name = "order_id")
 	private int id;
 
-	@Temporal(TemporalType.TIMESTAMP)
 	@Column(name = "order_time_init", nullable = false)
-	private Date timeInit;
+	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+	private LocalDateTime timeInit;
 
 	@Column(name = "order_time_complete")
-	private Date timeComplete;
+	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+	private LocalDateTime timeComplete;
 
 	@Column(name = "order_desc", nullable = false)
 	private String desc;
@@ -69,7 +69,7 @@ public class Order {
 	public Order(SectionRequest sectionRequest, float total, Section section, Shop shop, Account account,
 			Status status, Address address) {
 		super();
-		this.timeInit = new Date();
+		this.timeInit = LocalDateTime.now();
 		this.timeComplete = null;
 		this.desc = sectionRequest.getDesc() == null || sectionRequest.getDesc().isEmpty() ? "No note"
 				: sectionRequest.getDesc();

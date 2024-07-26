@@ -1,5 +1,6 @@
 package com.kiotfpt.service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -335,7 +336,7 @@ public class OrderService {
 		Status newStat = newStatOpt.get();
 
 		if (newStat.getValue().equalsIgnoreCase("completed")) {
-			order.setTimeComplete(new Date());
+			order.setTimeComplete(LocalDateTime.now());
 			order.setStatus(newStat);
 			order.getSection().setStatus(newStat);
 

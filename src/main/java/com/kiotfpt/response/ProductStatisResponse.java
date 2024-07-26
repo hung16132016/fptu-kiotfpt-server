@@ -1,6 +1,6 @@
 package com.kiotfpt.response;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import com.kiotfpt.model.ProductThumbnail;
@@ -18,6 +18,6 @@ public class ProductStatisResponse {
     private List<ProductThumbnail> thumbnails;
     private int bought_quantity;
     private float total;
-    private Date timeComplete;
+    private LocalDateTime timeComplete;
     private VariantResponse variant;
 }

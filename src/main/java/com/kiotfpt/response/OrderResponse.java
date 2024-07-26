@@ -1,8 +1,8 @@
 package com.kiotfpt.response;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 
 import com.kiotfpt.model.AccessibilityItem;
@@ -19,8 +19,8 @@ import lombok.NoArgsConstructor;
 public class OrderResponse {
 
 	private int id;
-	private Date time_init;
-	private Date time_complete;
+	private LocalDateTime time_init;
+	private LocalDateTime time_complete;
 	private String desc;
 	private float total;
 	private ShopMiniResponse shop;

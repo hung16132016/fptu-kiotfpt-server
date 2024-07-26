@@ -1,6 +1,6 @@
 package com.kiotfpt.service;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,26 +38,6 @@ public class SectionService {
 
 	HashMap<String, String> responseMessage = new JsonReader().readJsonFile();
 
-//	public ResponseEntity<ResponseObject> getAllOrder() {
-//		List<Order> orders = repository.findAll();
-//		return !orders.isEmpty()
-//				? ResponseEntity.status(HttpStatus.OK)
-//						.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
-//								responseMessage.get("OrderFound"), orders))
-//				: ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-//						HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("OrderNotFound"), orders));
-//	}
-//
-//	public ResponseEntity<ResponseObject> createOrder(Map<String, String> map) {
-//		Optional<Shop> shop = shopRepository.findById(Integer.parseInt(map.get("shop_id")));
-//		Order Order = new Order();
-//		Order.setShop(shop.get());
-//
-//		return ResponseEntity.status(HttpStatus.CREATED)
-//				.body(new ResponseObject(true, HttpStatus.CREATED.toString().split(" ")[0],
-//						responseMessage.get("createProductSuccess"), repository.save(Order)));
-//	}
-
 	public ResponseEntity<ResponseObject> updateStatusOrder(int order_id, Map<String, String> map) {
 		Optional<Section> section = repository.findById(order_id);
 		if (!section.isPresent()) {
@@ -71,8 +51,7 @@ public class SectionService {
 		}
 		if (status.get().getValue().equals("Delivered") || status.get().getValue().equals("Cancelled")) {
 			Optional<Order> order = orderRepository.findBySection(section.get());
-			Date date = new Date();
-			order.get().setTimeComplete(date);
+			order.get().setTimeComplete(LocalDateTime.now());
 			orderRepository.save(order.get());
 		}
 		

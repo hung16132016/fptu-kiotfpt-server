@@ -1,6 +1,6 @@
 package com.kiotfpt.response;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,5 +12,5 @@ import lombok.NoArgsConstructor;
 public class OrderStatisResponse {
 	private int id;
 	private float total;
-	private Date time;
+	private LocalDateTime time;
 }

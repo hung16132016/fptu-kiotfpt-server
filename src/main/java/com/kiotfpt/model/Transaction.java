@@ -1,6 +1,6 @@
 package com.kiotfpt.model;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -33,10 +33,10 @@ public class Transaction {
 	private int id;
 
 	@Column(name = "transaction_time_init", nullable = false)
-	private Date timeInit;
+	private LocalDateTime timeInit;
 
 	@Column(name = "transaction_time_complete")
-	private Date timeComplete;
+	private LocalDateTime timeComplete;
 
 	@Column(name = "transaction_desc", nullable = false, length = 10000)
 	private String desc;
