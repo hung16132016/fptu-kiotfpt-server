@@ -11,6 +11,7 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -38,6 +39,7 @@ import com.kiotfpt.repository.StatusRepository;
 import com.kiotfpt.request.AccountSignUpRequest;
 import com.kiotfpt.utils.JsonReader;
 import com.kiotfpt.utils.MD5;
+import com.kiotfpt.utils.ResponseObjectHelper;
 import com.kiotfpt.utils.ValidationHelper;
 
 @Service
@@ -72,6 +74,9 @@ public class AuthService {
 	private JwtService jwtService;
 
 	HashMap<String, String> responseMessage = new JsonReader().readJsonFile();
+	
+	@Value("${domainurl}")
+    private String domainURL;
 
 	// fix
 	public ResponseEntity<ResponseObject> signIn(String username, String password) {
@@ -168,7 +173,7 @@ public class AuthService {
 						+ request.getUsername().strip() + "</p>"
 						+ "<p>Thank you for submitting an account registration request on Mappe!</p>"
 						+ "<p>Please do not share the link with anyone else to avoid losing your account.</p>"
-						+ "<p>Please click this link " + "<a href=\"https://api.kiotfpt.store/v1/auth/confirm-sign-up/"
+						+ "<p>Please click this link " + "<a href=\"" + domainURL + "v1/auth/confirm-sign-up/"
 						+ request.getUsername().strip() + "\">"
 						+ "<p style='font-size: 24px;'><strong>confirm sign-up</strong></p>"
 						+ "</a> to activate your account.</p>" + "</div>";
@@ -216,26 +221,24 @@ public class AuthService {
 	public ResponseEntity<ResponseObject> forgotPassword(String username) throws AddressException, MessagingException {
 		Optional<Account> foundAccount = repository.findByUsername(username);
 		if (!foundAccount.isEmpty()) {
-			Account account = foundAccount.get();
 			String newPassword = generateRandomPassword();
-			String newPasswordMD5 = MD5.generateMD5Hash(newPassword);
-			account.setPassword(newPasswordMD5);
-			repository.save(account);
-
+			Optional<AccountProfile> profile = profileRepository.findByAccount(foundAccount.get());
 			MimeMessage message = mailSender.createMimeMessage();
 			message.setFrom(new InternetAddress("kiotfpt.help@gmail.com"));
 			message.setRecipients(MimeMessage.RecipientType.TO, username);
 			message.setSubject("Reset Kiot FPT Password");
 			String htmlContent = "<h2>Welcome to Kiot FPT!</h2>"
 					+ "<div style='background-color: #f2f2f2; padding: 20px; text-align: center;'>" + "<p>Hello, "
-					+ username + "</p>" + "<p>This is your new password:</p>"
-					+ "<p>Please do not share the password with anyone else to avoid losing your account.</p>"
-					+ "<p>Please click this " + newPassword + "</p>" + "</div>";
+					+ profile.get().getName() + "</p>" + "<p>This is your new password:" + newPassword + "</p>"
+					+ "<p>Please do not share this mail with anyone else to avoid losing your account.</p>"
+					+ "<p>Please click </p>" + "<a href=\"" + domainURL +"v1/auth/confirm-forgot-password?newPassword="+ newPassword + "&username=" + username + "\">" 
+					+ "this link" + "</a>" 
+					+ "<p>to confirm change your password</p>" + "</div>";
 			message.setContent(htmlContent, "text/html; charset=utf-8");
 			mailSender.send(message);
 
 			return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
-					HttpStatus.OK.toString().split(" ")[0], "Send new password to email seccessfull", ""));
+					HttpStatus.OK.toString().split(" ")[0], "Send new password to email successfully", ""));
 		}
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
 				HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Could not find any account with this username", ""));
@@ -263,5 +266,16 @@ public class AuthService {
 			sb.append(CHARACTERS.charAt(randomIndex));
 		}
 		return sb.toString();
+	}
+	
+	public ResponseEntity<ResponseObject> confirmChangePassword(String newPassword, String username) {
+		Optional<Account> foundAccount = repository.findByUsername(username);
+		if (!foundAccount.isEmpty()) {
+			Account account = foundAccount.get();
+			String newPasswordMD5 = MD5.generateMD5Hash(newPassword);
+			account.setPassword(newPasswordMD5);
+			repository.save(account);
+		}
+		return ResponseObjectHelper.createTrueResponse(HttpStatus.OK, "Change password successfull", "");
 	}
 }

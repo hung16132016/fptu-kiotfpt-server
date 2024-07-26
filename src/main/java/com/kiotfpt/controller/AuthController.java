@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -94,5 +95,11 @@ public class AuthController {
 					.body(new ResponseObject(false, HttpStatus.INTERNAL_SERVER_ERROR.toString().split(" ")[0],
 							"An error occurred while logging out", null));
 		}
+	}
+
+	@GetMapping("/confirm-forgot-password")
+	public ResponseEntity<ResponseObject> confirmChangePassword(@RequestParam String newPassword,
+			@RequestParam String username) {
+		return service.confirmChangePassword(newPassword, username);
 	}
 }
