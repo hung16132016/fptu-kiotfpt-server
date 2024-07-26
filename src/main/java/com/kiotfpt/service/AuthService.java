@@ -162,6 +162,7 @@ public class AuthService {
 
 				AccountProfile newProfile = new AccountProfile();
 				newProfile.setAccount(accountSignUp);
+				newProfile.setEmail(accountSignUp.getUsername());
 				profileRepository.save(newProfile);
 
 				MimeMessage message = mailSender.createMimeMessage();
