@@ -58,7 +58,7 @@ public class VoucherController {
 	
 	@GetMapping("/update-status/{id}")
 	@PreAuthorize("hasAuthority('shop')")
-	public ResponseEntity<ResponseObject> updateStatusBrand(@PathVariable int id, @RequestParam String status) {
+	public ResponseEntity<ResponseObject> updateStatusVoucher(@PathVariable int id, @RequestParam String status) {
 		if (status.equalsIgnoreCase("inactive"))
 			return service.deactivateVoucher(id);
 		else if (status.equalsIgnoreCase("active"))
