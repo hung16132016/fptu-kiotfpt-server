@@ -25,7 +25,7 @@ public class CommentController {
 
 	@PreAuthorize("hasAuthority('user')")
 	@PostMapping("/create")
-	public ResponseEntity<ResponseObject> getVoucherByShopID(@RequestBody CommentRequest request) {
+	public ResponseEntity<ResponseObject> createComment(@RequestBody CommentRequest request) {
 		return service.createComment(request);
 	}
 

@@ -41,11 +41,6 @@ public class ProductController {
 		return service.getProductById(id);
 	}
 
-	@GetMapping("/new")
-	public ResponseEntity<ResponseObject> getNew8Added() {
-		return service.getNew8Added();
-	}
-
 	@GetMapping("/get-by-category")
 	public ResponseEntity<ResponseObject> getByCategoryID(@RequestParam(name = "categoryID") Integer category_id,
 			@RequestParam(name = "page") Integer page, @RequestParam(name = "amount") Integer amount) {

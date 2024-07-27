@@ -160,20 +160,6 @@ public class ProductService {
 		return new ProfileMiniResponse(profile.get());
 	}
 
-	public ResponseEntity<ResponseObject> getNew8Added() {
-		Pageable pageable = PageRequest.of(0, 8);
-		Page<Product> productPage = repository.findLast8ProductsByStatus11(pageable);
-
-		List<Product> products = productPage.getContent();
-
-		return !products.isEmpty()
-				? ResponseEntity.status(HttpStatus.OK)
-						.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
-								"Data has found successfully", products))
-				: ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-						HttpStatus.NOT_FOUND.toString().split(" ")[0], "Data has not found", new int[0]));
-	}
-
 	public ResponseEntity<ResponseObject> getByCategoryID(int category_id, int page, int amount) {
 		Pageable pageable = PageRequest.of(page - 1, amount);
 		Page<Product> productPage = repository.findByStatus11AndCategoryId(pageable, category_id);
@@ -710,7 +696,8 @@ public class ProductService {
 		// Collect all products in the completed orders
 		List<ProductMiniResponse> productsWithoutComments = completedOrders.stream()
 				.flatMap(order -> order.getSection().getItems().stream()).map(AccessibilityItem::getVariant)
-				.filter(variant -> !commentRepository.existsByAccountIdAndProductId(accountId, variant.getProduct().getId()))
+				.filter(variant -> !commentRepository.existsByAccountIdAndProductId(accountId,
+						variant.getProduct().getId()))
 				.map(variant -> new ProductMiniResponse(variant.getProduct(), variant)).collect(Collectors.toList());
 
 		if (productsWithoutComments.isEmpty()) {
@@ -856,11 +843,9 @@ public class ProductService {
 		List<ProductShopResponse> returnListProduct = new ArrayList<>();
 
 		for (Product product : products) {
-			int statusId = product.getStatus().getId();
-			if (statusId == 11) {
-				ProductShopResponse res = new ProductShopResponse(product);
-				returnListProduct.add(res);
-			}
+			ProductShopResponse res = new ProductShopResponse(product);
+			returnListProduct.add(res);
+
 		}
 		if (!returnListProduct.isEmpty()) {
 			ProductShopRes res = new ProductShopRes(productPage.getTotalPages(), returnListProduct);
