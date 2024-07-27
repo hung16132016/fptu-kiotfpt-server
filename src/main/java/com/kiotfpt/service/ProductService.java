@@ -710,7 +710,7 @@ public class ProductService {
 		// Collect all products in the completed orders
 		List<ProductMiniResponse> productsWithoutComments = completedOrders.stream()
 				.flatMap(order -> order.getSection().getItems().stream()).map(AccessibilityItem::getVariant)
-				.filter(variant -> !commentRepository.existsByAccountIdAndProductId(accountId, variant.getId()))
+				.filter(variant -> !commentRepository.existsByAccountIdAndProductId(accountId, variant.getProduct().getId()))
 				.map(variant -> new ProductMiniResponse(variant.getProduct(), variant)).collect(Collectors.toList());
 
 		if (productsWithoutComments.isEmpty()) {
