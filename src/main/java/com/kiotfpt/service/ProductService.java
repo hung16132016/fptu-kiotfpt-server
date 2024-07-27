@@ -151,10 +151,21 @@ public class ProductService {
 		// Set comments back to product
 		product.setComments(comments);
 
+	    List<ProfileMiniResponse> profiles = product.getFavourite().stream()
+	            .map(fav -> fetchProfileForAccount(fav.getAccount()))
+	            .collect(Collectors.toList());
+
+		ProductDetailResponse res = new ProductDetailResponse(product, profiles);
 		return ResponseEntity.status(HttpStatus.OK)
-				.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Product found", product));
+				.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Product found", res));
 	}
 
+	private ProfileMiniResponse fetchProfileForAccount(Account account) {
+	    // Similar to fetchProfileForComment, fetch the ProfileMiniResponse for the given Account
+	    Optional<AccountProfile> profileOpt = accountProfileRepository.findByAccount(account);
+	    return profileOpt.map(ProfileMiniResponse::new).orElse(null);
+	}
+	
 	private ProfileMiniResponse fetchProfileForComment(Account account) {
 		Optional<AccountProfile> profile = accountProfileRepository.findByAccount(account);
 		return new ProfileMiniResponse(profile.get());
@@ -987,5 +998,13 @@ public class ProductService {
 	public class ProductReviewResponse {
 		private ProductMiniResponse product;
 		private List<Comment> comments;
+	}
+	
+	@Data
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public class ProductDetailResponse {
+		private Product product;
+		private List<ProfileMiniResponse> profiles;
 	}
 }
