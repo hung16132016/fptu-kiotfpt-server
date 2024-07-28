@@ -114,6 +114,7 @@ public class CategoryService {
 			ShopCategory newShopCategory = new ShopCategory();
 			newShopCategory.setCategory(newCategory);
 			newShopCategory.setShop(foundShop.get());
+			newShopCategory.setStatus(statusRepository.findByValue("active").get());
 			shopCategoryRepository.save(newShopCategory);
 		}
 

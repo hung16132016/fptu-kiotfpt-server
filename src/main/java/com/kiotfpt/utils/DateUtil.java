@@ -1,6 +1,9 @@
 package com.kiotfpt.utils;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.Year;
+import java.time.ZoneId;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -105,4 +108,10 @@ public class DateUtil {
 		}
 		return inputType;
 	}
+	
+    public static LocalDateTime toLocalDateTime(Date date) {
+        return Instant.ofEpochMilli(date.getTime())
+                      .atZone(ZoneId.systemDefault())
+                      .toLocalDateTime();
+    }
 }

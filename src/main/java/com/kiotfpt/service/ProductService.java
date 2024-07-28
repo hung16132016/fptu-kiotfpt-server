@@ -1,5 +1,6 @@
 package com.kiotfpt.service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -151,9 +152,8 @@ public class ProductService {
 		// Set comments back to product
 		product.setComments(comments);
 
-	    List<ProfileMiniResponse> profiles = product.getFavourite().stream()
-	            .map(fav -> fetchProfileForAccount(fav.getAccount()))
-	            .collect(Collectors.toList());
+		List<ProfileMiniResponse> profiles = product.getFavourite().stream()
+				.map(fav -> fetchProfileForAccount(fav.getAccount())).collect(Collectors.toList());
 
 		ProductDetailResponse res = new ProductDetailResponse(product, profiles);
 		return ResponseEntity.status(HttpStatus.OK)
@@ -161,11 +161,12 @@ public class ProductService {
 	}
 
 	private ProfileMiniResponse fetchProfileForAccount(Account account) {
-	    // Similar to fetchProfileForComment, fetch the ProfileMiniResponse for the given Account
-	    Optional<AccountProfile> profileOpt = accountProfileRepository.findByAccount(account);
-	    return profileOpt.map(ProfileMiniResponse::new).orElse(null);
+		// Similar to fetchProfileForComment, fetch the ProfileMiniResponse for the
+		// given Account
+		Optional<AccountProfile> profileOpt = accountProfileRepository.findByAccount(account);
+		return profileOpt.map(ProfileMiniResponse::new).orElse(null);
 	}
-	
+
 	private ProfileMiniResponse fetchProfileForComment(Account account) {
 		Optional<AccountProfile> profile = accountProfileRepository.findByAccount(account);
 		return new ProfileMiniResponse(profile.get());
@@ -653,8 +654,11 @@ public class ProductService {
 	public ResponseEntity<ResponseObject> filterProductsByTimeAndShop(DateRequest filterRequest) {
 		try {
 
-			Date startDate = DateUtil.calculateStartDate(filterRequest),
-					endDate = DateUtil.calculateEndDate(filterRequest);
+			Date startLocalDateTime = DateUtil.calculateStartDate(filterRequest),
+					endLocalDateTime = DateUtil.calculateEndDate(filterRequest);
+
+			LocalDateTime startDate = DateUtil.toLocalDateTime(startLocalDateTime);
+			LocalDateTime endDate = DateUtil.toLocalDateTime(endLocalDateTime);
 
 			List<Order> orders = null;
 			if (tokenUtils.checkMatch("admin")) {
@@ -999,7 +1003,7 @@ public class ProductService {
 		private ProductMiniResponse product;
 		private List<Comment> comments;
 	}
-	
+
 	@Data
 	@NoArgsConstructor
 	@AllArgsConstructor

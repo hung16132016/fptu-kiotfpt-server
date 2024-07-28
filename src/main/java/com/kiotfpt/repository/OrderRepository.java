@@ -1,5 +1,6 @@
 package com.kiotfpt.repository;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -33,17 +34,17 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
 	boolean existsByAccountAndProductAndStatus(@Param("account") Account account, @Param("product") Product product,
 			@Param("status") String status);
 
-	List<Order> findByTimeCompleteBetweenAndShopIdAndStatusValue(Date startDate, Date endDate, int shopId,
+	List<Order> findByTimeCompleteBetweenAndShopIdAndStatusValue(LocalDateTime startDate, LocalDateTime endDate, int shopId,
 			String status);
 
-	List<Order> findByTimeCompleteBetweenAndStatusValue(Date startDate, Date endDate, String status);
+	List<Order> findByTimeCompleteBetweenAndStatusValue(LocalDateTime startDate, LocalDateTime endDate, String status);
 
     @Query("SELECT o FROM Order o WHERE o.timeInit BETWEEN ?1 AND ?2 AND (o.status.value = 'completed' OR o.status.value = 'pending')")
-    List<Order> findByTimeInitBetweenAndStatusIn(Date startDate, Date endDate);
+    List<Order> findByTimeInitBetweenAndStatusIn(LocalDateTime startDate, LocalDateTime endDate);
     
 //    List<Order> findByTimeInitBetweenAndShopIdAndStatusIn(Date startDate, Date endDate, int shopId, List<String> statusList);
     @Query(value = "SELECT * FROM kiotfpt_order WHERE kiotfpt_order.order_time_init BETWEEN :startDate AND :endDate AND kiotfpt_order.shop_id = :shopId AND kiotfpt_order.status_id IN (27, 21);", nativeQuery = true)
-    List<Order> findByTimeInitBetweenAndShopIdAndStatusIn(Date startDate, Date endDate, int shopId);
+    List<Order> findByTimeInitBetweenAndShopIdAndStatusIn(LocalDateTime startDate, LocalDateTime endDate, int shopId);
     
 	@Query("SELECT o FROM Order o WHERE o.status.id = :statusId")
 	List<Order> findByStatusId(int statusId);

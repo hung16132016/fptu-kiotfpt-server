@@ -413,8 +413,11 @@ public class OrderService {
 	public ResponseEntity<ResponseObject> filterOrdersByTime(DateRequest filterRequest) {
 		try {
 
-			Date startDate = DateUtil.calculateStartDate(filterRequest),
-					endDate = DateUtil.calculateEndDate(filterRequest);
+			Date startLocalDateTime = DateUtil.calculateStartDate(filterRequest),
+					endLocalDateTime = DateUtil.calculateEndDate(filterRequest);
+
+			LocalDateTime startDate = DateUtil.toLocalDateTime(startLocalDateTime);
+			LocalDateTime endDate = DateUtil.toLocalDateTime(endLocalDateTime);
 
 			List<Order> orders = null;
 			if (tokenUtils.checkMatch("admin")) {
@@ -453,46 +456,44 @@ public class OrderService {
 	}
 
 	public ResponseEntity<ResponseObject> revenue(DateRequest filterRequest) {
-		try {
 
-			Date startDate = DateUtil.calculateStartDate(filterRequest),
-					endDate = DateUtil.calculateEndDate(filterRequest);
+		Date startLocalDateTime = DateUtil.calculateStartDate(filterRequest),
+				endLocalDateTime = DateUtil.calculateEndDate(filterRequest);
 
-			List<Order> orders = null;
-			if (tokenUtils.checkMatch("admin")) {
-				orders = repository.findByTimeCompleteBetweenAndStatusValue(startDate, endDate, "completed");
-			} else if (tokenUtils.checkMatch("shop")) {
+		LocalDateTime startDate = DateUtil.toLocalDateTime(startLocalDateTime);
+		LocalDateTime endDate = DateUtil.toLocalDateTime(endLocalDateTime);
 
-				Optional<Shop> shop = shopRepository.findByAccount(tokenUtils.getAccount());
-				if (shop.isEmpty()) {
-					return ResponseObjectHelper.createFalseResponse(HttpStatus.NOT_FOUND,
-							"No shop found with the current account");
-				}
+		List<Order> orders = null;
+		if (tokenUtils.checkMatch("admin")) {
+			orders = repository.findByTimeCompleteBetweenAndStatusValue(startDate, endDate, "completed");
+		} else if (tokenUtils.checkMatch("shop")) {
 
-				orders = repository.findByTimeCompleteBetweenAndShopIdAndStatusValue(startDate, endDate,
-						shop.get().getId(), "completed");
+			Optional<Shop> shop = shopRepository.findByAccount(tokenUtils.getAccount());
+			if (shop.isEmpty()) {
+				return ResponseObjectHelper.createFalseResponse(HttpStatus.NOT_FOUND,
+						"No shop found with the current account");
 			}
 
-			if (orders.isEmpty()) {
-				return ResponseEntity.status(HttpStatus.NOT_FOUND)
-						.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
-								"No completed orders found for the given date", null));
-			}
-
-			List<OrderStatisResponse> responseList = orders.stream()
-					.map(order -> new OrderStatisResponse(order.getId(), order.getTotal(), order.getTimeComplete()))
-					.collect(Collectors.toList());
-
-			float totalOfAllOrders = orders.stream().map(Order::getTotal).reduce(0.0f, Float::sum);
-
-			return ResponseEntity.status(HttpStatus.OK)
-					.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Completed orders found",
-							new OrderFilterResult(responseList, totalOfAllOrders, responseList.size())));
-		} catch (Exception e) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body(new ResponseObject(false, HttpStatus.INTERNAL_SERVER_ERROR.toString().split(" ")[0],
-							"An error occurred while filtering completed orders", null));
+			orders = repository.findByTimeCompleteBetweenAndShopIdAndStatusValue(startDate, endDate, shop.get().getId(),
+					"completed");
 		}
+
+		if (orders.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND)
+					.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
+							"No completed orders found for the given date", null));
+		}
+
+		List<OrderStatisResponse> responseList = orders.stream()
+				.map(order -> new OrderStatisResponse(order.getId(), order.getTotal(), order.getTimeComplete()))
+				.collect(Collectors.toList());
+
+		float totalOfAllOrders = orders.stream().map(Order::getTotal).reduce(0.0f, Float::sum);
+
+		return ResponseEntity.status(HttpStatus.OK)
+				.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Completed orders found",
+						new OrderFilterResult(responseList, totalOfAllOrders, responseList.size())));
+
 	}
 
 	@Data
