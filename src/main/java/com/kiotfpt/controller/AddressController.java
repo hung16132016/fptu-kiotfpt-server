@@ -48,7 +48,7 @@ public class AddressController {
 		return service.updateAddress(request);
 	}
 	
-	@DeleteMapping("/address/delete/{id}")
+	@DeleteMapping("/delete/{id}")
 	public ResponseEntity<ResponseObject> deleteAddress(@PathVariable int id) {
 		return service.deleteAddress(id);
 	}
