@@ -76,9 +76,6 @@ public class AddressService {
 	public ResponseEntity<ResponseObject> createAddress(AddressRequest request) {
 		Optional<AccountProfile> profile = accountprofileRepository.findByAccount(tokenUtils.getAccount());
 
-		if (tokenUtils.getAccount().getId() != request.getAccount_id())
-			return ResponseObjectHelper.createFalseResponse(HttpStatus.UNAUTHORIZED, "Unauthorized");
-
 		Optional<Province> province = provinceRepository.findById(request.getProvince_id());
 		if (province.isEmpty())
 			return ResponseObjectHelper.createFalseResponse(HttpStatus.BAD_REQUEST, "Province is not exist");
