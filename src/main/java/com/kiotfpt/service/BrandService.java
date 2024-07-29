@@ -95,7 +95,7 @@ public class BrandService {
 
 		Status activeStatus = statusRepository.findByValue("active")
 				.orElseThrow(() -> new RuntimeException("Active status not found"));
-		Optional<Brand> existBrand = repository.findbyName(brandRequest.getName().trim());
+		Optional<Brand> existBrand = repository.findByName(brandRequest.getName().trim());
 		if (!existBrand.isEmpty())
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
 					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Brand name already exist", new int[0]));
