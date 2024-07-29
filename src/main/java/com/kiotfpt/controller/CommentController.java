@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kiotfpt.model.ResponseObject;
@@ -30,7 +29,7 @@ public class CommentController {
 	}
 
 	@GetMapping("/get-all")
-	public ResponseEntity<ResponseObject> getCommentsByAccountId(@RequestParam(name = "accountID") int accountID) {
-		return service.getAllCommentsByAccountId(accountID);
+	public ResponseEntity<ResponseObject> getCommentsByAccountId() {
+		return service.getAllCommentsByAccountId();
 	}
 }

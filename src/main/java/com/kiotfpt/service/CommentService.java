@@ -13,12 +13,12 @@ import com.kiotfpt.model.Account;
 import com.kiotfpt.model.Comment;
 import com.kiotfpt.model.Product;
 import com.kiotfpt.model.ResponseObject;
-import com.kiotfpt.repository.AccountRepository;
 import com.kiotfpt.repository.CommentRepository;
 import com.kiotfpt.repository.OrderRepository;
 import com.kiotfpt.repository.ProductRepository;
 import com.kiotfpt.request.CommentRequest;
 import com.kiotfpt.utils.ResponseObjectHelper;
+import com.kiotfpt.utils.TokenUtils;
 
 @Service
 public class CommentService {
@@ -27,21 +27,21 @@ public class CommentService {
 	private CommentRepository repository;
 
 	@Autowired
-	private AccountRepository accountRepository;
-
-	@Autowired
 	private ProductRepository productRepository;
 
 	@Autowired
 	private OrderRepository orderRepository;
 
+	@Autowired
+	private TokenUtils tokenUtils;
+
 	public ResponseEntity<ResponseObject> createComment(CommentRequest commentRequest) {
 		// Find the account and product
-		Optional<Account> optionalAccount = accountRepository.findById(commentRequest.getAccount_id());
+		Account account = tokenUtils.getAccount();
 		Optional<Product> optionalProduct = productRepository.findById(commentRequest.getProduct_id());
 
-		// Check if the account and product exist
-		if (optionalAccount.isEmpty() || optionalProduct.isEmpty()) {
+		// Check if product exist
+		if (optionalProduct.isEmpty()) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
 					String.valueOf(HttpStatus.NOT_FOUND.value()), "Account or Product not found", null));
 		}
@@ -50,7 +50,6 @@ public class CommentService {
 			return ResponseObjectHelper.createFalseResponse(HttpStatus.BAD_REQUEST, "Rate must greater tor equal 0");
 		}
 
-		Account account = optionalAccount.get();
 		Product product = optionalProduct.get();
 
 		// Check if the account has already bought the product with status "completed"
@@ -77,15 +76,10 @@ public class CommentService {
 				String.valueOf(HttpStatus.CREATED.value()), "Comment created successfully", savedComment));
 	}
 
-	public ResponseEntity<ResponseObject> getAllCommentsByAccountId(int accountId) {
-		Optional<Account> optionalAccount = accountRepository.findById(accountId);
+	public ResponseEntity<ResponseObject> getAllCommentsByAccountId() {
+		Account optionalAccount = tokenUtils.getAccount();
 
-		if (!optionalAccount.isPresent()) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-					new ResponseObject(false, String.valueOf(HttpStatus.NOT_FOUND.value()), "Account not found", null));
-		}
-
-		List<Comment> comments = repository.findAllByAccount(optionalAccount.get());
+		List<Comment> comments = repository.findAllByAccount(optionalAccount);
 
 		List<Comment> transformedComments = comments.stream().map(comment -> new Comment(comment))
 				.collect(Collectors.toList());
