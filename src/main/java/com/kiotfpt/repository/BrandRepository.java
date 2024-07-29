@@ -12,4 +12,6 @@ public interface BrandRepository extends JpaRepository<Brand, Integer> {
 
 	Optional<Brand> findByIdAndStatusValue(int brandId, String string);
 
+	Optional<Brand> findbyName(String name);
+
 }

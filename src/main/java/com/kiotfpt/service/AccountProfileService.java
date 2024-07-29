@@ -121,8 +121,9 @@ public class AccountProfileService {
 		if (!request.getNewPassword().equals(request.getRetypePassword()))
 			return ResponseObjectHelper.createFalseResponse(HttpStatus.BAD_REQUEST,
 					"New password and retype password is not the same!");
-		String newPassword = MD5.generateMD5Hash(request.getOldPassword());
-		if (!newPassword.equals(accountFound.getPassword()))
+		String oldPassword = MD5.generateMD5Hash(request.getOldPassword());
+		String newPassword = MD5.generateMD5Hash(request.getNewPassword());
+		if (!oldPassword.equals(accountFound.getPassword()))
 			return ResponseObjectHelper.createFalseResponse(HttpStatus.BAD_REQUEST, "Old password is wrong!");
 		Account account = accountFound;
 		account.setPassword(newPassword);

@@ -95,6 +95,10 @@ public class CategoryService {
 		if (!foundCategory.isEmpty())
 			return ResponseObjectHelper.createFalseResponse(HttpStatus.BAD_REQUEST, "Category existed");
 
+		if (request.getName().trim() == "")
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
+					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Input can not be empty", new int[0]));
+
 		Category newCategory = null;
 		if (tokenUtils.checkMatch("shop") == true) {
 			newCategory = new Category(request, statusRepository.findByValue("inactive").get());
@@ -114,7 +118,7 @@ public class CategoryService {
 			ShopCategory newShopCategory = new ShopCategory();
 			newShopCategory.setCategory(newCategory);
 			newShopCategory.setShop(foundShop.get());
-			newShopCategory.setStatus(statusRepository.findByValue("active").get());
+			newShopCategory.setStatus(statusRepository.findByValue("inactive").get());
 			shopCategoryRepository.save(newShopCategory);
 		}
 

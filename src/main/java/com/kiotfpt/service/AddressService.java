@@ -74,13 +74,9 @@ public class AddressService {
 	}
 
 	public ResponseEntity<ResponseObject> createAddress(AddressRequest request) {
-		Optional<AccountProfile> profile = accountprofileRepository.findById(request.getAccount_profile_id());
-		if (profile.isEmpty())
-			return ResponseObjectHelper.createFalseResponse(HttpStatus.BAD_REQUEST, "Profile is not exist");
+		Optional<AccountProfile> profile = accountprofileRepository.findByAccount(tokenUtils.getAccount());
 
-		Optional<AccountProfile> profileToken = accountprofileRepository.findByAccount(tokenUtils.getAccount());
-
-		if (profile.get().getId() != profileToken.get().getId())
+		if (tokenUtils.getAccount().getId() != request.getAccount_id())
 			return ResponseObjectHelper.createFalseResponse(HttpStatus.UNAUTHORIZED, "Unauthorized");
 
 		Optional<Province> province = provinceRepository.findById(request.getProvince_id());

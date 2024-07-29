@@ -89,8 +89,17 @@ public class BrandService {
 	}
 
 	public ResponseEntity<ResponseObject> createBrand(BrandRequest brandRequest) {
-		Status activeStatus = statusRepository.findByValue("inactive")
+		if (brandRequest.getName().trim() == "")
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
+					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Input can not be empty", new int[0]));
+
+		Status activeStatus = statusRepository.findByValue("active")
 				.orElseThrow(() -> new RuntimeException("Active status not found"));
+		Optional<Brand> existBrand = repository.findbyName(brandRequest.getName().trim());
+		if (!existBrand.isEmpty())
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
+					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Brand name already exist", new int[0]));
+		
 		Brand brand = new Brand();
 		brand.setName(brandRequest.getName());
 		brand.setThumbnail(brandRequest.getThumbnail());
@@ -101,6 +110,10 @@ public class BrandService {
 
 	public ResponseEntity<ResponseObject> updateBrand(int id, BrandRequest brandRequest) {
 		Brand brand = repository.findById(id).orElseThrow(() -> new RuntimeException("Brand not found"));
+		if (brandRequest.getName().trim() == "")
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
+					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Input can not be empty", new int[0]));
+
 		brand.setName(brandRequest.getName());
 		brand.setThumbnail(brandRequest.getThumbnail());
 		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
