@@ -138,9 +138,12 @@ public class AddressService {
 	public ResponseEntity<ResponseObject> deleteAddress(int address_id) {
 		Optional<Address> address = repository.findById(address_id);
 		if (address.isEmpty())
-			ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
 					HttpStatus.NOT_FOUND.toString().split(" ")[0], "Data has not found", new int[0]));
 
+		if (!address.get().getOrders().isEmpty())
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
+					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Can not delete this address", new int[0]));
 		repository.deleteById(address_id);
 
 		return ResponseEntity.status(HttpStatus.OK).body(
