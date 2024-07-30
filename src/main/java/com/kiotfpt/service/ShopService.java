@@ -23,6 +23,7 @@ import com.kiotfpt.model.Province;
 import com.kiotfpt.model.ResponseObject;
 import com.kiotfpt.model.Shop;
 import com.kiotfpt.model.Status;
+import com.kiotfpt.repository.AccountProfileRepository;
 import com.kiotfpt.repository.AccountRepository;
 import com.kiotfpt.repository.AddressRepository;
 import com.kiotfpt.repository.DistrictRepository;
@@ -59,6 +60,9 @@ public class ShopService {
 
 	@Autowired
 	private DistrictRepository districtRepository;
+
+	@Autowired
+	private AccountProfileRepository profileRepository;
 
 	@Autowired
 	private TokenUtils tokenUtils;
@@ -140,15 +144,8 @@ public class ShopService {
 					new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0], "Account not found", ""));
 		}
 
-		AddressService service = new AddressService();
-
-		ResponseEntity<ResponseObject> response = service.createAddress(shopRequest.getAddress());
-
-		if (response.getBody().getResult() == false) {
-			return response;
-		}
-
-		Address address = (Address) response.getBody().getData();
+		Address address = new Address("133, Nguyen Van Linh", true, districtRepository.findById(659).get(),
+				provinceRepository.findById(123).get(), profileRepository.findByAccount(account.get()).get(), null);
 
 		Shop shop = new Shop(shopRequest, account.get(), address);
 		repository.save(shop);

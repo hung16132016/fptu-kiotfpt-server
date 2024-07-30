@@ -52,4 +52,15 @@ public class Address {
 	@OneToMany(mappedBy = "address", cascade = CascadeType.ALL)
 	@JsonIgnore
 	private Collection<Order> orders;
+
+	public Address(String value, boolean isdefault, District district, Province province, AccountProfile profile,
+			Collection<Order> orders) {
+		super();
+		this.value = value;
+		this.isdefault = isdefault;
+		this.district = district;
+		this.province = province;
+		this.profile = profile;
+		this.orders = orders;
+	}
 }
