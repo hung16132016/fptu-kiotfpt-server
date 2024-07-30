@@ -108,8 +108,8 @@ public class ProductController {
 	}
 
 	@GetMapping("/products-no-comments")
-	public ResponseEntity<ResponseObject> getProductsWithoutComments(@RequestParam(name = "accountId") int accountId) {
-		return service.getProductsNotCommentedByAccount(accountId);
+	public ResponseEntity<ResponseObject> getProductsWithoutComments() {
+		return service.getProductsNotCommentedByAccount();
 	}
 
 	@GetMapping("/get-by-shop-and-cat")

@@ -660,7 +660,8 @@ public class ProductService {
 		}
 	}
 
-	public ResponseEntity<ResponseObject> getProductsNotCommentedByAccount(int accountId) {
+	public ResponseEntity<ResponseObject> getProductsNotCommentedByAccount() {
+		int accountId = tokenUtils.getAccount().getId();
 		// Fetch completed orders for the account
 		List<Order> completedOrders = orderRepository.findByAccountIdAndStatusId(accountId, 27);
 
