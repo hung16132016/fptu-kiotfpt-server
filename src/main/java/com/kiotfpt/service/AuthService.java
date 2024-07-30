@@ -74,9 +74,9 @@ public class AuthService {
 	private JwtService jwtService;
 
 	HashMap<String, String> responseMessage = new JsonReader().readJsonFile();
-	
+
 	@Value("${domainurl}")
-    private String domainURL;
+	private String domainURL;
 
 	// fix
 	public ResponseEntity<ResponseObject> signIn(String username, String password) {
@@ -174,7 +174,7 @@ public class AuthService {
 						+ request.getUsername().strip() + "</p>"
 						+ "<p>Thank you for submitting an account registration request on Mappe!</p>"
 						+ "<p>Please do not share the link with anyone else to avoid losing your account.</p>"
-						+ "<p>Please click this link " + "<a href=\"" + domainURL + "v1/auth/confirm-sign-up/"
+						+ "<p>Please click this link " + "<a href=\"http://localhost:3333/confirm-sign-up?email="
 						+ request.getUsername().strip() + "\">"
 						+ "<p style='font-size: 24px;'><strong>confirm sign-up</strong></p>"
 						+ "</a> to activate your account.</p>" + "</div>";
@@ -232,8 +232,8 @@ public class AuthService {
 					+ "<div style='background-color: #f2f2f2; padding: 20px; text-align: center;'>" + "<p>Hello, "
 					+ profile.get().getName() + "</p>" + "<p>This is your new password:" + newPassword + "</p>"
 					+ "<p>Please do not share this mail with anyone else to avoid losing your account.</p>"
-					+ "<p>Please click </p>" + "<a href=\"" + domainURL +"v1/auth/confirm-forgot-password?newPassword="+ newPassword + "&username=" + username + "\">" 
-					+ "this link" + "</a>" 
+					+ "<p>Please click </p>" + "<a href=\"http://localhost:3333/confirm-sign-up?email=" + username
+					+ "&newPassword=" + newPassword + "\">" + "this link" + "</a>"
 					+ "<p>to confirm change your password</p>" + "</div>";
 			message.setContent(htmlContent, "text/html; charset=utf-8");
 			mailSender.send(message);
@@ -268,7 +268,7 @@ public class AuthService {
 		}
 		return sb.toString();
 	}
-	
+
 	public ResponseEntity<ResponseObject> confirmChangePassword(String newPassword, String username) {
 		Optional<Account> foundAccount = repository.findByUsername(username);
 		if (!foundAccount.isEmpty()) {

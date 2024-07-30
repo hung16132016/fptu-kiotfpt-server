@@ -118,7 +118,7 @@ public class CategoryService {
 			ShopCategory newShopCategory = new ShopCategory();
 			newShopCategory.setCategory(newCategory);
 			newShopCategory.setShop(foundShop.get());
-			newShopCategory.setStatus(statusRepository.findByValue("inactive").get());
+			newShopCategory.setStatus(statusRepository.findByValue("pending").get());
 			shopCategoryRepository.save(newShopCategory);
 		}
 
@@ -193,6 +193,16 @@ public class CategoryService {
 		category.setStatus(optionalStatus.get());
 
 		repository.save(category);
+		
+		if (optionalStatus.get().getValue().equalsIgnoreCase("active")) {
+			List<ShopCategory> shopcate = shopCategoryRepository.findByCategoryAndStatusValue(optionalCategory.get(),"pending");
+			if (!shopcate.isEmpty()) {
+				for (ShopCategory shopcat : shopcate) {
+					shopcat.setStatus(optionalStatus.get());
+					shopCategoryRepository.save(shopcat);
+				}
+			}
+		}
 
 		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
 				HttpStatus.OK.toString().split(" ")[0], "Category status updated successfully", category));

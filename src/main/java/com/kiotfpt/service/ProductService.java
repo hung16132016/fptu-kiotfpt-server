@@ -16,7 +16,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PathVariable;
 
 import com.kiotfpt.exception.ResourceNotFoundException;
 import com.kiotfpt.model.AccessibilityItem;
@@ -539,49 +538,6 @@ public class ProductService {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
 					new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0], "No products", null));
 		}
-	}
-
-	// fix
-	public ResponseEntity<ResponseObject> findByCategoryId(@PathVariable int id) {
-		Optional<Category> category = categoryRepository.findById(id);
-		if (category.isPresent()) {
-			List<Product> foundProduct = repository.findAllByCategoryid(id);
-			if (foundProduct.isEmpty()) {
-				return ResponseEntity.status(HttpStatus.NOT_FOUND)
-						.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
-								responseMessage.get("getProductByShopIdFail"), ""));
-			} else {
-				List<Product> returnListProduct = new ArrayList<>(); // List to store products with status not 2, 3, or
-																		// 4
-				// Iterate through foundProduct list to check status
-				for (Product product : foundProduct) {
-					int status = product.getStatus().getId();
-					// Check if status is not 2, 3, or 4
-					if (status != 2 && status != 3 && status != 4) {
-						returnListProduct.add(product);
-					}
-				}
-				if (!returnListProduct.isEmpty()) {
-					return ResponseEntity.status(HttpStatus.OK)
-							.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
-									responseMessage.get("getProductByShopIdSuccess"), returnListProduct));
-				} else {
-					return ResponseEntity.status(HttpStatus.NOT_FOUND)
-							.body(new ResponseObject(false, HttpStatus.NOT_FOUND.toString().split(" ")[0],
-									responseMessage.get("getProductByShopIdFail"), ""));
-				}
-			}
-		} else {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-					HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("notFindCate"), ""));
-		}
-
-	}
-
-	// fix
-	public List<Product> searchByName(@PathVariable(name = "name") String name) {
-		List<Product> found = repository.findByname(name);
-		return !found.isEmpty() ? repository.findByname(name) : null;
 	}
 
 	public ResponseEntity<ResponseObject> getProductRelated(int product_id) {

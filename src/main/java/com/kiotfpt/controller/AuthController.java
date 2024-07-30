@@ -40,13 +40,11 @@ public class AuthController {
 	@Autowired
 	private JwtService jwtService;
 
-	// fix
 	@PostMapping("/sign-in")
 	public ResponseEntity<ResponseObject> signIn(@RequestBody AccountRequest request) {
 		return service.signIn(request.getUsername(), request.getPassword());
 	}
 
-	// fix
 	@PostMapping("/sign-up")
 	public ResponseEntity<ResponseObject> signUp(@RequestBody AccountSignUpRequest request)
 			throws AddressException, MessagingException {

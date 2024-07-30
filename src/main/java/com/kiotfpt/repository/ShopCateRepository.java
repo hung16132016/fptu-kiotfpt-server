@@ -21,4 +21,6 @@ public interface ShopCateRepository extends JpaRepository<ShopCategory, Integer>
 
 	boolean existsByShopAndCategory(Shop shop, Category category);
 
+	List<ShopCategory> findByCategoryAndStatusValue(Category category, String string);
+
 }
