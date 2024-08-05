@@ -29,6 +29,7 @@ import com.kiotfpt.repository.AddressRepository;
 import com.kiotfpt.repository.DistrictRepository;
 import com.kiotfpt.repository.ProductRepository;
 import com.kiotfpt.repository.ProvinceRepository;
+import com.kiotfpt.repository.RoleRepository;
 import com.kiotfpt.repository.ShopRepository;
 import com.kiotfpt.repository.StatusRepository;
 import com.kiotfpt.request.ShopRequest;
@@ -63,6 +64,9 @@ public class ShopService {
 
 	@Autowired
 	private AccountProfileRepository profileRepository;
+
+	@Autowired
+	private RoleRepository roleRepository;
 
 	@Autowired
 	private TokenUtils tokenUtils;
@@ -146,6 +150,11 @@ public class ShopService {
 
 		Address address = new Address("133, Nguyen Van Linh", true, districtRepository.findById(659).get(),
 				provinceRepository.findById(123).get(), profileRepository.findByAccount(account.get()).get(), null);
+
+		account.get().setRole(roleRepository.findById(3).get());
+		account.get().setStatus(statusRepository.findByValue("wait for active").get());
+
+		accountRepository.save(account.get());
 
 		Shop shop = new Shop(shopRequest, account.get(), address);
 		repository.save(shop);

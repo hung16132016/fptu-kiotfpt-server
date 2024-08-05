@@ -198,7 +198,6 @@ public class AuthService {
 			if (activeAccount.getStatus().getId() == 15) {
 				Optional<Status> status = statusRepository.findById(11);
 				activeAccount.setStatus(status.get());
-				activeAccount = repository.save(activeAccount);
 
 				Order fakeOrder = new Order();
 				if (activeAccount.getRole().getId() == 2) {
@@ -207,7 +206,9 @@ public class AuthService {
 				} else if (activeAccount.getRole().getId() == 3) {
 					Notify welcomeNotify = new Notify(fakeOrder, activeAccount, "seller welcome");
 					notifyRepository.save(welcomeNotify);
+					activeAccount.setStatus(statusRepository.findById(15).get());
 				}
+				activeAccount = repository.save(activeAccount);
 
 				return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
 						HttpStatus.OK.toString().split(" ")[0], "Active account successfull", ""));

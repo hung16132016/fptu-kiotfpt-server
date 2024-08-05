@@ -62,5 +62,11 @@ public class OrderController {
 			@RequestParam(name = "account_id", required = true) Integer id) {
 		return service.getCurrentOrders(id);
 	}
+	
+	@GetMapping("/update-pay")
+	public ResponseEntity<ResponseObject> updateStatPay(
+			@PathVariable int id) {
+		return service.updateOrderStatusPay(id);
+	}
 
 }

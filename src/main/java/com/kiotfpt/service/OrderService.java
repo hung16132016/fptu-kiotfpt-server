@@ -200,7 +200,7 @@ public class OrderService {
 			Address address = optionalAddress.get();
 
 			// Fetch the 'Pending' and 'Processing' Status
-			Optional<Status> optionalStatus = statusRepository.findByValue("pending");
+			Optional<Status> optionalStatus = statusRepository.findByValue("paying");
 			Optional<Status> activeStatus = statusRepository.findByValue("active");
 			Optional<Status> processStatus = statusRepository.findByValue("processing");
 			if (optionalStatus.isEmpty() || processStatus.isEmpty()) {
@@ -408,6 +408,35 @@ public class OrderService {
 		} else {
 			return ResponseObjectHelper.createFalseResponse(HttpStatus.BAD_REQUEST, "You can not update this order");
 		}
+	}
+
+	public ResponseEntity<ResponseObject> updateOrderStatusPay(int id) {
+		Optional<Order> orderOpt = repository.findById(id);
+		if (orderOpt.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+					HttpStatus.NOT_FOUND.toString().split(" ")[0], "Order does not exist", ""));
+		}
+
+		Order order = orderOpt.get();
+
+		if (!order.getStatus().getValue().equalsIgnoreCase("paying")) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
+					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Status is not valid", ""));
+		}
+		
+		Optional<Status> newStatOpt = statusRepository.findByValue("pending");
+		if (newStatOpt.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+					HttpStatus.NOT_FOUND.toString().split(" ")[0], "Status does not exist", ""));
+		}
+
+		Status newStat = newStatOpt.get();
+
+		order.setStatus(newStat);
+
+		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
+				HttpStatus.OK.toString().split(" ")[0], "Change status order successfully", ""));
+
 	}
 
 	public ResponseEntity<ResponseObject> filterOrdersByTime(DateRequest filterRequest) {
