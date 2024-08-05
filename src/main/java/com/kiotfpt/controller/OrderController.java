@@ -63,7 +63,7 @@ public class OrderController {
 		return service.getCurrentOrders(id);
 	}
 	
-	@GetMapping("/update-pay")
+	@GetMapping("/update-pay/{id}")
 	public ResponseEntity<ResponseObject> updateStatPay(
 			@PathVariable int id) {
 		return service.updateOrderStatusPay(id);
