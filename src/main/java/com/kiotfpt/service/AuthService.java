@@ -78,7 +78,6 @@ public class AuthService {
 	@Value("${domainurl}")
 	private String domainURL;
 
-	// fix
 	public ResponseEntity<ResponseObject> signIn(String username, String password) {
 		if (username.trim() == "" || password.trim() == "")
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
@@ -115,7 +114,6 @@ public class AuthService {
 				HttpStatus.OK.toString().split(" ")[0], responseMessage.get("signInSuccess"), map));
 	}
 
-	// fix
 	public ResponseEntity<ResponseObject> signUp(AccountSignUpRequest request)
 			throws AddressException, MessagingException {
 		Map<String, String> errors = new HashMap<>();
@@ -222,28 +220,29 @@ public class AuthService {
 
 	public ResponseEntity<ResponseObject> forgotPassword(String username) throws AddressException, MessagingException {
 		Optional<Account> foundAccount = repository.findByUsername(username);
-		if (!foundAccount.isEmpty()) {
-			String newPassword = generateRandomPassword();
-			Optional<AccountProfile> profile = profileRepository.findByAccount(foundAccount.get());
-			MimeMessage message = mailSender.createMimeMessage();
-			message.setFrom(new InternetAddress("kiotfpt.help@gmail.com"));
-			message.setRecipients(MimeMessage.RecipientType.TO, username);
-			message.setSubject("Reset Kiot FPT Password");
-			String htmlContent = "<h2>Welcome to Kiot FPT!</h2>"
-					+ "<div style='background-color: #f2f2f2; padding: 20px; text-align: center;'>" + "<p>Hello, "
-					+ profile.get().getName() + "</p>" + "<p>This is your new password:" + newPassword + "</p>"
-					+ "<p>Please do not share this mail with anyone else to avoid losing your account.</p>"
-					+ "<p>Please click </p>" + "<a href=\"http://localhost:3333/confirm-forgot-password?email=" + username
-					+ "&newPassword=" + newPassword + "\">" + "this link" + "</a>"
-					+ "<p>to confirm change your password</p>" + "</div>";
-			message.setContent(htmlContent, "text/html; charset=utf-8");
-			mailSender.send(message);
-
-			return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
-					HttpStatus.OK.toString().split(" ")[0], "Send new password to email successfully", ""));
+		if (foundAccount.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+					.body(new ResponseObject(false, HttpStatus.BAD_REQUEST.toString().split(" ")[0],
+							"Could not find any account with this username", ""));
 		}
-		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
-				HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Could not find any account with this username", ""));
+		String newPassword = generateRandomPassword();
+		Optional<AccountProfile> profile = profileRepository.findByAccount(foundAccount.get());
+		MimeMessage message = mailSender.createMimeMessage();
+		message.setFrom(new InternetAddress("kiotfpt.help@gmail.com"));
+		message.setRecipients(MimeMessage.RecipientType.TO, username);
+		message.setSubject("Reset Kiot FPT Password");
+		String htmlContent = "<h2>Welcome to Kiot FPT!</h2>"
+				+ "<div style='background-color: #f2f2f2; padding: 20px; text-align: center;'>" + "<p>Hello, "
+				+ profile.get().getName() + "</p>" + "<p>This is your new password:" + newPassword + "</p>"
+				+ "<p>Please do not share this mail with anyone else to avoid losing your account.</p>"
+				+ "<p>Please click </p>" + "<a href=\"http://localhost:3333/confirm-forgot-password?email=" + username
+				+ "&newPassword=" + newPassword + "\">" + "this link" + "</a>"
+				+ "<p>to confirm change your password</p>" + "</div>";
+		message.setContent(htmlContent, "text/html; charset=utf-8");
+		mailSender.send(message);
+
+		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
+				HttpStatus.OK.toString().split(" ")[0], "Send new password to email successfully", ""));
 	}
 
 	public ResponseEntity<ResponseObject> sendmail()
