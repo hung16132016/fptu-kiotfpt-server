@@ -1,5 +1,7 @@
 package com.kiotfpt.response;
 
+import java.util.List;
+
 import com.kiotfpt.model.AccountProfile;
 
 import lombok.AllArgsConstructor;
@@ -16,6 +18,7 @@ public class ProfileStatisResponse {
 	private String avatar;
 	private String email;
 	private double totalSpent;
+    private List<Double> orderTotals;
 
 	public ProfileStatisResponse(AccountProfile profile) {
 		this.name = profile.getName();

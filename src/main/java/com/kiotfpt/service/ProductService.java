@@ -772,7 +772,9 @@ public class ProductService {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND)
 					.body(new ResponseObject(false, "404", "There are no product with this shop category id!", null));
 		}
-		List<Product> products = productPage.getContent();
+
+		List<Product> products = productPage.getContent().stream().filter(product -> product.getStatus().getId() == 11)
+				.collect(Collectors.toList());
 		List<ProductShopResponse> returnListProduct = new ArrayList<>();
 
 		for (Product product : products) {
@@ -830,7 +832,8 @@ public class ProductService {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND)
 					.body(new ResponseObject(false, "404", "There are no product with this shop category id!", null));
 		}
-		List<Product> products = productPage.getContent();
+		List<Product> products = productPage.getContent().stream().filter(product -> product.getStatus().getId() == 11)
+				.collect(Collectors.toList());
 		List<ProductShopResponse> returnListProduct = new ArrayList<>();
 
 		for (Product product : products) {

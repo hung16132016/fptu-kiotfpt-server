@@ -1,5 +1,7 @@
 package com.kiotfpt.controller;
 
+import javax.mail.MessagingException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -42,13 +44,14 @@ public class OrderController {
 	@PreAuthorize("hasAnyAuthority('shop', 'user')")
 	@PutMapping("/update/{id}")
 	public ResponseEntity<ResponseObject> updateOrder(@PathVariable int id, @RequestParam String status)
-			throws JsonProcessingException {
+			throws JsonProcessingException, MessagingException {
 		return service.updateOrderStatus(id, status);
 	}
 
-	@PutMapping("/delete/{id}")
-	public ResponseEntity<ResponseObject> deleteOrder(@PathVariable int id) throws JsonProcessingException {
-		return service.updateOrderStatus(id, "inactive");
+	@PutMapping("/cancel/{id}")
+	public ResponseEntity<ResponseObject> deleteOrder(@PathVariable int id,
+			@RequestBody String note) throws JsonProcessingException, MessagingException {
+		return service.cancelOrder(id, "cancel", note);
 	}
 
 	@PreAuthorize("hasAuthority('user')")
@@ -62,10 +65,9 @@ public class OrderController {
 			@RequestParam(name = "account_id", required = true) Integer id) {
 		return service.getCurrentOrders(id);
 	}
-	
+
 	@GetMapping("/update-pay/{id}")
-	public ResponseEntity<ResponseObject> updateStatPay(
-			@PathVariable int id) {
+	public ResponseEntity<ResponseObject> updateStatPay(@PathVariable int id) {
 		return service.updateOrderStatusPay(id);
 	}
 

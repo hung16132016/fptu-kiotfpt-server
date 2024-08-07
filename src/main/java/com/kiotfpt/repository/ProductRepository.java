@@ -97,10 +97,10 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
 	@Query(value = "SELECT * FROM kiotfpt_product WHERE kiotfpt_product.status_id = 11", nativeQuery = true) // haibang
 	List<Product> findAllActiveProduct();
 
-	@Query(value = "Select * from kiotfpt_product where kiotfpt_product.category_id = :cateId and kiotfpt_product.shop_id = :shopId", nativeQuery = true)
+	@Query(value = "SELECT * FROM kiotfpt_product WHERE kiotfpt_product.category_id = :cateId AND kiotfpt_product.shop_id = :shopId AND kiotfpt_product.status_id = 11", nativeQuery = true)
 	Page<Product> findByShopIDAndCateID(@Param("shopId") Integer shopId, @Param("cateId") Integer cateId,
 			Pageable pageable);
-	
+
 	@Query(value = "Select * from kiotfpt_product where kiotfpt_product.category_id = :cateId and kiotfpt_product.shop_id = :shopId", nativeQuery = true)
 	List<Product> findByShopIDAndCateID(@Param("shopId") Integer shopId, @Param("cateId") Integer cateId);
 

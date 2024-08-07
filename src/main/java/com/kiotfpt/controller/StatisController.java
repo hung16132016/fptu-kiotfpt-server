@@ -54,7 +54,6 @@ public class StatisController {
 	@PreAuthorize("hasAuthority('shop')")
 	@GetMapping("/customer")
 	public ResponseEntity<ResponseObject> sortAccountByTotalSpent() {
-
 		return profileService.getProfilesOrderedByTotalSpent();
 	}
 

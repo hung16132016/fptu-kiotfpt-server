@@ -23,6 +23,7 @@ public class OrderResponse {
 	private LocalDateTime time_complete;
 	private String desc;
 	private float total;
+	private int voucherValue;
 	private ShopMiniResponse shop;
 	private List<ProductOrderResponse> product;
 	private StatusResponse status;
@@ -36,13 +37,13 @@ public class OrderResponse {
 		this.desc = order.getDesc();
 		this.total = order.getTotal();
 		this.shop = new ShopMiniResponse(order.getShop());
-		
+
 		Collection<AccessibilityItem> items = order.getSection().getItems();
 		List<ProductOrderResponse> list = new ArrayList<ProductOrderResponse>();
 		for (AccessibilityItem item : items) {
 			list.add(new ProductOrderResponse(item));
 		}
-		
+
 		this.product = list;
 		this.status = new StatusResponse(order.getStatus());
 	}
@@ -55,14 +56,22 @@ public class OrderResponse {
 		this.desc = order.getDesc();
 		this.total = order.getTotal();
 		this.shop = new ShopMiniResponse(order.getShop());
-		
+
 		Collection<AccessibilityItem> items = order.getSection().getItems();
-		List<ProductOrderResponse> list = new ArrayList<ProductOrderResponse>();
+		List<ProductOrderResponse> list = new ArrayList<>();
+		float totalItemTotal = 0;
 		for (AccessibilityItem item : items) {
 			list.add(new ProductOrderResponse(item));
+			totalItemTotal += item.getTotal();
 		}
-		this.profile = new ProfileMiniResponse(profile);
+
 		this.product = list;
 		this.status = new StatusResponse(order.getStatus());
+		this.profile = new ProfileMiniResponse(profile);
+		if (order.getTotal() == totalItemTotal) {
+			this.voucherValue = 0;
+		} else {
+			this.voucherValue = totalItemTotal != 0 ? (int) (100 - (order.getTotal() / totalItemTotal) * 100) : 0;
+		}
 	}
 }

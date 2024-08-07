@@ -8,12 +8,17 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import javax.mail.MessagingException;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -94,6 +99,9 @@ public class OrderService {
 
 	@Autowired
 	private VariantRepository variantRepository;
+
+	@Autowired
+	private JavaMailSender mailSender;
 
 	@Autowired
 	private TokenUtils tokenUtils;
@@ -245,6 +253,8 @@ public class OrderService {
 				// Apply voucher discount if available
 				if (voucher != null && voucher.getValue() > 0) {
 					orderTotal = orderTotal - (orderTotal * voucher.getValue() / 100);
+					voucher.setStatus(statusRepository.findByValue("inactive").get());
+					voucherRepository.save(voucher);
 				}
 
 				if (sectionRequest.getItem_id().size() == accessibilityItems.size()) {
@@ -318,7 +328,8 @@ public class OrderService {
 		return total;
 	}
 
-	public ResponseEntity<ResponseObject> updateOrderStatus(int id, String status) throws JsonProcessingException {
+	public ResponseEntity<ResponseObject> updateOrderStatus(int id, String status)
+			throws JsonProcessingException, MessagingException {
 		Optional<Order> orderOpt = repository.findById(id);
 		if (orderOpt.isEmpty()) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
@@ -350,6 +361,16 @@ public class OrderService {
 			transactionRepository.save(trans);
 
 			notifyRepository.save(new Notify(order, order.getAccount(), "completed"));
+			Optional<AccountProfile> profile = profileRepository.findByAccount(order.getAccount());
+
+			MimeMessage message = mailSender.createMimeMessage();
+			message.setFrom(new InternetAddress("kiotfpt.help@gmail.com"));
+			message.setRecipients(MimeMessage.RecipientType.TO, profile.get().getEmail());
+			message.setSubject("[Order] Your Order is completed");
+			String htmlContent = "This email is for confirm that your order with id: " + order.getId()
+					+ " have completed with total of " + order.getTotal() + ".";
+			message.setContent(htmlContent, "text/html; charset=utf-8");
+			mailSender.send(message);
 
 			return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
 					HttpStatus.OK.toString().split(" ")[0], "Create transaction successfully", trans));
@@ -383,24 +404,6 @@ public class OrderService {
 			return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
 					HttpStatus.OK.toString().split(" ")[0], "Order status updated to delivering successfully", order));
 
-		} else if (((order.getStatus().getValue().equals("pending") || order.getStatus().getValue().equals("accepted"))
-				&& newStat.getValue().equalsIgnoreCase("cancel") && tokenUtils.checkMatch("user"))
-				|| tokenUtils.checkMatch("shop")) {
-
-			order.setStatus(newStat);
-			order.getSection().setStatus(newStat);
-
-			for (AccessibilityItem item : order.getSection().getItems()) {
-				item.setStatus(newStat);
-				itemRepository.save(item);
-			}
-
-			repository.save(order);
-			notifyRepository.save(new Notify(order, order.getAccount(), newStat.getValue()));
-
-			return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
-					HttpStatus.OK.toString().split(" ")[0], "Update order successfully", order));
-
 		} else if (!order.getStatus().getValue().equals("pending") && !order.getStatus().getValue().equals("accepted")
 				&& newStat.getValue().equalsIgnoreCase("cancel")) {
 			return ResponseObjectHelper.createFalseResponse(HttpStatus.BAD_REQUEST, "You can not cancel this order");
@@ -423,7 +426,7 @@ public class OrderService {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseObject(false,
 					HttpStatus.BAD_REQUEST.toString().split(" ")[0], "Status is not valid", ""));
 		}
-		
+
 		Optional<Status> newStatOpt = statusRepository.findByValue("pending");
 		if (newStatOpt.isEmpty()) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
@@ -523,6 +526,44 @@ public class OrderService {
 				.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Completed orders found",
 						new OrderFilterResult(responseList, totalOfAllOrders, responseList.size())));
 
+	}
+
+	public ResponseEntity<ResponseObject> cancelOrder(int id, String status, String note) {
+	    Optional<Order> orderOpt = repository.findById(id);
+	    if (orderOpt.isEmpty()) {
+	        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+	                HttpStatus.NOT_FOUND.toString().split(" ")[0], "Order does not exist", ""));
+	    }
+
+	    Order order = orderOpt.get();
+
+	    Optional<Status> newStatOpt = statusRepository.findByValue(status);
+	    if (newStatOpt.isEmpty()) {
+	        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+	                HttpStatus.NOT_FOUND.toString().split(" ")[0], "Status does not exist", ""));
+	    }
+
+	    Status newStat = newStatOpt.get();
+
+	    if (!order.getStatus().getValue().equals("pending") && !order.getStatus().getValue().equals("accepted")
+	            && newStat.getValue().equalsIgnoreCase("cancel")) {
+	        return ResponseObjectHelper.createFalseResponse(HttpStatus.BAD_REQUEST, "You cannot cancel this order");
+	    }
+
+	    order.setStatus(newStat);
+	    order.getSection().setStatus(newStat);
+	    order.setDesc(note);
+
+	    for (AccessibilityItem item : order.getSection().getItems()) {
+	        item.setStatus(newStat);
+	        itemRepository.save(item);
+	    }
+
+	    repository.save(order);
+	    notifyRepository.save(new Notify(order, order.getAccount(), newStat.getValue()));
+
+	    return ResponseEntity.status(HttpStatus.OK).body(
+	            new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Update order successfully", order));
 	}
 
 	@Data

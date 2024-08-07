@@ -1,5 +1,7 @@
 package com.kiotfpt.service;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -132,36 +134,47 @@ public class AccountProfileService {
 	}
 
 	public ResponseEntity<ResponseObject> getProfilesOrderedByTotalSpent() {
-        try {
-            Optional<Shop> shop = shopRepository.findByAccount(tokenUtils.getAccount());
-            if (shop.isEmpty()) {
-                return ResponseObjectHelper.createFalseResponse(HttpStatus.BAD_REQUEST,
-                        "No shop found with the current account");
-            }
-            List<Order> orders = orderRepository.findByShopIdAndStatusValue(shop.get().getId(), "completed");
-            List<AccountProfile> profiles = repository.findAll();
+		try {
+			Optional<Shop> shop = shopRepository.findByAccount(tokenUtils.getAccount());
+			if (shop.isEmpty()) {
+				return ResponseObjectHelper.createFalseResponse(HttpStatus.BAD_REQUEST,
+						"No shop found with the current account");
+			}
+			List<Order> orders = orderRepository.findByShopIdAndStatusValue(shop.get().getId(), "completed");
+			List<AccountProfile> profiles = repository.findAll();
+			
+			Map<Integer, Double> totalSpentByAccount = new HashMap<>();
+			Map<Integer, List<Double>> orderTotalsByAccount = new HashMap<>();
 
-            Map<Integer, Double> totalSpentByAccount = orders.stream()
-                    .collect(Collectors.groupingBy(order -> order.getAccount().getId(), Collectors.summingDouble(Order::getTotal)));
+			orders.forEach(order -> {
+				int accountId = order.getAccount().getId();
+				double orderTotal = order.getTotal();
+				totalSpentByAccount.merge(accountId, orderTotal, Double::sum);
 
-            List<ProfileStatisResponse> profileResponses = profiles.stream()
-                    .map(profile -> {
-                        double totalSpent = totalSpentByAccount.getOrDefault(profile.getAccount().getId(), 0.0);
-                        ProfileStatisResponse response = new ProfileStatisResponse(profile);
-                        response.setTotalSpent(totalSpent);
-                        return response;
-                    })
-                    .filter(response -> response.getTotalSpent() > 0)
-                    .sorted(Comparator.comparingDouble(ProfileStatisResponse::getTotalSpent).reversed())
-                    .collect(Collectors.toList());
+				orderTotalsByAccount.computeIfAbsent(accountId, k -> new ArrayList<>()).add(orderTotal);
+			});
 
-            return ResponseEntity.status(HttpStatus.OK)
-                    .body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
-                            "Profiles retrieved and sorted successfully", profileResponses));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ResponseObject(false, HttpStatus.INTERNAL_SERVER_ERROR.toString().split(" ")[0],
-                            "An error occurred while retrieving profiles", null));
-        }
+			List<ProfileStatisResponse> profileResponses = profiles.stream()
+					.filter(profile -> totalSpentByAccount.containsKey(profile.getAccount().getId())).map(profile -> {
+						int accountId = profile.getAccount().getId();
+						double totalSpent = totalSpentByAccount.getOrDefault(accountId, 0.0);
+						List<Double> orderTotals = orderTotalsByAccount.getOrDefault(accountId,
+								Collections.emptyList());
+
+						ProfileStatisResponse response = new ProfileStatisResponse(profile);
+						response.setTotalSpent(totalSpent);
+						response.setOrderTotals(orderTotals);
+						return response;
+					}).sorted(Comparator.comparingDouble(ProfileStatisResponse::getTotalSpent).reversed())
+					.collect(Collectors.toList());
+
+			return ResponseEntity.status(HttpStatus.OK)
+					.body(new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0],
+							"Profiles retrieved and sorted successfully", profileResponses));
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(new ResponseObject(false, HttpStatus.INTERNAL_SERVER_ERROR.toString().split(" ")[0],
+							"An error occurred while retrieving profiles", null));
+		}
 	}
 }
