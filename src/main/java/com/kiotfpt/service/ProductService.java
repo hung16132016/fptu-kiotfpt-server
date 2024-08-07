@@ -214,8 +214,29 @@ public class ProductService {
 
 		List<Product> products = productPage.getContent();
 		List<Shop> shops = shopRepository.findByNameContainingIgnoreCase(keyword);
+		List<Category> categories = categoryRepository.findByNameContainingIgnoreCase(keyword);
 
-		SearchProductResponse response = new SearchProductResponse(productPage.getTotalPages(), products, shops);
+		if (products.isEmpty()) {
+			if (!shops.isEmpty()) {
+				products = shops.stream().flatMap(shop -> shop.getProducts().stream())
+
+						.distinct().collect(Collectors.toList());
+			} else if (!categories.isEmpty()) {
+				products = categories.stream().flatMap(category -> category.getProducts().stream()).distinct()
+						.collect(Collectors.toList());
+			}
+		}
+
+		if (shops.isEmpty()) {
+			shops = products.stream().map(Product::getShop).distinct().collect(Collectors.toList());
+		}
+
+		if (categories.isEmpty()) {
+			categories = products.stream().map(Product::getCategory).distinct().collect(Collectors.toList());
+		}
+
+		SearchProductResponse response = new SearchProductResponse(productPage.getTotalPages(), products, shops,
+				categories);
 
 		return !products.isEmpty()
 				? ResponseEntity.status(HttpStatus.OK)
@@ -363,7 +384,6 @@ public class ProductService {
 				HttpStatus.OK.toString().split(" ")[0], "Product or selected variants deleted successfully", null));
 	}
 
-	// Fixing
 	public ResponseEntity<ResponseObject> createProduct(ProductRequest productRequest) {
 		// Retrieve values from the ProductRequest object
 		String name = productRequest.getName();
@@ -497,7 +517,6 @@ public class ProductService {
 				HttpStatus.OK.toString().split(" ")[0], "Product created successfully", response));
 	}
 
-	// fix
 	public ResponseEntity<ResponseObject> findByShopId(int page, int amount) {
 		Optional<Shop> shopOptional = shopRepository.findByAccount(tokenUtils.getAccount());
 		if (shopOptional.isEmpty()) {
@@ -868,7 +887,6 @@ public class ProductService {
 		}
 	}
 
-	// fix filter status
 	public ResponseEntity<ResponseObject> getProductsBoughtByAccount() {
 		try {
 			List<Order> orders = orderRepository.findByAccountId(tokenUtils.getAccount().getId());
@@ -951,6 +969,7 @@ public class ProductService {
 		private int totalPages;
 		private List<Product> products;
 		private List<Shop> shops;
+		private List<Category> categories;
 	}
 
 	@Data
