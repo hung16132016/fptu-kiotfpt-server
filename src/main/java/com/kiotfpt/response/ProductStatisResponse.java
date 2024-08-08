@@ -20,4 +20,5 @@ public class ProductStatisResponse {
     private float total;
     private LocalDateTime timeComplete;
     private VariantResponse variant;
+    private ShopMiniResponse shop;
 }

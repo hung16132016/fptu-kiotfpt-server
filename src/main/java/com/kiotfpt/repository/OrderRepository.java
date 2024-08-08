@@ -24,6 +24,8 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
     List<Order> findByAccountId(int accountId);
 
 	Page<Order> findAllByShop(Shop shop, Pageable pageable);
+	
+	List<Order> findAllByShop(Shop shop);
 
 	Optional<Order> findBySection(Section order);
 

@@ -2,9 +2,11 @@ package com.kiotfpt.service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -259,7 +261,8 @@ public class OrderService {
 
 				if (sectionRequest.getItem_id().size() == accessibilityItems.size()) {
 					// Create and populate Order entity
-					Order order = new Order(input.getOrder_id(),sectionRequest, orderTotal, section, shop, account, status, address);
+					Order order = new Order(input.getOrder_id(), sectionRequest, orderTotal, section, shop, account,
+							status, address);
 
 					section.setStatus(processStatus.get());
 					for (Integer itemId : sectionRequest.getItem_id()) {
@@ -295,7 +298,8 @@ public class OrderService {
 					}
 
 					// Create and populate Order entity for the new section
-					Order order = new Order(input.getOrder_id(),sectionRequest, orderTotal, savedSection, shop, account, status, address);
+					Order order = new Order(input.getOrder_id(), sectionRequest, orderTotal, savedSection, shop,
+							account, status, address);
 
 					// Save the Order entity
 					repository.save(order);
@@ -529,42 +533,84 @@ public class OrderService {
 
 	}
 
+	public ResponseEntity<ResponseObject> revenueAll() {
+		try {
+			List<Order> orders;
+			// Determine which orders to fetch based on user role
+			if (tokenUtils.checkMatch("admin")) {
+				orders = repository.findAll();
+			} else if (tokenUtils.checkMatch("shop")) {
+				Optional<Shop> shop = shopRepository.findByAccount(tokenUtils.getAccount());
+				if (shop.isEmpty()) {
+					return ResponseObjectHelper.createFalseResponse(HttpStatus.NOT_FOUND,
+							"No shop found with the current account");
+				}
+				orders = repository.findAllByShop(shop.get());
+			} else {
+				return ResponseObjectHelper.createFalseResponse(HttpStatus.FORBIDDEN, "Access denied");
+			}
+
+			// Group orders by month and filter out months with no orders
+			Map<Integer, List<Order>> ordersByMonth = orders.stream().filter(order -> order.getTimeComplete() != null)
+					.collect(Collectors.groupingBy(order -> order.getTimeComplete().getMonthValue()));
+
+			// Process each month to generate the response list
+			List<RevenueMonthResponse> responseList = ordersByMonth.entrySet().stream().map(entry -> {
+				int month = entry.getKey();
+				List<Order> monthlyOrders = entry.getValue();
+				float totalMoneyOfAllOrders = (float) monthlyOrders.stream().mapToDouble(Order::getTotal).sum();
+				int totalOrder = monthlyOrders.size();
+				long totalVariant = monthlyOrders.stream().flatMap(order -> order.getSection().getItems().stream())
+						.distinct().count();
+
+				return new RevenueMonthResponse(totalMoneyOfAllOrders, totalOrder, totalVariant, month);
+			}).sorted(Comparator.comparingInt(RevenueMonthResponse::getMonth)).collect(Collectors.toList());
+
+			return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
+					HttpStatus.OK.toString().split(" ")[0], "Revenue by month found", responseList));
+
+		} catch (Exception e) {
+			return ResponseObjectHelper.createFalseResponse(HttpStatus.INTERNAL_SERVER_ERROR,
+					"An error occurred while fetching revenue data");
+		}
+	}
+
 	public ResponseEntity<ResponseObject> cancelOrder(int id, String status, String note) {
-	    Optional<Order> orderOpt = repository.findById(id);
-	    if (orderOpt.isEmpty()) {
-	        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-	                HttpStatus.NOT_FOUND.toString().split(" ")[0], "Order does not exist", ""));
-	    }
+		Optional<Order> orderOpt = repository.findById(id);
+		if (orderOpt.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+					HttpStatus.NOT_FOUND.toString().split(" ")[0], "Order does not exist", ""));
+		}
 
-	    Order order = orderOpt.get();
+		Order order = orderOpt.get();
 
-	    Optional<Status> newStatOpt = statusRepository.findByValue(status);
-	    if (newStatOpt.isEmpty()) {
-	        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
-	                HttpStatus.NOT_FOUND.toString().split(" ")[0], "Status does not exist", ""));
-	    }
+		Optional<Status> newStatOpt = statusRepository.findByValue(status);
+		if (newStatOpt.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+					HttpStatus.NOT_FOUND.toString().split(" ")[0], "Status does not exist", ""));
+		}
 
-	    Status newStat = newStatOpt.get();
+		Status newStat = newStatOpt.get();
 
-	    if (!order.getStatus().getValue().equals("pending") && !order.getStatus().getValue().equals("accepted")
-	            && newStat.getValue().equalsIgnoreCase("cancel")) {
-	        return ResponseObjectHelper.createFalseResponse(HttpStatus.BAD_REQUEST, "You cannot cancel this order");
-	    }
+		if (!order.getStatus().getValue().equals("pending") && !order.getStatus().getValue().equals("accepted")
+				&& newStat.getValue().equalsIgnoreCase("cancel")) {
+			return ResponseObjectHelper.createFalseResponse(HttpStatus.BAD_REQUEST, "You cannot cancel this order");
+		}
 
-	    order.setStatus(newStat);
-	    order.getSection().setStatus(newStat);
-	    order.setDesc(note);
+		order.setStatus(newStat);
+		order.getSection().setStatus(newStat);
+		order.setDesc(note);
 
-	    for (AccessibilityItem item : order.getSection().getItems()) {
-	        item.setStatus(newStat);
-	        itemRepository.save(item);
-	    }
+		for (AccessibilityItem item : order.getSection().getItems()) {
+			item.setStatus(newStat);
+			itemRepository.save(item);
+		}
 
-	    repository.save(order);
-	    notifyRepository.save(new Notify(order, order.getAccount(), newStat.getValue()));
+		repository.save(order);
+		notifyRepository.save(new Notify(order, order.getAccount(), newStat.getValue()));
 
-	    return ResponseEntity.status(HttpStatus.OK).body(
-	            new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Update order successfully", order));
+		return ResponseEntity.status(HttpStatus.OK).body(
+				new ResponseObject(true, HttpStatus.OK.toString().split(" ")[0], "Update order successfully", order));
 	}
 
 	@Data
@@ -574,5 +620,15 @@ public class OrderService {
 		private List<OrderStatisResponse> orders;
 		private float totalMoneyOfAllOrders;
 		private int totalOrder;
+	}
+
+	@Data
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class RevenueMonthResponse {
+		private float totalMoneyOfAllOrders;
+		private int totalOrder;
+		private long totalVariant;
+		private int month;
 	}
 }

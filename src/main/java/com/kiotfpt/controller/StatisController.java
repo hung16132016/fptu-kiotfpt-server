@@ -43,6 +43,13 @@ public class StatisController {
 
 		return orderService.revenue(filterRequest);
 	}
+	
+	@PreAuthorize("hasAnyAuthority('admin', 'shop')")
+	@PostMapping("/revenue-all")
+	public ResponseEntity<ResponseObject> revenueAll() {
+
+		return orderService.revenueAll();
+	}
 
 	@PreAuthorize("hasAnyAuthority('admin', 'shop')")
 	@PostMapping("/product")
