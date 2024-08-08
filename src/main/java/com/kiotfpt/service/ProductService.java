@@ -951,6 +951,20 @@ public class ProductService {
 				HttpStatus.OK.toString().split(" ")[0], "Product activated successfully", null));
 	}
 
+	public ResponseEntity<ResponseObject> findProductsByIds(List<Integer> ids) {
+		List<Product> products = ids.stream().map(id -> repository.findById(id)).filter(Optional::isPresent)
+				.map(Optional::get).filter(product -> product.getStatus().getValue().equalsIgnoreCase("active"))
+				.collect(Collectors.toList());
+
+		if (products.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseObject(false,
+					HttpStatus.NOT_FOUND.toString().split(" ")[0], "No products found for the given IDs", null));
+		}
+
+		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
+				HttpStatus.OK.toString().split(" ")[0], "Products retrieved successfully", products));
+	}
+
 	@Data
 	@AllArgsConstructor
 	@NoArgsConstructor

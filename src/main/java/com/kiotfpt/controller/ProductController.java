@@ -130,13 +130,13 @@ public class ProductController {
 			@RequestParam(name = "amount") Integer amount) {
 		return service.getProductsByTypeAndShopID(type, shopId, page, amount);
 	}
-	
+
 	@PreAuthorize("hasAuthority('user')")
 	@GetMapping("/bought")
 	public ResponseEntity<ResponseObject> getProductsBoughtByAccount() {
 		return service.getProductsBoughtByAccount();
 	}
-	
+
 	@GetMapping("/update-status/{id}")
 	@PreAuthorize("hasAuthority('shop')")
 	public ResponseEntity<ResponseObject> updateStatusProduct(@PathVariable int id, @RequestParam String status) {
@@ -148,4 +148,9 @@ public class ProductController {
 			return ResponseObjectHelper.createFalseResponse(HttpStatus.BAD_REQUEST, "Invalid status");
 	}
 
+	
+	@PutMapping("/recommend")
+	public ResponseEntity<ResponseObject> findProductsByIds(@RequestBody List<Integer> ids) {
+		return service.findProductsByIds(ids);
+	}
 }
