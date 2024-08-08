@@ -436,6 +436,7 @@ public class OrderService {
 		Status newStat = newStatOpt.get();
 
 		order.setStatus(newStat);
+		repository.save(order);
 
 		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
 				HttpStatus.OK.toString().split(" ")[0], "Change status order successfully", ""));
