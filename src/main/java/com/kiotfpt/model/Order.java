@@ -61,14 +61,15 @@ public class Order {
 	@ManyToOne()
 	@JoinColumn(name = "status_id", nullable = false)
 	private Status status;
-	
+
 	@ManyToOne()
 	@JoinColumn(name = "address_id", nullable = false)
 	private Address address;
 
-	public Order(SectionRequest sectionRequest, float total, Section section, Shop shop, Account account,
+	public Order(int id, SectionRequest sectionRequest, float total, Section section, Shop shop, Account account,
 			Status status, Address address) {
 		super();
+		this.id = id;
 		this.timeInit = LocalDateTime.now();
 		this.timeComplete = null;
 		this.desc = sectionRequest.getDesc() == null || sectionRequest.getDesc().isEmpty() ? "No note"

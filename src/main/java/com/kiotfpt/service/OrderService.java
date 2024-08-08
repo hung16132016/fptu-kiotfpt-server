@@ -259,7 +259,7 @@ public class OrderService {
 
 				if (sectionRequest.getItem_id().size() == accessibilityItems.size()) {
 					// Create and populate Order entity
-					Order order = new Order(sectionRequest, orderTotal, section, shop, account, status, address);
+					Order order = new Order(input.getOrder_id(),sectionRequest, orderTotal, section, shop, account, status, address);
 
 					section.setStatus(processStatus.get());
 					for (Integer itemId : sectionRequest.getItem_id()) {
@@ -295,7 +295,7 @@ public class OrderService {
 					}
 
 					// Create and populate Order entity for the new section
-					Order order = new Order(sectionRequest, orderTotal, savedSection, shop, account, status, address);
+					Order order = new Order(input.getOrder_id(),sectionRequest, orderTotal, savedSection, shop, account, status, address);
 
 					// Save the Order entity
 					repository.save(order);
