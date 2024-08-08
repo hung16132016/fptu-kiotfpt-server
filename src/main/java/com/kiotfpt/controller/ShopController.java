@@ -1,5 +1,7 @@
 package com.kiotfpt.controller;
 
+import javax.mail.MessagingException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -37,8 +39,9 @@ public class ShopController {
 
 	@PreAuthorize("hasAuthority('admin')")
 	@GetMapping("/ban/{id}")
-	public ResponseEntity<ResponseObject> banShop(@PathVariable int id, @RequestParam String status) {
-		return service.banShop(id, status);
+	public ResponseEntity<ResponseObject> banShop(@PathVariable int id, @RequestParam String status,
+			@RequestParam(required = false) String note) throws MessagingException {
+		return service.banShop(id, status, note);
 	}
 
 	@PreAuthorize("hasAuthority('admin')")

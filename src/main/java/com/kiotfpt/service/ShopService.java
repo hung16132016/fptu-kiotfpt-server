@@ -6,13 +6,17 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 import com.kiotfpt.model.Account;
@@ -70,6 +74,9 @@ public class ShopService {
 
 	@Autowired
 	private TokenUtils tokenUtils;
+
+	@Autowired
+	private JavaMailSender mailSender;
 
 	HashMap<String, String> responseMessage = new JsonReader().readJsonFile();
 
@@ -216,8 +223,7 @@ public class ShopService {
 		return ResponseObjectHelper.createFalseResponse(HttpStatus.NOT_FOUND, responseMessage.get("shopNotFound"));
 	}
 
-	@PreAuthorize("hasAuthority('admin')")
-	public ResponseEntity<ResponseObject> banShop(int shopId, String status) {
+	public ResponseEntity<ResponseObject> banShop(int shopId, String status, String note) throws MessagingException {
 		Optional<Shop> optionalShop = repository.findById(shopId);
 		if (!optionalShop.isPresent()) {
 			return ResponseObjectHelper.createFalseResponse(HttpStatus.NOT_FOUND,
@@ -231,22 +237,49 @@ public class ShopService {
 					"No account associated with shop id: " + shopId);
 		}
 
-		// Determine the new status value
-		String statusValue = status.equalsIgnoreCase("inactive") ? "inactive" : "active";
-
 		// Fetch the corresponding status from the database
-		Optional<Status> statusOptional = statusRepository.findByValue(statusValue);
+		Optional<Status> statusOptional = statusRepository.findByValue(status);
 		if (!statusOptional.isPresent()) {
 			return ResponseObjectHelper.createFalseResponse(HttpStatus.NOT_FOUND,
-					statusValue + " status not found in database");
+					status + " status not found in database");
 		}
 
 		// Update the account status
 		account.setStatus(statusOptional.get());
 		accountRepository.save(account);
 
+		// Handle status with a switch case
+		switch (status.toLowerCase()) {
+		case "inactive":
+			sendEmail(shop.getEmail(), shop.getName(), note);
+			break;
+		case "active":
+			break;
+		default:
+			return ResponseObjectHelper.createFalseResponse(HttpStatus.BAD_REQUEST, "Invalid status provided");
+		}
+
 		return ResponseObjectHelper.createTrueResponse(HttpStatus.OK, "Change status successfully", null);
 	}
+
+	private void sendEmail(String to, String shopName, String note) throws MessagingException {
+	        String subject = "Shop Ban Notification";
+	        String text = String.format(
+	            "Hello %s,\n\nWe are sorry to announce that your shop has been banned with the reason: %s.\n\n" +
+	            "Please contact admin through phone number 0911558539 to activate the shop again.\n\n" +
+	            "Thank you.",
+	            shopName, note
+	        );
+
+	        MimeMessage message = mailSender.createMimeMessage();
+	        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+
+	        helper.setTo(to);
+	        helper.setSubject(subject);
+	        helper.setText(text);
+
+	        mailSender.send(message);
+	    }
 
 	public ResponseEntity<ResponseObject> getTop10ShopsByTransactions() {
 		List<Shop> topShops = repository.findTop10ByTransactions();
