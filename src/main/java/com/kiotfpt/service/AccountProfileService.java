@@ -135,12 +135,24 @@ public class AccountProfileService {
 
 	public ResponseEntity<ResponseObject> getProfilesOrderedByTotalSpent() {
 		try {
-			Optional<Shop> shop = shopRepository.findByAccount(tokenUtils.getAccount());
-			if (shop.isEmpty()) {
+			Account currentAccount = tokenUtils.getAccount();
+			String roleValue = currentAccount.getRole().getValue();
+			List<Order> orders;
+
+			if (roleValue.equals("shop")) {
+				Optional<Shop> shop = shopRepository.findByAccount(tokenUtils.getAccount());
+				if (shop.isEmpty()) {
+					return ResponseObjectHelper.createFalseResponse(HttpStatus.BAD_REQUEST,
+							"No shop found with the current account");
+				}
+				orders = orderRepository.findByShopIdAndStatusValue(shop.get().getId(), "completed");
+			} else if (roleValue.equals("admin")) {
+				orders = orderRepository.findByStatusId(27);
+			} else {
 				return ResponseObjectHelper.createFalseResponse(HttpStatus.BAD_REQUEST,
-						"No shop found with the current account");
+						"Invalid role for accessing products");
 			}
-			List<Order> orders = orderRepository.findByShopIdAndStatusValue(shop.get().getId(), "completed");
+
 			List<AccountProfile> profiles = repository.findAll();
 			
 			Map<Integer, Double> totalSpentByAccount = new HashMap<>();

@@ -855,15 +855,26 @@ public class ProductService {
 
 	public ResponseEntity<ResponseObject> getProductsWithReviews() {
 		try {
-			Optional<Shop> shop = shopRepository.findByAccount(tokenUtils.getAccount());
-			if (shop.isEmpty()) {
+			Account currentAccount = tokenUtils.getAccount();
+			String roleValue = currentAccount.getRole().getValue();
+			List<Product> products;
+
+			if (roleValue.equals("shop")) {
+				Optional<Shop> shop = shopRepository.findByAccount(currentAccount);
+				if (shop.isEmpty()) {
+					return ResponseObjectHelper.createFalseResponse(HttpStatus.BAD_REQUEST,
+							"No shop found with the current account");
+				}
+				products = repository.findAllByShopId(shop.get().getId());
+				if (products.isEmpty()) {
+					return ResponseObjectHelper.createFalseResponse(HttpStatus.NOT_FOUND,
+							"No products found for the given shop");
+				}
+			} else if (roleValue.equals("admin")) {
+				products = repository.findAll();
+			} else {
 				return ResponseObjectHelper.createFalseResponse(HttpStatus.BAD_REQUEST,
-						"No shop found with the current account");
-			}
-			List<Product> products = repository.findAllByShopId(shop.get().getId());
-			if (products.isEmpty()) {
-				return ResponseObjectHelper.createFalseResponse(HttpStatus.NOT_FOUND,
-						"No products found for the given shop");
+						"Invalid role for accessing products");
 			}
 
 			List<ProductReviewResponse> responseList = products.stream()

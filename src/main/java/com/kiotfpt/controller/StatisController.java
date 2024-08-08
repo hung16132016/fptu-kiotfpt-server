@@ -51,13 +51,13 @@ public class StatisController {
 		return productService.filterProductsByTimeAndShop(filterRequest);
 	}
 
-	@PreAuthorize("hasAuthority('shop')")
+	@PreAuthorize("hasAnyAuthority('admin', 'shop')")
 	@GetMapping("/customer")
 	public ResponseEntity<ResponseObject> sortAccountByTotalSpent() {
 		return profileService.getProfilesOrderedByTotalSpent();
 	}
 
-	@PreAuthorize("hasAuthority('shop')")
+	@PreAuthorize("hasAnyAuthority('admin', 'shop')")
 	@GetMapping("/feedback")
 	public ResponseEntity<ResponseObject> getProductsWithReviews() {
 		return productService.getProductsWithReviews();

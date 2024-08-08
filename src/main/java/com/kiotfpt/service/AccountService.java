@@ -38,12 +38,13 @@ public class AccountService {
 			Map<Integer, Double> totalSpentByAccount = orders.stream().collect(Collectors
 					.groupingBy(order -> order.getAccount().getId(), Collectors.summingDouble(Order::getTotal)));
 
-			List<ProfileStatisResponse> profileResponses = profiles.stream().map(profile -> {
-				double totalSpent = totalSpentByAccount.getOrDefault(profile.getAccount().getId(), 0.0);
-				ProfileStatisResponse response = new ProfileStatisResponse(profile);
-				response.setTotalSpent(totalSpent);
-				return response;
-			}).sorted(Comparator.comparingDouble(ProfileStatisResponse::getTotalSpent).reversed())
+			List<ProfileStatisResponse> profileResponses = profiles.stream()
+					.filter(profile -> profile.getAccount().getRole().getId() == 2).map(profile -> {
+						double totalSpent = totalSpentByAccount.getOrDefault(profile.getAccount().getId(), 0.0);
+						ProfileStatisResponse response = new ProfileStatisResponse(profile);
+						response.setTotalSpent(totalSpent);
+						return response;
+					}).sorted(Comparator.comparingDouble(ProfileStatisResponse::getTotalSpent).reversed())
 					.collect(Collectors.toList());
 
 			return ResponseEntity.status(HttpStatus.OK)
