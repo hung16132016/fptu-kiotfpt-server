@@ -49,15 +49,15 @@ public class OrderController {
 	}
 
 	@PutMapping("/cancel/{id}")
-	public ResponseEntity<ResponseObject> deleteOrder(@PathVariable int id,
-			@RequestBody String note) throws JsonProcessingException, MessagingException {
+	public ResponseEntity<ResponseObject> deleteOrder(@PathVariable int id, @RequestBody String note)
+			throws JsonProcessingException, MessagingException {
 		return service.cancelOrder(id, "cancel", note);
 	}
 
 	@PreAuthorize("hasAuthority('user')")
 	@PostMapping("/checkout")
-	public ResponseEntity<ResponseObject> createOrder(@RequestBody CreateOrderRequest map) {
-		return service.createOrder(map);
+	public ResponseEntity<ResponseObject> createOrder(@RequestBody CreateOrderRequest map, @RequestParam String type) {
+		return service.createOrder(map, type);
 	}
 
 	@GetMapping("/get-current")

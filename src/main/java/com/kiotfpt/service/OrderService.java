@@ -192,7 +192,7 @@ public class OrderService {
 				HttpStatus.NOT_FOUND.toString().split(" ")[0], responseMessage.get("accountNotFound"), ""));
 	}
 
-	public ResponseEntity<ResponseObject> createOrder(CreateOrderRequest input) {
+	public ResponseEntity<ResponseObject> createOrder(CreateOrderRequest input, String type) {
 		try {
 
 			Account account = tokenUtils.getAccount();
@@ -217,6 +217,8 @@ public class OrderService {
 				return ResponseObjectHelper.createFalseResponse(HttpStatus.NOT_FOUND, "Status not found");
 			}
 			Status status = optionalStatus.get();
+			if (type.equalsIgnoreCase("cash"))
+				status = statusRepository.findByValue("pending").get();
 
 			for (SectionRequest sectionRequest : input.getSections()) {
 				// Validate Section existence
