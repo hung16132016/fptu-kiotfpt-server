@@ -864,7 +864,6 @@ public class ProductService {
 	}
 
 	public ResponseEntity<ResponseObject> getProductsWithReviews() {
-		try {
 			Account currentAccount = tokenUtils.getAccount();
 			String roleValue = currentAccount.getRole().getValue();
 			List<Product> products;
@@ -905,10 +904,7 @@ public class ProductService {
 
 			return ResponseObjectHelper.createTrueResponse(HttpStatus.OK,
 					"Products with reviews found for the given shop", responseList);
-		} catch (Exception e) {
-			return ResponseObjectHelper.createFalseResponse(HttpStatus.INTERNAL_SERVER_ERROR,
-					"An error occurred while fetching products with reviews for the given shop");
-		}
+
 	}
 
 	public ResponseEntity<ResponseObject> getProductsBoughtByAccount() {

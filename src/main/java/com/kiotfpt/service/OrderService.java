@@ -414,9 +414,37 @@ public class OrderService {
 				&& newStat.getValue().equalsIgnoreCase("cancel")) {
 			return ResponseObjectHelper.createFalseResponse(HttpStatus.BAD_REQUEST, "You can not cancel this order");
 
-		} else {
-			return ResponseObjectHelper.createFalseResponse(HttpStatus.BAD_REQUEST, "You can not update this order");
-		}
+		} else if (order.getStatus().getValue().equals("pending") && newStat.getValue().equalsIgnoreCase("accepted")
+				&& tokenUtils.checkMatch("shop")) {
+			order.setStatus(newStat);
+			order.getSection().setStatus(newStat);
+
+			for (AccessibilityItem item : order.getSection().getItems()) {
+				item.setStatus(newStat);
+
+				Variant variant = item.getVariant();
+				if (variant != null) {
+					int newQuantity = variant.getQuantity() - item.getQuantity();
+					if (newQuantity < 0) {
+						return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+								.body(new ResponseObject(false, HttpStatus.BAD_REQUEST.toString().split(" ")[0],
+										"Insufficient quantity in variant", null));
+					}
+					variant.setQuantity(newQuantity);
+					variantRepository.save(variant);
+				}
+
+				itemRepository.save(item);
+			}
+
+			repository.save(order);
+			notifyRepository.save(new Notify(order, order.getAccount(), "delivering"));
+
+			return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(true,
+					HttpStatus.OK.toString().split(" ")[0], "Order status updated to delivering successfully", order));
+		} else
+			return ResponseObjectHelper.createFalseResponse(HttpStatus.BAD_REQUEST, "You can not cancel this order");
+
 	}
 
 	public ResponseEntity<ResponseObject> updateOrderStatusPay(int id) {
