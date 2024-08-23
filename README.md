@@ -135,6 +135,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-> GitHub [@hung16132016](https://github.com/hung16132016)s
+> GitHub [@hung16132016](https://github.com/hung16132016)
 
 
