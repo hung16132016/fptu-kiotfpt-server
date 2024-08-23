@@ -6,7 +6,7 @@
   <br>
 </h1>
 
-<h4 align="center">A comprehensive back-end solution built with <a href="https://spring.io/projects/spring-boot" target="_blank">Spring Boot</a> and <a href="https://maven.apache.org/" target="_blank">Maven</a>.</h4>
+<h4 align="center">A critical back-end solution designed for our final project to graduate, built with <a href="https://spring.io/projects/spring-boot" target="_blank">Spring Boot</a> and <a href="https://maven.apache.org/" target="_blank">Maven</a>.</h4>
 
 <p align="center">
   <a href="https://github.com/nghiempt/fptu-kiotfpt-server">
