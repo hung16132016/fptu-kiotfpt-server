@@ -1,127 +1,140 @@
-
 <h1 align="center">
   <br>
-  <a href="http://www.amitmerchant.com/electron-markdownify"><img src="https://raw.githubusercontent.com/amitmerchant1990/electron-markdownify/master/app/img/markdownify.png" alt="Markdownify" width="200"></a>
+  <a href="https://github.com/nghiempt/fptu-kiotfpt-server"><img src="https://assets.kiotfpt.store/logo_kiotfpt.jpg" alt="KiotFPT" width="200"></a>
   <br>
-  Eposh
+  KiotFPT
   <br>
 </h1>
 
-<h4 align="center">A minimal Markdown Editor desktop app built on top of <a href="http://electron.atom.io" target="_blank">Electron</a>.</h4>
+<h4 align="center">A comprehensive back-end solution built with <a href="https://spring.io/projects/spring-boot" target="_blank">Spring Boot</a> and <a href="https://maven.apache.org/" target="_blank">Maven</a>.</h4>
 
 <p align="center">
-  <a href="https://badge.fury.io/js/electron-markdownify">
-    <img src="https://badge.fury.io/js/electron-markdownify.svg"
-         alt="Gitter">
+  <a href="https://github.com/nghiempt/fptu-kiotfpt-server">
+    <img src="https://img.shields.io/badge/version-1.0-blue.svg" alt="Version">
   </a>
-  <a href="https://gitter.im/amitmerchant1990/electron-markdownify"><img src="https://badges.gitter.im/amitmerchant1990/electron-markdownify.svg"></a>
-  <a href="https://saythanks.io/to/bullredeyes@gmail.com">
-      <img src="https://img.shields.io/badge/SayThanks.io-%E2%98%BC-1EAEDB.svg">
-  </a>
-  <a href="https://www.paypal.me/AmitMerchant">
-    <img src="https://img.shields.io/badge/$-donate-ff69b4.svg?maxAge=2592000&amp;style=flat">
+  <a href="mailto:hung16132016@gmail.com">
+    <img src="https://img.shields.io/badge/Contact-us-blue.svg">
   </a>
 </p>
 
 <p align="center">
   <a href="#key-features">Key Features</a> •
-  <a href="#how-to-use">How To Use</a> •
-  <a href="#download">Download</a> •
+  <a href="#installation">Installation</a> •
+  <a href="#setup">Setup</a> •
   <a href="#credits">Credits</a> •
-  <a href="#related">Related</a> •
   <a href="#license">License</a>
 </p>
 
-![screenshot](https://raw.githubusercontent.com/amitmerchant1990/electron-markdownify/master/app/img/markdownify.gif)
-
 ## Key Features
 
-* LivePreview - Make changes, See changes
-  - Instantly see what your Markdown documents look like in HTML as you create them.
-* Sync Scrolling
-  - While you type, LivePreview will automatically scroll to the current location you're editing.
-* GitHub Flavored Markdown  
-* Syntax highlighting
-* [KaTeX](https://khan.github.io/KaTeX/) Support
-* Dark/Light mode
-* Toolbar for basic Markdown formatting
-* Supports multiple cursors
-* Save the Markdown preview as PDF
-* Emoji support in preview :tada:
-* App will keep alive in tray for quick usage
-* Full screen mode
-  - Write distraction free.
-* Cross platform
-  - Windows, macOS and Linux ready.
+* Spring Boot Framework
+  - A robust back-end framework to build enterprise-level applications.
+* Maven Build System
+  - Easily manage dependencies and build the project.
+* JDK 8 Compatibility
+  - Ensures wide compatibility with various systems.
+* Database Configuration
+  - Flexible setup to connect with different databases.
 
-## How To Use
+## Installation
 
-To clone and run this application, you'll need [Git](https://git-scm.com) and [Node.js](https://nodejs.org/en/download/) (which comes with [npm](http://npmjs.com)) installed on your computer. From your command line:
+Follow these steps to set up the project environment:
 
+### Install Java Development Kit (JDK) 8:
+
+#### Windows:
+1. Download JDK 8 from the Oracle website.
+2. Run the installer and follow the on-screen instructions.
+3. Set `JAVA_HOME` environment variable:
+   - Open System Properties > Environment Variables.
+   - Add `JAVA_HOME` with the path to your JDK installation directory.
+   - Add `%JAVA_HOME%\bin` to the `Path` variable.
+
+#### macOS:
+1. Install Homebrew if not already installed. Open Terminal and run:
+   ```bash
+   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+   ```
+2. Install JDK 8:
+   ```bash
+   brew install --cask adoptopenjdk8
+   ```
+3. Set `JAVA_HOME`:
+   ```bash
+   export JAVA_HOME=$(/usr/libexec/java_home -v 1.8)
+   echo 'export JAVA_HOME=$(/usr/libexec/java_home -v 1.8)' >> ~/.bash_profile
+   source ~/.bash_profile
+   ```
+
+#### Linux:
+1. Install JDK 8 using the package manager. For Ubuntu:
+   ```bash
+   sudo apt update
+   sudo apt install openjdk-8-jdk
+   ```
+2. Set `JAVA_HOME`:
+   ```bash
+   echo 'export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64' >> ~/.bashrc
+   echo 'export PATH=$JAVA_HOME/bin:$PATH' >> ~/.bashrc
+   source ~/.bashrc
+   ```
+
+### Install Apache Maven:
+
+#### Windows:
+1. Download Maven from the official website.
+2. Extract the archive to a suitable location.
+3. Set `MAVEN_HOME` environment variable:
+   - Open System Properties > Environment Variables.
+   - Add `MAVEN_HOME` with the path to the Maven directory.
+   - Add `%MAVEN_HOME%\bin` to the `Path` variable.
+
+#### macOS:
 ```bash
-# Clone this repository
-$ git clone https://github.com/amitmerchant1990/electron-markdownify
-
-# Go into the repository
-$ cd electron-markdownify
-
-# Install dependencies
-$ npm install
-
-# Run the app
-$ npm start
+brew install maven
 ```
 
-> **Note**
-> If you're using Linux Bash for Windows, [see this guide](https://www.howtogeek.com/261575/how-to-run-graphical-linux-desktop-applications-from-windows-10s-bash-shell/) or use `node` from the command prompt.
+#### Linux:
+```bash
+sudo apt update
+sudo apt install maven
+```
 
+## Setup
 
-## Download
+### Clone the Project Repository:
+```bash
+git clone https://github.com/hung16132016/fptu-kiotfpt-server.git
+cd fptu-kiotfpt-server
+```
 
-You can [download](https://github.com/amitmerchant1990/electron-markdownify/releases/tag/v1.2.0) the latest installable version of Markdownify for Windows, macOS and Linux.
+### Configure the Application:
+Edit `src/main/resources/application.properties` to set up your database and other configurations. Note that this file is not public on GitHub; please request access via the provided [Drive link](https://drive.google.com) to obtain the file content.
 
-## Emailware
+### Build the Project:
+```bash
+mvn clean install
+```
 
-Markdownify is an [emailware](https://en.wiktionary.org/wiki/emailware). Meaning, if you liked using this app or it has helped you in any way, I'd like you send me an email at <bullredeyes@gmail.com> about anything you'd want to say about this software. I'd really appreciate it!
+### Run the Application:
+```bash
+mvn spring-boot:run
+```
 
 ## Credits
 
-This software uses the following open source packages:
+This project is powered by:
 
-- [Electron](http://electron.atom.io/)
-- [Node.js](https://nodejs.org/)
-- [Marked - a markdown parser](https://github.com/chjj/marked)
-- [showdown](http://showdownjs.github.io/showdown/)
-- [CodeMirror](http://codemirror.net/)
-- Emojis are taken from [here](https://github.com/arvida/emoji-cheat-sheet.com)
-- [highlight.js](https://highlightjs.org/)
-
-## Related
-
-[markdownify-web](https://github.com/amitmerchant1990/markdownify-web) - Web version of Markdownify
-
-## Support
-
-<a href="https://www.buymeacoffee.com/5Zn8Xh3l9" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/purple_img.png" alt="Buy Me A Coffee" style="height: 41px !important;width: 174px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;" ></a>
-
-<p>Or</p> 
-
-<a href="https://www.patreon.com/amitmerchant">
-	<img src="https://c5.patreon.com/external/logo/become_a_patron_button@2x.png" width="160">
-</a>
-
-## You may also like...
-
-- [Pomolectron](https://github.com/amitmerchant1990/pomolectron) - A pomodoro app
-- [Correo](https://github.com/amitmerchant1990/correo) - A menubar/taskbar Gmail App for Windows and macOS
+- [Spring Boot](https://spring.io/projects/spring-boot)
+- [Apache Maven](https://maven.apache.org/)
+- [Java Development Kit (JDK) 8](https://www.oracle.com/java/technologies/javase/javase-jdk8-downloads.html)
 
 ## License
 
-MIT
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
-> [amitmerchant.com](https://www.amitmerchant.com) &nbsp;&middot;&nbsp;
-> GitHub [@amitmerchant1990](https://github.com/amitmerchant1990) &nbsp;&middot;&nbsp;
-> Twitter [@amit_merchant](https://twitter.com/amit_merchant)
+> GitHub [@hung16132016](https://github.com/hung16132016)s
+
 
